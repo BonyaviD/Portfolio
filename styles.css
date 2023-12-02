@@ -46,15 +46,77 @@ body {
   height: 100%;
 }
 
-.navbar-link a {
-  padding: 0.5rem 1rem;
+.navbar-link {
+  padding: 0.2rem 0.8rem ;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   border-radius: 5px;
-  color: #fff;
-  background-color: rgb(129, 67, 140);
+  background-color: rgba(129, 67, 140, 0.5);
   cursor: pointer;
+}
+.navbar-link a {
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.navbar-link i { 
+font-size: 1.6rem;
+  margin-right: 0.4rem;
 }
 
 .navbar-link:not(:last-child) {
   margin-right: 20px;
   
+}
+
+.linkedin {
+  color: #0A66C2;
+}
+.github {
+  color: rgb(34, 33, 33);
+}
+
+.informations {
+  position: relative;
+  top: 250px;
+  left: 25px;
+  width: 250px;
+  height: 50px;
+  background-color:  rgba(129, 67, 140, 0.2);
+  /* border-left: 4px solid rgba(129, 67, 140, 0.8); */
+  animation: info 1.5s alternate-reverse infinite;
+  backdrop-filter: blur(5px);
+}
+
+@keyframes info {
+  from { border-left: 4px solid rgba(129, 67, 140, 0.2);}
+  to {border-left: 4px solid rgba(129, 67, 140, 0.8);}
+}
+
+.developer {
+position: absolute;
+top: 2px;
+left: 10px;
+font-size: 1.2rem;
+color: #fff;
+font-weight: 500;
+animation: frontend 1s alternate-reverse infinite;
+}
+@keyframes frontend {
+  from { transform: translateX(0px);}
+  to {transform: translateX(4px);}
+}
+
+.location {
+  position: absolute;
+  top: 25px;
+  left: 10px;
+  color: rgb(129, 67, 140);
+  font-weight: 600;
+  /* background-color: #fff; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
 }

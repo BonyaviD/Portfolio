@@ -285,9 +285,7 @@ body {
   flex-wrap: wrap;
   gap: 30px 4px;
 }
-.identity,
-.skills,
-.backend-skills {
+.personal-info ul {
   position: relative;
   padding: 1rem;
   border-radius: 8px;
@@ -297,10 +295,13 @@ body {
   -webkit-backdrop-filter: blur(4px);
   color: #fff;
   font-size: 0.8rem;
+  min-height: 180px;
 }
+
 .identity li,
 .skills li,
-.backend-skills li {
+.backend-skills li,
+.experience li {
   display: flex;
   align-items: center;
   margin-top: 0.4rem;
@@ -310,7 +311,7 @@ body {
 
 .developer-id,
 .frontend-skill,
-.title-backend {
+.title-backend, .experience-title {
   padding: 0.5rem;
   position: absolute;
   top: -20px;
@@ -323,7 +324,8 @@ body {
 
 .developer-id span,
 .frontend-skill span,
-.title-backend span {
+.title-backend span,
+.experience-title span {
   color: var(--primary-color);
   font-weight: 600;
   font-size: 0.7rem;
@@ -404,7 +406,7 @@ body {
 }
 
 .upgrade {
-  padding-top: 2rem;
+  padding-top: 1rem;
   display: flex;
   justify-content: center;
   font-size: 1rem;
@@ -422,6 +424,63 @@ body {
   }
 }
 
+.spyer {position: relative;}
+.spyer .click {
+  position: absolute;
+left: 87px;
+}
+.spyer .click {
+  animation: showclick 2s alternate-reverse infinite;
+}
+.spyer .before-click {
+  animation: hideclick 2s  alternate-reverse infinite;
+}
+
+@keyframes showclick {
+  0% {
+    z-index: 4;
+    /* display: none; */
+    
+  }
+  100% {
+    z-index: 0;
+   
+    
+  }
+}
+
+@keyframes hideclick {
+  0% {
+    z-index: 0;
+   
+  
+  }
+  100% {
+    z-index: 4;
+    
+    
+  }
+}
+
+
+.spyer img {
+  background-color: var(--primary-color);
+  padding: 0.2rem;
+  border-radius: 4px;
+  margin-right: 4px;
+  width:25px;
+  margin-right: 5px;
+}
+.spyer a {
+  color: #fff;
+  background-color: var(--primary-color);
+  padding: 0.3rem;
+  border-radius: 4px;
+  margin-left: 10px;
+  width: 50px;
+  text-align: center;
+ 
+}
 @media (max-width: 500px) {
   .navbar-link:not(:last-child) {
     margin-right: 5px;

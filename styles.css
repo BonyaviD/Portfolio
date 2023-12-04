@@ -31,6 +31,7 @@ body {
   height: 60px;
   background-color: rgba(232, 205, 255, 0.235);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   z-index: 4;
 }
 
@@ -90,6 +91,7 @@ body {
   /* border-left: 4px solid rgba(129, 67, 140, 0.8); */
   animation: info 0.6s alternate-reverse infinite;
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   z-index: 3;
 }
 
@@ -150,6 +152,8 @@ body {
   /* width: 200px; */
   border: 1px solid rgb(129, 67, 140);
   z-index: 5;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .content-name {
@@ -184,68 +188,176 @@ body {
 
 .icons-dance {
   position: absolute;
-  top: 0px;
+  top: -20px;
   z-index: 1;
   width: 25px;
 }
-.nuxt {
+.nuxtt {
   left: 10%;
-  animation: icons 13s  infinite;
+  animation: icons 20s infinite;
 }
-.vue {
-  left: 20%;
-  animation: icons 14s  infinite;
-}
-.git {
- left: 30%;
-  animation: icons 3s  infinite;
-}
-.githubb {
-  left: 40%;
-  animation: icons 4s  infinite;
-}
-.tailwind {
- left: 45%;
-  animation: icons 5s  infinite;
+.nuxt {
+  left: 55%;
+  animation: icons 14s infinite;
 }
 .vscodee {
-  left: 75%;
-  animation: icons 6s  infinite;
-}
-.nuxtt {
-  left: 35%;
-  animation: icons 7s  infinite;
-}
-.vuee {
- left: 80%;
-  animation: icons 8s  infinite;
-}
-.gitt {
-  left: 60%;
-  animation: icons 9s  infinite;
-}
-.githubbb {
-  left: 70%;
-  animation: icons 10s  infinite;
+  left: 45%;
+  animation: icons 24s infinite;
 }
 .vscode {
+  left: 70%;
+  animation: icons 16s infinite;
+}
+.githubb {
   left: 15%;
-  animation: icons 11s  infinite;
+  animation: icons 28s infinite;
+}
+.githubbb {
+  left: 75%;
+  animation: icons 12s infinite;
+}
+.gitt {
+  left: 20%;
+  animation: icons 32s infinite;
+}
+.git {
+  left: 85%;
+  animation: icons 35s infinite;
 }
 .tailwindd {
- left: 65%;
-  animation: icons 12s  infinite;
+  left: 40%;
+  animation: icons 33s infinite;
 }
-
+.tailwind {
+  left: 80%;
+  animation: icons 31s infinite;
+}
+.postman {
+  left: 30%;
+  animation: icons 12s infinite;
+}
+.postmann {
+  left: 50%;
+  animation: icons 27s infinite;
+}
+.vuee {
+  left: 35%;
+  animation: icons 18s infinite;
+}
+.vue {
+  left: 65%;
+  animation: icons 33s infinite;
+}
+.mongodbb {
+  left: 25%;
+  animation: icons 15s infinite;
+}
+.mongodb {
+  left: 60%;
+  animation: icons 20s infinite;
+}
 
 @keyframes icons {
   from {
-    transform: translateY(192vh);
+    transform: translateY(194vh);
   }
   to {
     transform: translateY(-40px);
   }
 }
+.personal-info {
+  margin-top: 25px;
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 20px;
+  
+}
+.identity {
+  position: relative;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgb(129, 67, 140);
+  z-index: 4;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #fff;
+}
+.identity li {
+  display: flex;
+  align-items: center;
+  margin-top: 0.4rem;
+  height: 20px;
+  /* background-color: #0a66c2; */
+  
+}
+.identity li span {
+  font-size: 0.8rem;
+  
+ }
+
+.developer-id {
+  padding: 0.5rem;
+  position: absolute;
+  top: -20px;
+  left: 15px;
+  border-radius: 4px;
+  background-color: rgba(232, 205, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+}
+
+.developer-id span {
+  color: rgb(129, 67, 140);
+  font-weight: 600;
+  
+}
+
+.frontend-developer img{
+  width: 15px;
+  margin-right: 8px;
+  /* background-color: antiquewhite; */
+}
+.birthday {
+  position: relative;
+  padding-left: 1.5rem;
+  /* background-color: #b9b9b9; */
+}
+
+.birthday img{
+  position: absolute;
+  top: -15px;
+  left: 0px;
+  width: 15px;
+  animation: baloon 4s alternate-reverse infinite;
+}
+@keyframes baloon {
+  from {
+    transform: rotate(-20deg) scale(0.8);
+  
+  }
+  to {transform: rotate(-50deg) scale(0.7);}
+}
+
+.from-tehran img{
+  width: 20px;
+  margin-right: 4px;
+ 
+}
+
+.mail img{
+ margin: 0 6px 0 2px;
+  width: 16px;
+  
+}
+
+.number img {
+width: 20px;
+margin-right: 4px;
+}
+
+
 
 @media (max-width: 500px) {
   .navbar-link:not(:last-child) {

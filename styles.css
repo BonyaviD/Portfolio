@@ -149,7 +149,8 @@ body {
 }
 .profile {
   margin: 0 auto;
-  width: 60%;
+  width: clamp(0%, 90%, 700px);
+  /* width: 60%; */
    position: relative;
   padding: 1rem;
   color: #fff;
@@ -257,18 +258,27 @@ body {
 }
 .mongodbb {
   left: 25%;
-  animation: mongodb 15s infinite;
+  animation: mongodb 40s infinite;
 }
 .mongodb {
   left: 60%;
-  animation: mongodb 30s infinite;
+  animation: mongodb 30s linear infinite;
 }
 @keyframes mongodb {
-  from {
-    transform: translateY(235vh) rotate(90deg) translateX(-300px) scale(1);
+  0% {
+    transform: translateY(190vh) rotate(120deg) scale(1);
   }
-  to {
-    transform: translateY(-40px) rotate(-20deg) translateX(100px) scale(1.2);
+  25% {
+    transform: translateY(20vh) rotate(-45deg) scale(1.2) translateX(-200px);
+  }
+  50% {
+    transform: translateY(60vh) rotate(120deg) scale(1.4) translateX(10px);
+  }
+  75% {
+    transform: translateY(5vh) rotate(60deg) scale(1.2) translateX(0px);
+  }
+  100% {
+    transform: translateY(-10vh) rotate(60deg) scale(1.2) translateX(0px);
   }
 }
 

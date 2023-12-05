@@ -450,6 +450,17 @@ left: 87px;
 .spyer .before-click {
   animation: hideclick 2s  alternate-reverse infinite;
 }
+.tadavom {position: relative;}
+.tadavom .click {
+  position: absolute;
+left: 100px;
+}
+.tadavom .click {
+  animation: showclick 2s alternate-reverse infinite;
+}
+.tadavom .before-click {
+  animation: hideclick 2s  alternate-reverse infinite;
+}
 
 @keyframes showclick {
   0% {
@@ -477,8 +488,17 @@ left: 87px;
   }
 }
 
-
-.spyer img {
+.tadavom a {
+  color: #fff;
+  background-color: var(--primary-color);
+  padding: 0.3rem;
+  border-radius: 4px;
+  margin-left: 20px;
+  width: 75px;
+  text-align: center;
+}
+.spyer img,
+.tadavom img {
   background-color: var(--primary-color);
   padding: 0.2rem;
   border-radius: 4px;
@@ -491,10 +511,9 @@ left: 87px;
   background-color: var(--primary-color);
   padding: 0.3rem;
   border-radius: 4px;
-  margin-left: 10px;
+  margin-left: 20px;
   width: 50px;
   text-align: center;
- 
 }
 .resume {
   /* background-color: #81438c; */

@@ -303,7 +303,8 @@ body {
 .identity li,
 .skills li,
 .backend-skills li,
-.experience li {
+.experience li,
+.resume li {
   display: flex;
   align-items: center;
   margin-top: 0.4rem;
@@ -313,7 +314,8 @@ body {
 
 .developer-id,
 .frontend-skill,
-.title-backend, .experience-title {
+.title-backend, .experience-title,
+.download-cv {
   padding: 0.5rem;
   position: absolute;
   top: -20px;
@@ -327,7 +329,8 @@ body {
 .developer-id span,
 .frontend-skill span,
 .title-backend span,
-.experience-title span {
+.experience-title span,
+.download-cv span {
   color: var(--primary-color);
   font-weight: 600;
   font-size: 0.7rem;
@@ -483,6 +486,36 @@ left: 87px;
   text-align: center;
  
 }
+.resume {
+  /* background-color: #81438c; */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.persian-cv span {
+  margin-right: 20px;
+}
+.persian-cv a img {
+  width: 35px;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: var(--primary-color);
+}
+.global-cv span {
+  margin-right: 17px;
+}
+.global-cv a img {
+  width: 35px;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: var(--primary-color);
+}
+.global-cv a img:hover,
+.persian-cv a img:hover {
+background-color: #0a66c2;
+}
+
 @media (max-width: 500px) {
   .navbar-link:not(:last-child) {
     margin-right: 5px;

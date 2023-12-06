@@ -41,12 +41,33 @@ body {
 }
 
 .navbar-name {
+  margin: auto 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
   font-weight: 600;
   color: var(--primary-color);
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  animation: portfolio 8s alternate-reverse infinite;
+ border: 1px solid rgba(0, 0, 0, 0);
+}
+@keyframes portfolio {
+0% {
+  border: 1px solid var(--primary-color);
+
+}
+25% {
+  border: 1px solid rgba(0, 0, 0, 0);
+}
+50% {
+  border: 1px solid var(--primary-color);
+  
+}
+100% {
+  border: 1px solid rgba(0, 0, 0, 0);
+ 
+}
 }
 
 .navbar-links {
@@ -454,7 +475,7 @@ left: 87px;
 .tadavom {position: relative;}
 .tadavom .click {
   position: absolute;
-left: 100px;
+left: 61px;
 }
 .tadavom .click {
   animation: showclick 2s alternate-reverse infinite;
@@ -466,7 +487,7 @@ left: 100px;
 @keyframes showclick {
   0% {
     z-index: 4;
-    /* display: none; */
+   
     
   }
   100% {
@@ -570,10 +591,14 @@ background-color: #0a66c2;
     margin: 0;
   }
 }
-
+@media (max-width: 475px) {
+  .personal-info ul { 
+    width: clamp(220px, 90%, 80%);
+  }
+}
 @media (max-width: 300px) {
   .navbar {
-    padding: 0 0.5rem;
+    padding: 0 1rem;
   }
   .navbar-links {
     display: flex;

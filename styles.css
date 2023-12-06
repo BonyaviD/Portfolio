@@ -145,7 +145,7 @@ body {
   position: relative;
   padding: 1rem;
   background-color: rgb(40, 40, 40);
-  height: 200vh;
+  overflow: hidden;
 }
 .profile {
   margin: 0 auto;
@@ -163,7 +163,7 @@ body {
 }
 
 .content-name {
-  margin-top: 40px;
+  margin-top: 20px;
   font-weight: 500;
 }
 
@@ -173,14 +173,15 @@ body {
 }
 
 .profile .img {
-  position: absolute;
-  top: -50px;
-  width: 100px;
-  height: 100px;
+  /* position: relative; */
+  /* top: -15px;
+  left: -30px; */
+  width: 70px;
+  height: 70px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #b9b9b9;
+  background-color: rgba(232, 205, 255, 0.8);
 
   padding: 0.2rem;
   border-radius: 5px;

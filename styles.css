@@ -329,7 +329,7 @@ body {
   -webkit-backdrop-filter: blur(4px);
   color: #fff;
   font-size: 0.8rem;
-  min-height: 180px;
+  /* min-height: 180px; */
 }
 
 .identity li,
@@ -537,11 +537,12 @@ left: 61px;
   width: 50px;
   text-align: center;
 }
-.resume {
-  /* background-color: #81438c; */
-  display: flex;
+
+.resume li:last-child {
+  margin-top: 20px;
+  /* display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: space-evenly; */
 }
 
 .persian-cv span {

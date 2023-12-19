@@ -110,8 +110,8 @@ body {
   position: relative;
   top: 200px;
   left: 25px;
-  width: 215px;
-  height: 60px;
+  width: clamp(0%, 80%, 250px);
+  height: 65px;
   border-radius: 0 4px 4px 0;
   background-color: rgba(129, 67, 140, 0.2);
   /* border-left: 4px solid rgba(129, 67, 140, 0.8); */

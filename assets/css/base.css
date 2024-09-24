@@ -1,0 +1,51 @@
+/* Universal box-sizing */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Remove default margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+}
+
+/* Set a more readable line-height and basic body styles */
+html {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+}
+
+/* Remove list styling on all lists */
+ul, ol {
+    list-style: none;
+}
+
+/* Remove default link styles */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Reset heading styles */
+h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+body {
+    background-color: var(--dark-background-color); /* Replace with your color variable */
+    font-family: 'Jura', sans-serif;
+    color: var(--light-text-color);
+    
+}
+
+.container {
+    max-width: 1368px;
+    margin: 0 auto;
+    padding: 0 5%;
+}

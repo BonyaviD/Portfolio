@@ -1,0 +1,55 @@
+<script setup>
+import Logo from "@/assets/img/Logo.svg";
+import Github from '@/assets/icons/Github.svg'
+import Linkedin from '@/assets/icons/Linkedin.svg'
+import TheBotton from "@/components/TheBotton.vue";
+</script>
+
+<template>
+  <div class="header-section">
+    <div class="header-items container">
+      <div class="header-logo">
+        <img :src="Logo" alt="" srcset="" />
+      </div>
+      <div class="header-btns">
+        <TheBotton to="https://www.linkedin.com/in/bonyavid/" text="LinkedIn" :Logo="Linkedin" :size="25" opacityMode />
+        <TheBotton to="https://github.com/BonyaviD" text="GitHub" :Logo="Github" :size="25" opacityMode />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.header-section {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 80px;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.header-items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.header-logo img { 
+  width: 60px;
+}
+
+.header-btns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+</style>

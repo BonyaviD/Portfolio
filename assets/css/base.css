@@ -20,10 +20,6 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Remove list styling on all lists */
-ul, ol {
-    list-style: none;
-}
 
 /* Remove default link styles */
 a {
@@ -45,7 +41,7 @@ body {
 }
 
 .container {
-    max-width: 1368px;
+    max-width: 1920px;
     margin: 0 auto;
     padding: 0 5%;
 }

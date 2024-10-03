@@ -1,7 +1,7 @@
 /* assets/css/main.css */
 :root {
     --primary-dark-color: #0d1b2a;
-    --second-sark-color: #1B263B;
+    --second-dark-color: #1B263B;
     --primary-color: #E6B66C;
     --primary-opacity-color: #E6B66C4D;
     --light-color: #ffffff; 
@@ -11,6 +11,7 @@
   :root {
     --dark-background-color: var(--primary-dark-color);
     --light-text-color: var(--light-color);
-    --mute-text-color: var(--second-sark-color);
+    --mute-text-color: var(--second-dark-color);
+    --footer-linear-background-color: linear-gradient(180deg, #0D1B2A 2.05%, #01080F 100%);
      
   }

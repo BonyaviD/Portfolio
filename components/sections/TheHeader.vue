@@ -2,7 +2,7 @@
 import Logo from "@/assets/img/Logo.svg";
 import Github from '@/assets/icons/Github.svg'
 import Linkedin from '@/assets/icons/Linkedin.svg'
-import TheBotton from "@/components/TheBotton.vue";
+import TheBotton from "~/components/shared/TheBotton.vue";
 </script>
 
 <template>
@@ -12,8 +12,8 @@ import TheBotton from "@/components/TheBotton.vue";
         <img :src="Logo" alt="" srcset="" />
       </div>
       <div class="header-btns">
-        <TheBotton to="https://www.linkedin.com/in/bonyavid/" text="LinkedIn" :Logo="Linkedin" :size="25" opacityMode />
-        <TheBotton to="https://github.com/BonyaviD" text="GitHub" :Logo="Github" :size="25" opacityMode />
+        <TheBotton to="https://www.linkedin.com/in/bonyavid/" text="LinkedIn" :Logo="Linkedin" opacityMode />
+        <TheBotton to="https://github.com/BonyaviD" text="GitHub" :Logo="Github" opacityMode />
       </div>
     </div>
   </div>
@@ -27,6 +27,7 @@ import TheBotton from "@/components/TheBotton.vue";
   height: 80px;
   z-index: 100;
   backdrop-filter: blur(8px);
+  background-color: var(--second-sark-color);
 }
 
 .header-items {

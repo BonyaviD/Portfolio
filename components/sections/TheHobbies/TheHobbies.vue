@@ -9,7 +9,7 @@ import ThePhotography from "@/components/sections/TheHobbies/ThePhotography.vue"
     <ThePhotography />
 
     <div class="hobbies-title">
-      <div>Gaming</div>
+      <div class="gaming-title">Gaming</div>
       <BulletText>I'm also passionate about gaming, and it’s one of my favorite ways to unwind and have fun.</BulletText>
     </div>
     <div>The last of us - Beyond Two souls - resident evil - Prince of Persia - God of war - ratchet and clank</div>
@@ -17,5 +17,7 @@ import ThePhotography from "@/components/sections/TheHobbies/ThePhotography.vue"
 </template>
 
 <style scoped>
-
+.gaming-title {
+  font-size: 35px;
+}
 </style>

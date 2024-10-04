@@ -16,7 +16,7 @@ import Vsco from "@/assets/icons/Vsco.svg";
 <template>
   <div>
     <div class="hobbies-title">
-      <div>Photography</div>
+      <div class="photography-title">Photography</div>
       <BulletText>I really enjoy photography and find great satisfaction in capturing unique moments through my lens.</BulletText>
     </div>
     <div class="photography">
@@ -71,7 +71,9 @@ import Vsco from "@/assets/icons/Vsco.svg";
   gap: 10px 40px;
   margin-bottom: 60px;
 }
-
+.photography-title {
+  font-size: 35px;
+}
 .photography {
   display: grid;
   grid-auto-columns: minmax(60px, auto);

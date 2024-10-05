@@ -1,6 +1,6 @@
 <script setup>
 import TheBotton from "@/components/shared/TheBotton.vue";
-import Github from '~/assets/icons/GitHub.svg'
+import Github from '~/assets/icons/Github.svg'
 import Linkedin from '~/assets/icons/Linkedin.svg'
 import Telegram from '~/assets/icons/Telegram.svg'
 </script>

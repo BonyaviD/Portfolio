@@ -7,7 +7,7 @@ import JsLogo from "~/assets/icons/Js.svg";
 import CssLogo from "~/assets/icons/Css.svg";
 import HtmlLogo from "~/assets/icons/Html.svg";
 import HeroIconsDance from "@/components/sections/TheHeroSection/HeroIconsDance.vue";
-import ResumePath from "~/assets/CV/navid-boniadi.pdf"
+import ResumePath from "~/assets/CV/navid-boniadi.pdf";
 </script>
 
 <template>
@@ -35,9 +35,7 @@ import ResumePath from "~/assets/CV/navid-boniadi.pdf"
       </div>
     </div>
     <div class="resume-btn">
-      <a :href="ResumePath">
-       Download CV
-      </a>
+      <a :href="ResumePath"> Download CV </a>
     </div>
     <HeroIconsDance />
   </div>
@@ -48,7 +46,6 @@ import ResumePath from "~/assets/CV/navid-boniadi.pdf"
   position: relative;
   overflow: hidden;
   padding: 2rem;
-
 }
 .animation-icons {
   position: relative;
@@ -102,6 +99,13 @@ import ResumePath from "~/assets/CV/navid-boniadi.pdf"
   transition: all 0.4s ease-in-out;
   opacity: 0;
   top: -6.25rem;
+  overflow: hidden;
+}
+.spin-icons-small img,
+.spin-icons-big img {
+  width: 100%;
+  height: 100%;
+  /* background-color: red; */
 }
 .spin-icons-small {
   width: 3.125rem;
@@ -158,7 +162,6 @@ import ResumePath from "~/assets/CV/navid-boniadi.pdf"
   opacity: 1;
 }
 
-
 @keyframes rotateAround {
   0% {
     transform: rotate(0deg) translateX(5.625rem) rotate(0deg);
@@ -188,6 +191,6 @@ import ResumePath from "~/assets/CV/navid-boniadi.pdf"
   color: white;
 }
 .resume-btn a:hover {
-background-color: var(--primary-opacity-color);
+  background-color: var(--primary-opacity-color);
 }
 </style>

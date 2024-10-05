@@ -8,6 +8,7 @@ import CssLogo from "~/assets/icons/Css.svg";
 import HtmlLogo from "~/assets/icons/Html.svg";
 import HeroIconsDance from "@/components/sections/TheHeroSection/HeroIconsDance.vue";
 import ResumePath from "~/assets/CV/navid-boniadi.pdf";
+import TheBotton from "~/components/shared/TheBotton.vue";
 </script>
 
 <template>
@@ -35,7 +36,8 @@ import ResumePath from "~/assets/CV/navid-boniadi.pdf";
       </div>
     </div>
     <div class="resume-btn">
-      <a :href="ResumePath"> Download CV </a>
+      <TheBotton to="https://bonyadi.netlify.app/_nuxt/navid-boniadi.BtZwjML6.pdf" text="Resume" />
+      <a :href="ResumePath" target="_blank" download="navid-boniadi-CV.pdf"> Download CV </a>
     </div>
     <HeroIconsDance />
   </div>
@@ -105,7 +107,6 @@ import ResumePath from "~/assets/CV/navid-boniadi.pdf";
 .spin-icons-big img {
   width: 100%;
   height: 100%;
-  /* background-color: red; */
 }
 .spin-icons-small {
   width: 3.125rem;

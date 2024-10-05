@@ -56,7 +56,6 @@ import HtmlLogo from "~/assets/icons/Html.svg";
 .git {
   left: 70%;
   animation: upicon 20s infinite;
-  width: 6.25rem;
 }
 .postman {
   left: 80%;

@@ -9,11 +9,11 @@ const props = defineProps({
   },
   marginTop: {
     type: String,
-    default: '0px'
+    default: '0rem'
   },
   marginBottom: {
     type: String,
-    default: '0px'
+    default: '0rem'
   },
   color: {
     type: String
@@ -35,7 +35,7 @@ const marginStyle = computed(() => ({
 <style scoped>
 .title {
     color: var(--primary-color);
-    font-size: 60px;
+    font-size: 3.125rem;
     font-weight: 400;
     text-align: center;
 }

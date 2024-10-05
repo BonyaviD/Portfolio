@@ -21,13 +21,12 @@ const props = defineProps({
 
 <style scoped>
 .skills-name {
-    /* height: 60px; */
-    padding: 10px 20px;
+    padding: 0.625rem 1.25rem;
     background-color: var(--second-dark-color);
     border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 0px 10px;
+    gap: 0 0.625rem;
 }
 
 .skill-level {
@@ -35,6 +34,6 @@ const props = defineProps({
     background-color: var(--primary-opacity-color);
     padding: 0.2rem 0.6rem;
     border-radius: 8px;
-    margin-left: 4px;
+    margin-left: 0.25rem;
 }
 </style>

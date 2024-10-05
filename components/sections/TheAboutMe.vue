@@ -5,7 +5,7 @@ import BulletText from "~/components/shared/BulletText.vue";
 </script>
 <template>
   <div class="container">
-    <SectionTitle text="About Me" marginTop="150px" marginBottom="100px" />
+    <SectionTitle text="About Me" marginTop="9.375rem" marginBottom="6.25rem" />
     <div class="aboutme">
       <img class="profile-pic" :src="ProfileSrc" alt="" />
       <div class="aboutme-content">
@@ -23,29 +23,29 @@ import BulletText from "~/components/shared/BulletText.vue";
 <style scoped>
 .aboutme {
   display: flex;
-  margin-top: 100px;
-  gap: 20px 150px;
+  margin-top: 6.25rem;
+  gap: 1.25rem 9.375rem;
 }
 .profile-pic {
-  width: 400px;
+  width: 25rem;
   border-radius: 30px;
   object-fit: cover;
   object-position: bottom;
 }
 
 .aboutme-content-name {
-  font-size: 40px;
+  font-size: 2.5rem;
   font-weight: 400;
-  margin-bottom: 65px;
+  margin-bottom: 4.063rem;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 67.5rem) {
   .aboutme {
-    gap: 20px 50px;
+    gap: 1.25rem 3.125rem;
   }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 60rem) {
   .aboutme {
     display: flex;
     flex-wrap: wrap;

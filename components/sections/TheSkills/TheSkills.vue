@@ -4,7 +4,7 @@ import TheSkillsItem from "@/components/sections/TheSkills/TheSkillsItem.vue";
 </script>
 <template>
   <div class="container">
-    <SectionTitle text="Skills" marginTop="100px" marginBottom="50px" />
+    <SectionTitle text="Skills" marginTop="6.25rem" marginBottom="3.125rem" />
     <div class="skills-content">
       <div class="first-skills skills">
         <TheSkillsItem text="Html" level="Expert"/>
@@ -40,7 +40,7 @@ import TheSkillsItem from "@/components/sections/TheSkills/TheSkillsItem.vue";
   justify-content: center;
   align-self: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 0.625rem;
   overflow: hidden;
 }
 </style>

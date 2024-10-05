@@ -1,6 +1,5 @@
 <script setup>
 import TheBotton from "~/components/shared/TheBotton.vue";
-import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import BulletText from "@/components/shared/BulletText.vue";
 import TehranPeople from "@/assets/img/photography/tehran-people.jpg";
 import Flower from "@/assets/img/photography/flower.jpg";
@@ -68,18 +67,18 @@ import Vsco from "@/assets/icons/Vsco.svg";
   flex-wrap: wrap;
   font-size: 1.5rem;
   color: white;
-  gap: 10px 40px;
-  margin-bottom: 60px;
+  gap: 0.625rem 2.5rem;
+  margin-bottom: 3.75rem;
 }
 .photography-title {
-  font-size: 35px;
+  font-size: 2.188rem;
 }
 .photography {
   display: grid;
-  grid-auto-columns: minmax(60px, auto);
-  grid-auto-rows: minmax(10px, auto);
-  gap: 30px;
-  margin-bottom: 60px;
+  grid-auto-columns: minmax(3.75rem, auto);
+  grid-auto-rows: minmax(0.625rem, auto);
+  gap: 2.438rem;
+  margin-bottom: 3.75rem;
 }
 .picture {
   position: relative;
@@ -175,15 +174,15 @@ import Vsco from "@/assets/icons/Vsco.svg";
   font-weight: 600;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 67.5rem) {
   .photography {
-    grid-auto-columns: minmax(10px, auto);
-    grid-auto-rows: minmax(10px, auto);
-    gap: 10px;
+    grid-auto-columns: minmax(0.625rem, auto);
+    grid-auto-rows: minmax(0.625rem, auto);
+    gap: 0.625rem;
   }
 }
 
-@media (max-width: 920px) {
+@media (max-width: 57.5rem) {
   .tehran-people {
     grid-column: 1/8;
     grid-row: 1/2;

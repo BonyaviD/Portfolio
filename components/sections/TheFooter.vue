@@ -7,9 +7,9 @@ import Telegram from '@/assets/icons/Telegram.svg'
 <template>
     <div class="footer">
         <div class="footer-icons">
-            <TheBotton to="https://www.linkedin.com/in/bonyavid/" btnSize="50" :Logo="Linkedin" opacityMode />
-            <TheBotton to="https://github.com/BonyaviD" btnSize="50" :Logo="Github" opacityMode />
-            <TheBotton to="https://t.me/StreetNote" btnSize="50" :Logo="Telegram" opacityMode />
+            <TheBotton to="https://www.linkedin.com/in/bonyavid/" btnSize="3.125" :Logo="Linkedin" opacityMode />
+            <TheBotton to="https://github.com/BonyaviD" btnSize="3.125" :Logo="Github" opacityMode />
+            <TheBotton to="https://t.me/StreetNote" btnSize="3.125" :Logo="Telegram" opacityMode />
         </div>
         <div>© 2024 <span class="my-name">Navid Bonyadi</span>, all rights reserved 👨🏻‍💻🤘🏻</div>
     </div>
@@ -17,7 +17,7 @@ import Telegram from '@/assets/icons/Telegram.svg'
 
 <style scoped>
 .footer {
-    padding: 140px 0 25px 0;
+    padding: 8.75rem 0 1.563rem 0;
     background: var(--footer-linear-background-color);
     text-align: center;
 }
@@ -26,8 +26,8 @@ import Telegram from '@/assets/icons/Telegram.svg'
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 5px;
-    margin-bottom: 10px;
+    gap: 0.313rem;
+    margin-bottom: 0.625rem;
 }
 
 .my-name {

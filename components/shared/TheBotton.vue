@@ -22,7 +22,7 @@ const props = defineProps({
   },
   size: {
     type: Number,
-    default: 25,
+    default: 1.563,
   },
   opacityMode: {
     type: Boolean,
@@ -32,12 +32,12 @@ const props = defineProps({
 
 // Compute styles dynamically based on the size prop
 const logoStyle = computed(() => ({
-  width: `${props.size}px`,
-  height: `${props.size}px`,
+  width: `${props.size}rem`,
+  height: `${props.size}rem`,
 }));
 
 const btnSize = computed(() => ({
-  width: `${props.btnSize}px`,
+  width: `${props.btnSize}rem`,
 }));
 
 const btnMode = computed(() => ({
@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0 6px;
+  gap: 0 0.375rem;
   padding: 0.4rem 0.6rem;
   border-radius: 8px;
 }

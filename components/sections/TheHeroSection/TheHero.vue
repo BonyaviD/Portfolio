@@ -52,14 +52,14 @@ import ResumePath from "@/assets/CV/navid-boniadi.pdf"
 }
 .animation-icons {
   position: relative;
-  top: -300px;
+  top: -18.75rem;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
   padding: 2rem 0;
-  width: 300px;
-  height: 300px;
+  width: 18.75rem;
+  height: 18.75rem;
   margin: 0 auto;
   transition: all 2s ease;
   overflow: hidden;
@@ -79,16 +79,15 @@ import ResumePath from "@/assets/CV/navid-boniadi.pdf"
   font-size: 3rem;
   color: var(--primary-color);
   transition: all 0.6s ease-in-out;
-  background-color: var(--dark-background-color);
   display: inline-block;
   padding: 0.2rem 1rem;
   border-radius: 10px;
 }
 .center-icon {
   position: relative;
-  top: -200px;
-  width: 100px;
-  height: 100px;
+  top: -12.5rem;
+  width: 6.25rem;
+  height: 6.25rem;
   background-color: var(--dark-background-color);
   border-radius: 100%;
   z-index: 1;
@@ -102,24 +101,24 @@ import ResumePath from "@/assets/CV/navid-boniadi.pdf"
   border: 1px solid var(--primary-color);
   transition: all 0.4s ease-in-out;
   opacity: 0;
-  top: -100px;
+  top: -6.25rem;
 }
 .spin-icons-small {
-  width: 50px;
-  height: 50px;
+  width: 3.125rem;
+  height: 3.125rem;
 }
 .hero-section:hover .animation-icons .spin-icons-small {
-  top: 120px;
-  left: 120px;
+  top: 7.5rem;
+  left: 7.5rem;
 }
 
 .spin-icons-big {
-  width: 75px;
-  height: 75px;
+  width: 4.688rem;
+  height: 4.688rem;
 }
 .hero-section:hover .animation-icons .spin-icons-big {
-  top: 110px;
-  left: 110px;
+  top: 6.875rem;
+  left: 6.875rem;
 }
 
 .hero-section:hover .animation-icons * {
@@ -162,10 +161,10 @@ import ResumePath from "@/assets/CV/navid-boniadi.pdf"
 
 @keyframes rotateAround {
   0% {
-    transform: rotate(0deg) translateX(90px) rotate(0deg);
+    transform: rotate(0deg) translateX(5.625rem) rotate(0deg);
   }
   100% {
-    transform: rotate(360deg) translateX(90px) rotate(-360deg);
+    transform: rotate(360deg) translateX(5.625rem) rotate(-360deg);
   }
 }
 

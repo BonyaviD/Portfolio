@@ -16,7 +16,8 @@ export default defineNuxtConfig({
   },
   css: [
     '~/assets/css/main.css',
-    '~/assets/css/base.css'
+    '~/assets/css/base.css',
+    '~/assets/css/scrollbar.css'
   ],
   modules: [
     '@nuxtjs/google-fonts'

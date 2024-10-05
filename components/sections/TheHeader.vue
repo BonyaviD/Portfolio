@@ -24,9 +24,9 @@ import TheBotton from "~/components/shared/TheBotton.vue";
   position: fixed;
   top: 0;
   width: 100%;
-  height: 80px;
+  height: 5rem;
   z-index: 100;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(0.5rem);
   background-color: var(--second-sark-color);
 }
 
@@ -44,13 +44,13 @@ import TheBotton from "~/components/shared/TheBotton.vue";
   height: 100%;
 }
 .header-logo img { 
-  width: 60px;
+  width: 3.75rem;
 }
 
 .header-btns {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 0.625rem;
 }
 </style>

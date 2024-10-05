@@ -1,15 +1,15 @@
 <script setup>
 import TheBotton from "~/components/shared/TheBotton.vue";
 import BulletText from "@/components/shared/BulletText.vue";
-import TehranPeople from "@/assets/img/photography/tehran-people.jpg";
-import Flower from "@/assets/img/photography/flower.jpg";
-import Street from "@/assets/img/photography/street.jpg";
-import MiladTower from "@/assets/img/photography/tehran-milad.jpg";
-import AstaraSnow from "@/assets/img/photography/astara-snow.jpg";
-import Airplane from "@/assets/img/photography/airplane.jpg";
-import Hormuz from "@/assets/img/photography/hormoz.jpg";
-import TelegramLogo from "@/assets/icons/Telegram.svg";
-import Vsco from "@/assets/icons/Vsco.svg";
+import TehranPeople from "~/assets/img/photography/tehran-people.jpg";
+import Flower from "~/assets/img/photography/flower.jpg";
+import Street from "~/assets/img/photography/street.jpg";
+import MiladTower from "~/assets/img/photography/tehran-milad.jpg";
+import AstaraSnow from "~/assets/img/photography/astara-snow.jpg";
+import Airplane from "~/assets/img/photography/airplane.jpg";
+import Hormuz from "~/assets/img/photography/hormoz.jpg";
+import TelegramLogo from "~/assets/icons/Telegram.svg";
+import Vsco from "~/assets/icons/Vsco.svg";
 </script>
 
 <template>

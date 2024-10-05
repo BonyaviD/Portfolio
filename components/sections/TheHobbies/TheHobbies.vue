@@ -2,15 +2,15 @@
 import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import BulletText from "@/components/shared/BulletText.vue";
 import ThePhotography from "@/components/sections/TheHobbies/ThePhotography.vue";
-import TheLastOfUs from "@/assets/img/gaming/the-last-of-us.jpg";
-import Kena from "@/assets/img/gaming/kena.jpg";
-import HellBlade from "@/assets/img/gaming/hellbalde.jpg";
-import BeyondTwoTheSouls from "@/assets/img/gaming/beyond-two-souls.jpg";
-import Plague from "@/assets/img/gaming/plague.jpg";
-import Ghost from "@/assets/img/gaming/ghost.jpg";
-import Control from "@/assets/img/gaming/control.jpg";
-import Detroit from "@/assets/img/gaming/detroit.jpg";
-import FinalFantasy from "@/assets/img/gaming/final-fantasy.jpg";
+import TheLastOfUs from "~/assets/img/gaming/the-last-of-us.jpg";
+import Kena from "~/assets/img/gaming/kena.jpg";
+import HellBlade from "~/assets/img/gaming/hellbalde.jpg";
+import BeyondTwoTheSouls from "~/assets/img/gaming/beyond-two-souls.jpg";
+import Plague from "~/assets/img/gaming/plague.jpg";
+import Ghost from "~/assets/img/gaming/ghost.jpg";
+import Control from "~/assets/img/gaming/control.jpg";
+import Detroit from "~/assets/img/gaming/detroit.jpg";
+import FinalFantasy from "~/assets/img/gaming/final-fantasy.jpg";
 </script>
 <template>
   <div class="container">

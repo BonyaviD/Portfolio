@@ -1,13 +1,13 @@
 <script setup>
-import CodeLogo from "@/assets/icons/Code.svg";
-import NuxtLogo from "@/assets/icons/Nuxt.svg";
-import VueLogo from "@/assets/icons/Vue.svg";
-import GitLogo from "@/assets/icons/Git.svg";
-import JsLogo from "@/assets/icons/Js.svg";
-import CssLogo from "@/assets/icons/Css.svg";
-import HtmlLogo from "@/assets/icons/Html.svg";
+import CodeLogo from "~/assets/icons/Code.svg";
+import NuxtLogo from "~/assets/icons/Nuxt.svg";
+import VueLogo from "~/assets/icons/Vue.svg";
+import GitLogo from "~/assets/icons/Git.svg";
+import JsLogo from "~/assets/icons/Js.svg";
+import CssLogo from "~/assets/icons/Css.svg";
+import HtmlLogo from "~/assets/icons/Html.svg";
 import HeroIconsDance from "@/components/sections/TheHeroSection/HeroIconsDance.vue";
-import ResumePath from "@/assets/CV/navid-boniadi.pdf"
+import ResumePath from "~/assets/CV/navid-boniadi.pdf"
 </script>
 
 <template>

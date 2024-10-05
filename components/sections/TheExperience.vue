@@ -1,9 +1,9 @@
 <script setup>
 import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import BulletText from "@/components/shared/BulletText.vue";
-import ExperienceShop from "@/assets/img/experience/shop.png";
-import Experiencespy from "@/assets/img/experience/spy.png";
-import Experiencedsh from "@/assets/img/experience/dsh.png";
+import ExperienceShop from "~/assets/img/experience/shop.png";
+import Experiencespy from "~/assets/img/experience/spy.png";
+import Experiencedsh from "~/assets/img/experience/dsh.png";
 </script>
 <template>
   <div class="container">

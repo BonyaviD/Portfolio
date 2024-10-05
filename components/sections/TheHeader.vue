@@ -1,8 +1,8 @@
 <script setup>
-import Logo from "@/assets/img/Logo.svg";
-import Github from '@/assets/icons/Github.svg'
-import Linkedin from '@/assets/icons/Linkedin.svg'
-import TheBotton from "~/components/shared/TheBotton.vue";
+import Logo from "~/assets/img/Logo.svg";
+import Github from '~/assets/icons/Github.svg'
+import Linkedin from '~/assets/icons/Linkedin.svg'
+import TheBotton from "@/components/shared/TheBotton.vue";
 </script>
 
 <template>

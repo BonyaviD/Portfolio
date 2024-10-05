@@ -1,7 +1,7 @@
 <script setup>
 import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import ProfileSrc from "@/assets/img/me.jpg";
-import BulletText from "~/components/shared/BulletText.vue";
+import BulletText from "@/components/shared/BulletText.vue";
 </script>
 <template>
   <div class="container">

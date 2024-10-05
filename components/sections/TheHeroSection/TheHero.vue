@@ -37,7 +37,6 @@ import TheBotton from "~/components/shared/TheBotton.vue";
     </div>
     <div class="resume-btn">
       <TheBotton to="https://bonyadi.netlify.app/_nuxt/navid-boniadi.BtZwjML6.pdf" text="Resume" />
-      <a :href="ResumePath" target="_blank" download="navid-boniadi-CV.pdf"> Download CV </a>
     </div>
     <HeroIconsDance />
   </div>

@@ -36,7 +36,7 @@ import TheBotton from "~/components/shared/TheBotton.vue";
       </div>
     </div>
     <div class="resume-btn">
-      <TheBotton to="https://bonyadi.netlify.app/_nuxt/navid-boniadi.BtZwjML6.pdf" text="Resume" />
+      <TheBotton to="https://bonyadi.netlify.app/_nuxt/navid-boniadi.BtZwjML6.pdf" text="Resume" responsibility />
     </div>
     <HeroIconsDance />
   </div>

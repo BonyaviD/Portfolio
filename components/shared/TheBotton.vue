@@ -7,7 +7,7 @@ const props = defineProps({
   to: {
     type: String,
   },
-  external: {
+  responsibility: {
     type: Boolean,
     default: false
   },
@@ -50,7 +50,7 @@ const btnMode = computed(() => ({
 const responsive = ref();
 
 function checkResolution() {
-  if (window.innerWidth <= 560) {
+  if (window.innerWidth <= 560 && !props.responsibility) {
     responsive.value = true;
   } else {
     responsive.value = false;

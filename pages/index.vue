@@ -8,7 +8,7 @@ import TheHobbies from '~/components/sections/TheHobbies/TheHobbies.vue';
 useHead({
   titleTemplate: '%s - Home',
   meta: [
-    { hid: 'description', name: 'description', content: 'پورتفولیو نوید بنیادی' },
+    { hid: 'description', name: 'description', content: 'Portfolio Navid Bonyadi | نوید بنیادی پورتفولیو ' },
   ],
 })
 </script>

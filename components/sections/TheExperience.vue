@@ -40,7 +40,7 @@ import Experiencedsh from "~/assets/img/experience/dsh.png";
           </div>
         </div>
       </NuxtLink>
-      <NuxtLink to="https://spyer.netlify.app/" target="_blank" class="card-link">
+      <NuxtLink to="https://spying.netlify.app/" target="_blank" class="card-link">
         <div class="card spy-card">
           <img :src="Experiencespy" alt="" />
           <div class="card-info">

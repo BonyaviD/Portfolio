@@ -204,11 +204,11 @@ import Vsco from "~/assets/icons/Vsco.svg";
     grid-row: 6/10;
   }
   .astara-snow {
-    grid-column: 7/11;
+    grid-column: 7/12;
     grid-row: 10/14;
   }
   .hormuz {
-    grid-column: 2/7;
+    grid-column: 1/7;
     grid-row: 10/14;
   }
   .vsco-icon {
@@ -222,8 +222,8 @@ import Vsco from "~/assets/icons/Vsco.svg";
     width: 80%;
   }
   .sub-btn {
-    grid-column: 4/9;
-    grid-row: 16/20;
+    grid-column: 1/12;
+    grid-row: 14/17;
   }
 }
 </style>

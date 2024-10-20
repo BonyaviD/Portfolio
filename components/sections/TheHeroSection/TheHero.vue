@@ -8,7 +8,6 @@ import CssLogo from "~/assets/icons/Css.svg";
 import HtmlLogo from "~/assets/icons/Html.svg";
 import HeroIconsDance from "@/components/sections/TheHeroSection/HeroIconsDance.vue";
 import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
-import ResumePath from "~/assets/CV/navidboniadi.pdf"
 </script>
 
 <template>

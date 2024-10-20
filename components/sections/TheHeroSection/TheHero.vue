@@ -35,7 +35,7 @@ import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
       </div>
     </div>
     <div class="resume-btn">
-      <a href="/assets/CV/navidboniadi.pdf">check and fellan</a>
+      <a href="/assets/CV/navidboniadi.pdf" target="_blank">check and fellan</a>
       <TheDownloadLink text="Download CV" path="https://bonyadi.netlify.app/_nuxt/navidboniadi.DoC8mCcj.pdf" />
     </div>
     <HeroIconsDance />

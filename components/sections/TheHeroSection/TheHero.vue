@@ -36,8 +36,7 @@ import ResumePath from "~/assets/CV/navidboniadi.pdf"
       </div>
     </div>
     <div class="resume-btn">
-      <a :href="ResumePath" target="_blank">check and fellan</a>
-      <TheDownloadLink text="Download CV" path="https://bonyadi.netlify.app/_nuxt/navidboniadi.DoC8mCcj.pdf" />
+      <TheDownloadLink text="Download CV" path="https://bonyadi.netlify.app/_nuxt/navidboniadi.CdrBD3HU.pdf" />
     </div>
     
     <HeroIconsDance />

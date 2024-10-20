@@ -7,7 +7,6 @@ import JsLogo from "~/assets/icons/Js.svg";
 import CssLogo from "~/assets/icons/Css.svg";
 import HtmlLogo from "~/assets/icons/Html.svg";
 import HeroIconsDance from "@/components/sections/TheHeroSection/HeroIconsDance.vue";
-import ResumePath from "~/assets/CV/navidboniadi.pdf";
 import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
 </script>
 
@@ -36,7 +35,7 @@ import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
       </div>
     </div>
     <div class="resume-btn">
-<TheDownloadLink text="Download CV" :path="ResumePath" />
+      <TheDownloadLink text="Download CV" path="https://bonyadi.netlify.app/_nuxt/navidboniadi.DoC8mCcj.pdf" />
     </div>
     <HeroIconsDance />
   </div>

@@ -1,5 +1,4 @@
 <script setup>
-
 import { defineProps } from "vue";
 
 // Define props
@@ -8,23 +7,13 @@ const props = defineProps({
     type: String,
   },
   path: {
-    type: String
-  }
+    type: String,
+  },
 });
-
-
-
-
 </script>
 
 <template>
-  <a
-    :href="path"
-    target="_blank"
-    class="custom-link"
-  >
-    {{ text }}
-</a>
+  <NuxtLink :to="path" target="_blank" class="custom-link">{{ text }}</NuxtLink>
 </template>
 
 <style scoped>

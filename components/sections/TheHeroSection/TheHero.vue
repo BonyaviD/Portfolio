@@ -8,6 +8,9 @@ import CssLogo from "~/assets/icons/Css.svg";
 import HtmlLogo from "~/assets/icons/Html.svg";
 import HeroIconsDance from "@/components/sections/TheHeroSection/HeroIconsDance.vue";
 import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
+
+// const cvAddress = "https://raw.githubusercontent.com/BonyaviD/Portfolio/refs/heads/master/assets/CV/navidboniadi.pdf"
+
 </script>
 
 <template>
@@ -35,7 +38,8 @@ import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
       </div>
     </div>
     <div class="resume-btn">
-      <TheDownloadLink text="Download CV" path="https://raw.githubusercontent.com/BonyaviD/Portfolio/refs/heads/master/assets/CV/navidboniadi.pdf" />
+      
+      <!-- <TheDownloadLink text="Download CV" path="/" /> -->
     </div>
     
     <HeroIconsDance />

@@ -2,12 +2,18 @@
 import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import ProfileSrc from "@/assets/img/me.jpg";
 import BulletText from "@/components/shared/BulletText.vue";
+import Baloon from "@/assets/icons/Baloon.svg";
 </script>
 <template>
   <div class="container">
-    <SectionTitle text="About Me" marginTop="9.375rem" marginBottom="6.25rem" />
+    <SectionTitle text="About Me" marginTop="9.375rem" marginBottom="10rem" />
     <div class="aboutme">
-      <img class="profile-pic" :src="ProfileSrc" alt="" />
+      <div class="profile-section">
+        <img class="profile-pic" :src="ProfileSrc" alt="" />
+        <div class="profile-circle"></div>
+        <img class="baloon" :src="Baloon" alt="" />
+      </div>
+
       <div class="aboutme-content">
         <div class="aboutme-content-name">Navid Bonyadi</div>
         <BulletText>Front-end developer with strong teamwork skills and expertise in building responsive, user-friendly websites.</BulletText>
@@ -26,11 +32,39 @@ import BulletText from "@/components/shared/BulletText.vue";
   margin-top: 6.25rem;
   gap: 1.25rem 9.375rem;
 }
+
+.profile-section {
+  position: relative;
+}
+
 .profile-pic {
   width: 25rem;
   border-radius: 30px;
   object-fit: cover;
   object-position: bottom;
+}
+
+.profile-circle {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  width: 3rem;
+  height: 3rem;
+  background-color: var(--dark-background-color);
+  border-radius: 100%;
+}
+
+.baloon {
+  position: absolute;
+  right: -6rem;
+  top: -13rem;
+  transform: rotate(50deg);
+  animation: turnBaloon 2s alternate-reverse infinite;
+}
+
+@keyframes turnBaloon {
+  from {transform: rotate(44deg);}
+  to {transform: rotate(55deg);}
 }
 
 .aboutme-content-name {
@@ -49,6 +83,7 @@ import BulletText from "@/components/shared/BulletText.vue";
   .aboutme {
     display: flex;
     flex-wrap: wrap;
+    
   }
   .profile-pic {
     width: 100%;

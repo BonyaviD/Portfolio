@@ -46,7 +46,7 @@ import Baloon from "@/assets/icons/Baloon.svg";
 
 .profile-circle {
   position: absolute;
-  right: 0.5rem;
+  left: 0.5rem;
   top: 0.5rem;
   width: 3rem;
   height: 3rem;
@@ -56,7 +56,7 @@ import Baloon from "@/assets/icons/Baloon.svg";
 
 .baloon {
   position: absolute;
-  right: -6rem;
+  left: -2.5rem;
   top: -13rem;
   transform: rotate(50deg);
   animation: turnBaloon 2s alternate-reverse infinite;

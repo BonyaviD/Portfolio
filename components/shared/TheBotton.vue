@@ -72,7 +72,6 @@ onBeforeUnmount(() => {
   <NuxtLink
     :to="to"
     target="_blank"
-    :external="external"
     class="custom-link"
     :style="[btnMode, btnSize]"
   >

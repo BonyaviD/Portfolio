@@ -72,15 +72,14 @@ import Experiencedsh from "~/assets/img/experience/dsh.png";
   margin-bottom: 3.75rem;
 }
 .experience-cards {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
+    display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.25rem;
 }
 .card-link {
-  width: clamp(18.75rem, 100%, 23.75rem);
-  height: 28.125rem;
+  width: clamp(300px, 100%, 700px);
+  aspect-ratio: 3 / 4;
+  /* height: 30rem; */
 }
 .card {
   position: relative;

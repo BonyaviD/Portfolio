@@ -1,39 +1,52 @@
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps } from "vue";
 
 const props = defineProps({
-    text: {
-        type: String
-    },
-    level: {
-        type: String
-    }
-})
+  text: {
+    type: String,
+  },
+  level: {
+    type: String,
+  },
+});
 </script>
 
 <template>
- <div class="skills-name">
-       <div> {{ props.text }}</div>
-        <span class="skill-level">{{ level }}</span>
-    </div>
-   
+  <div class="skills-name">
+    <div>{{ props.text }}</div>
+    <span class="skill-level">{{ level }}</span>
+  </div>
 </template>
 
 <style scoped>
 .skills-name {
-    padding: 0.625rem 1.25rem;
-    background-color: var(--second-dark-color);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 0 0.625rem;
+  padding: 0.6rem;
+  border: 1px solid var(--primary-opacity-color);
+  background: linear-gradient(140deg, #523c1b5d 0%, #3a2a1244 20%, #0b162e 75%, #0a1f35 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  width: clamp(280px, 100%, 700px);
+  color: #b8c1c9;
 }
 
 .skill-level {
-    border: 1px solid var(--primary-color);
-    background-color: var(--primary-opacity-color);
-    padding: 0.2rem 0.6rem;
-    border-radius: 8px;
-    margin-left: 0.25rem;
+  width: clamp(80px, 100%, 130px);
+  background-color: #30363d41;
+  border-radius: 8px;
+}
+
+.skill-level {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: #E6B66C;
+  font-weight: 800;
 }
 </style>

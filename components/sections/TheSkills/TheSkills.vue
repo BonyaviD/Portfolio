@@ -31,16 +31,17 @@ import TheSkillsItem from "@/components/sections/TheSkills/TheSkillsItem.vue";
 
 <style scoped>
 .skills-content {
-  width: 100%;
+  /* width: 100%; */
   border-radius: 8px;
 }
 .skills {
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-self: center;
-  flex-wrap: wrap;
-  gap: 0.625rem;
+    display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.5rem;
   overflow: hidden;
 }
+
+
+
 </style>

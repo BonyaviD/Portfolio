@@ -24,42 +24,43 @@ import HtmlLogo from "~/assets/icons/Html.svg";
 <style scoped>
 .dance-icons {
   position: absolute;
-  bottom: -6.25rem;
+  bottom: -4.25rem;
   width: 3.125rem;
   /* filter: blur(0.125rem); */
   z-index: 1;
+  opacity: 0.8;
 }
 .html {
   left: 10%;
-  animation: upicon 20s infinite;
+  animation: upicon 10s infinite;
 }
 .css {
   left: 20%;
-  animation: upicon 25s infinite;
+  animation: upicon 15s infinite;
 }
 .js {
   left: 30%;
-  animation: upicon 20s infinite;
+  animation: upicon 12s infinite;
 }
 .vue {
   left: 40%;
-  animation: upicon 30s infinite;
+  animation: upicon 15s infinite;
 }
 .nuxt {
   left: 50%;
-  animation: upicon 25s infinite;
+  animation: upicon 12s infinite;
 }
 .vscode {
   left: 60%;
-  animation: upicon 30s infinite;
+  animation: upicon 14s infinite;
 }
 .git {
   left: 70%;
-  animation: upicon 20s infinite;
+  animation: upicon 8s infinite;
 }
 .postman {
   left: 80%;
-  animation: upicon 25s infinite;
+  animation: upicon 16s infinite;
 }
 @keyframes upicon {
   from {

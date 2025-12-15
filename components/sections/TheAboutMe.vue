@@ -6,7 +6,7 @@ import Baloon from "@/assets/icons/Baloon.svg";
 </script>
 <template>
   <div class="container">
-    <SectionTitle text="About Me" marginTop="9.375rem" marginBottom="10rem" />
+    <SectionTitle text="About Me" marginTop="2rem" marginBottom="10rem" />
     <div class="aboutme">
       <div class="profile-section">
         <img class="profile-pic" :src="ProfileSrc" alt="" />

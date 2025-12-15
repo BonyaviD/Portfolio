@@ -26,8 +26,8 @@ import HtmlLogo from "~/assets/icons/Html.svg";
   position: absolute;
   bottom: -6.25rem;
   width: 3.125rem;
-  filter: blur(0.125rem);
-  z-index: -1;
+  /* filter: blur(0.125rem); */
+  z-index: 1;
 }
 .html {
   left: 10%;

@@ -14,7 +14,6 @@ const props = defineProps({
 <template>
   <div class="skills-name">
     <div>{{ props.text }}</div>
-    <span class="skill-level">{{ level }}</span>
   </div>
 </template>
 
@@ -26,9 +25,8 @@ const props = defineProps({
   border-radius: 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.4rem;
-  width: clamp(280px, 100%, 700px);
   color: #b8c1c9;
 }
 

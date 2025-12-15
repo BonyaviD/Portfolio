@@ -1,6 +1,6 @@
 <script setup>
 useHead({
-  titleTemplate: '%s - Aboute',
+  titleTemplate: '%s - About',
   meta: [
     { hid: 'description', name: 'description', content: 'توضیحات در مورد کل سایت' },
   ],

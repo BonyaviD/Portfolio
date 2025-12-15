@@ -37,7 +37,7 @@ import TheSkillsItem from "@/components/sections/TheSkills/TheSkillsItem.vue";
 .skills {
   position: relative;
     display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 0.5rem;
   overflow: hidden;
 }

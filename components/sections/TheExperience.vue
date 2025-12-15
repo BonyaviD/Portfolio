@@ -1,7 +1,7 @@
 <script setup>
 import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import BulletText from "@/components/shared/BulletText.vue";
-import ExperienceShop from "~/assets/img/experience/shop.png";
+import ExperienceArianSalamat from "~/assets/img/experience/ariansalamat.png";
 import Experiencespy from "~/assets/img/experience/spy.png";
 import Experiencedsh from "~/assets/img/experience/dsh.png";
 </script>
@@ -31,12 +31,12 @@ import Experiencedsh from "~/assets/img/experience/dsh.png";
       </BulletText>
     </div>
     <div class="experience-cards">
-      <NuxtLink to="https://tadavom.netlify.app/products" target="_blank" class="card-link">
+      <NuxtLink to="https://ariansalamat.com" target="_blank" class="card-link">
         <div class="card shop-card">
-          <img :src="ExperienceShop" alt="" />
+          <img :src="ExperienceArianSalamat" alt="" />
           <div class="card-info">
-            <div class="project-name">Shop</div>
-            <div class="project-framework">This project was developed using Nuxt.js</div>
+            <div class="project-name">Arian Salamat</div>
+            <div class="project-framework">This project was developed using html and css</div>
           </div>
         </div>
       </NuxtLink>
@@ -91,20 +91,21 @@ import Experiencedsh from "~/assets/img/experience/dsh.png";
 }
 
 img {
-  width: calc(100% + 3.125rem);
+  width: calc(100%);
   height: calc(100%);
   border-radius: 6px;
-  transform: scale(0.8) rotate(20deg);
+  transform: scale(1) rotate(0);
   transition: all 1s ease-in-out;
   object-fit: cover;
 }
 .card:hover img {
-  transform: scale(2) rotate(0);
-  transform-origin: top left;
+  transform: scale(1.2) rotate(0);
+  transform-origin: top center;
 }
 .card:hover .card-info {
   opacity: 1;
 }
+
 .shop-card {
   background-color: white;
 }
@@ -112,7 +113,7 @@ img {
   background-color: #131313;
 }
 .dsh-card:hover img {
-  transform: scale(2) rotate(0);
+  transform: scale(1.2) rotate(0);
   transform-origin: center center;
 }
 .dsh-card {

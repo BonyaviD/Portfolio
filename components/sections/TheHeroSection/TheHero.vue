@@ -6,17 +6,18 @@ import GitLogo from "~/assets/icons/Git.svg";
 import JsLogo from "~/assets/icons/Js.svg";
 import CssLogo from "~/assets/icons/Css.svg";
 import HtmlLogo from "~/assets/icons/Html.svg";
+import TehranPeople from "~/assets/img/photography/tehran-people.jpg";
 import HeroIconsDance from "@/components/sections/TheHeroSection/HeroIconsDance.vue";
 import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
 
 // const cvAddress = "https://raw.githubusercontent.com/BonyaviD/Portfolio/refs/heads/master/assets/CV/navidboniadi.pdf"
-
 </script>
 
 <template>
   <div class="hero-section">
-    <h1 class="hero-title">Front-end Developer</h1>
-    <div class="animation-icons">
+    <img class="hero-background" :src="TehranPeople" alt="" />
+    <!-- <h1 class="hero-title">Front-end Developer</h1> -->
+    <!-- <div class="animation-icons">
       <img class="center-icon" :src="CodeLogo" alt="Code Logo" />
       <div class="spin-icons-small html-icon">
         <img :src="HtmlLogo" alt="HTML Logo" />
@@ -36,12 +37,11 @@ import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
       <div class="spin-icons-big nuxt-icon">
         <img :src="NuxtLogo" alt="Nuxt Logo" />
       </div>
-    </div>
+    </div> -->
     <div class="resume-btn">
-      
       <!-- <TheDownloadLink text="Download CV" path="/" /> -->
     </div>
-    
+
     <HeroIconsDance />
   </div>
 </template>
@@ -51,7 +51,20 @@ import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
   position: relative;
   overflow: hidden;
   padding: 2rem;
+  height: 700px;
 }
+
+.hero-section .hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  filter: blur(2px);
+}
+
 .animation-icons {
   position: relative;
   top: -18.75rem;
@@ -72,14 +85,16 @@ import TheDownloadLink from "~/components/shared/TheDownloadLink.vue";
 .hero-section:hover .hero-title {
   top: 0;
 }
+
 .hero-title {
   position: relative;
   top: 6rem;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
-  font-size: 3rem;
-  color: var(--primary-color);
+  font-size: 3.5rem;
+  font-weight: 600;
+  color: var(--dark-background-color);
   transition: all 0.6s ease-in-out;
   display: inline-block;
   padding: 0.2rem 1rem;

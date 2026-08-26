@@ -4,6 +4,7 @@ import BulletText from "@/components/shared/BulletText.vue";
 import ExperienceArianSalamat from "~/assets/img/experience/ariansalamat.png";
 import Experiencespy from "~/assets/img/experience/spy.png";
 import Experiencedsh from "~/assets/img/experience/dsh.png";
+import ExperienceAsarose from "~/assets/img/experience/asarose.png";
 
 const experiences = [
   {
@@ -17,6 +18,10 @@ const experiences = [
   {
     title: "Don't Say Hi",
     text: "This project leverages artificial intelligence for a dating platform, consisting of three subprojects: a landing page built with React, a Python-powered backend, and a Vue-based frontend. I contributed to the frontend development, and the project used libraries such as Axios, Pinia, Vite, and Vue Validate.",
+  },
+  {
+    title: "Asa Gallery",
+    text: "Asa Gallery is a Persian online store for cosmetics and beauty products. I designed and implemented the storefront theme using HTML and CSS, while the application itself is powered by an MVC backend developed by another team.",
   },
 ];
 
@@ -41,6 +46,13 @@ const projects = [
     backgroundClass: "dsh-card",
     name: "Don't Say hi",
     framework: "This project was developed using Vue.js",
+  },
+  {
+    url: "https://asarose.com/",
+    image: ExperienceAsarose,
+    backgroundClass: "asa-card",
+    name: "Asa Gallery",
+    framework: "This project theme was developed using HTML and CSS",
   },
 ];
 </script>
@@ -127,6 +139,9 @@ img {
 }
 .dsh-card {
   background-color: #29263a;
+}
+.asa-card {
+  background-color: #ffffff;
 }
 .card-info {
   position: absolute;

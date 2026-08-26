@@ -1,5 +1,5 @@
 <script setup>
-import TheBotton from "~/components/shared/TheBotton.vue";
+import BaseButton from "~/components/shared/BaseButton.vue";
 import BulletText from "@/components/shared/BulletText.vue";
 import TehranPeople from "~/assets/img/photography/tehran-people.jpg";
 import Flower from "~/assets/img/photography/flower.jpg";
@@ -10,6 +10,58 @@ import Airplane from "~/assets/img/photography/airplane.jpg";
 import Hormuz from "~/assets/img/photography/hormoz.jpg";
 import TelegramLogo from "~/assets/icons/Telegram.svg";
 import Vsco from "~/assets/icons/Vsco.svg";
+
+const photos = [
+  {
+    src: TehranPeople,
+    alt: "People walking at night in Tehran",
+    title: "People",
+    place: "Tehran",
+    positionClass: "tehran-people",
+  },
+  {
+    src: Flower,
+    alt: "Flower close-up",
+    title: "Flower",
+    place: "Astara",
+    positionClass: "flower",
+  },
+  {
+    src: Street,
+    alt: "Street photography scene",
+    title: "Street",
+    place: "Astara",
+    positionClass: "street",
+  },
+  {
+    src: MiladTower,
+    alt: "Milad Tower",
+    title: "Tower",
+    place: "Tehran",
+    positionClass: "milad-tower",
+  },
+  {
+    src: Airplane,
+    alt: "Airplane in the sky",
+    title: "Airplane",
+    place: "Tehran",
+    positionClass: "airplane",
+  },
+  {
+    src: AstaraSnow,
+    alt: "Snowy landscape in Astara",
+    title: "Snow",
+    place: "Astara",
+    positionClass: "astara-snow",
+  },
+  {
+    src: Hormuz,
+    alt: "Mountain in Hormuz island",
+    title: "Mountain",
+    place: "Hormuz",
+    positionClass: "hormuz",
+  },
+];
 </script>
 
 <template>
@@ -19,43 +71,13 @@ import Vsco from "~/assets/icons/Vsco.svg";
       <BulletText>I really enjoy photography and find great satisfaction in capturing unique moments through my lens.</BulletText>
     </div>
     <div class="photography">
-      <div class="picture tehran-people">
-        <img :src="TehranPeople" alt="People in Tehran at Night" />
-        <div class="picture-note center-note">People</div>
-        <div class="picture-note down-note">Tehran</div>
-      </div>
-      <div class="picture flower">
-        <img :src="Flower" alt="" />
-        <div class="picture-note center-note">Flower</div>
-        <div class="picture-note down-note">Astara</div>
-      </div>
-      <div class="picture street">
-        <img :src="Street" alt="" />
-        <div class="picture-note center-note">Street</div>
-        <div class="picture-note down-note">Astara</div>
-      </div>
-      <div class="picture milad-tower">
-        <img :src="MiladTower" alt="" />
-        <div class="picture-note center-note">Tower</div>
-        <div class="picture-note down-note">Tehran</div>
-      </div>
-      <div class="picture airplane">
-        <img :src="Airplane" alt="" />
-        <div class="picture-note center-note">Airplane</div>
-        <div class="picture-note down-note">Tehran</div>
-      </div>
-      <div class="picture astara-snow">
-        <img :src="AstaraSnow" alt="" />
-        <div class="picture-note center-note">Snow</div>
-        <div class="picture-note down-note">Astara</div>
-      </div>
-      <div class="picture hormuz">
-        <img :src="Hormuz" alt="" />
-        <div class="picture-note center-note">Mountain</div>
-        <div class="picture-note down-note">Hormuz</div>
+      <div v-for="photo in photos" :key="photo.positionClass" class="picture" :class="photo.positionClass">
+        <img :src="photo.src" :alt="photo.alt" />
+        <div class="picture-note center-note">{{ photo.title }}</div>
+        <div class="picture-note down-note">{{ photo.place }}</div>
       </div>
       <div class="vsco-icon"><img :src="Vsco" alt="" /></div>
-      <div class="sub-btn"><TheBotton to="https://t.me/StreetNote" text="For More" :Logo="TelegramLogo" opacityMode="" /></div>
+      <div class="sub-btn"><BaseButton to="https://t.me/StreetNote" text="For More" :logo="TelegramLogo" opacityMode /></div>
     </div>
   </div>
 </template>

@@ -4,57 +4,66 @@ import BulletText from "@/components/shared/BulletText.vue";
 import ExperienceArianSalamat from "~/assets/img/experience/ariansalamat.png";
 import Experiencespy from "~/assets/img/experience/spy.png";
 import Experiencedsh from "~/assets/img/experience/dsh.png";
+
+const experiences = [
+  {
+    title: "Shop",
+    text: "This is an online shop practice project where I developed the frontend, while the backend is powered by a fake or test API. The project utilized libraries and tools such as Axios, Pinia, Vite, and Vuetify.",
+  },
+  {
+    title: "Spy",
+    text: "Spy is a small multiplayer game without a backend, where the frontend is built using Vue. The project made use of libraries including Pinia and Vite.",
+  },
+  {
+    title: "Don't Say Hi",
+    text: "This project leverages artificial intelligence for a dating platform, consisting of three subprojects: a landing page built with React, a Python-powered backend, and a Vue-based frontend. I contributed to the frontend development, and the project used libraries such as Axios, Pinia, Vite, and Vue Validate.",
+  },
+];
+
+const projects = [
+  {
+    url: "https://ariansalamat.com",
+    image: ExperienceArianSalamat,
+    backgroundClass: "shop-card",
+    name: "Arian Salamat",
+    framework: "This project was developed using HTML and CSS",
+  },
+  {
+    url: "https://spying.netlify.app/",
+    image: Experiencespy,
+    backgroundClass: "spy-card",
+    name: "Spy",
+    framework: "This project was developed using Vue.js",
+  },
+  {
+    url: "https://dontsayhi.com/",
+    image: Experiencedsh,
+    backgroundClass: "dsh-card",
+    name: "Don't Say hi",
+    framework: "This project was developed using Vue.js",
+  },
+];
 </script>
 <template>
   <div class="container">
     <SectionTitle text="Experience" marginTop="6.25rem" marginBottom="3.75rem" />
-    <div class="experience-detail">
-      <div class="photography-title">Shop</div>
-      <BulletText>
-        This is an online shop practice project where I developed the frontend, while the backend is powered by a fake or test API. The project
-        utilized libraries and tools such as Axios, Pinia, Vite, and Vuetify.</BulletText
-      >
-    </div>
-    <div class="experience-detail">
-      <div class="photography-title">Spy</div>
-      <BulletText>
-        Spy is a small multiplayer game without a backend, where the frontend is built using Vue. The project made use of libraries including Pinia
-        and Vite.
-      </BulletText>
-    </div>
-    <div class="experience-detail">
-      <div class="photography-title">Don't Say Hi</div>
-      <BulletText>
-        This project leverages artificial intelligence for a dating platform, consisting of three subprojects: a landing page built with React, a
-        Python-powered backend, and a Vue-based frontend. I contributed to the frontend development, and the project used libraries such as Axios,
-        Pinia, Vite, and Vue Validate.
-      </BulletText>
+    <div v-for="experience in experiences" :key="experience.title" class="experience-detail">
+      <div class="experience-title">{{ experience.title }}</div>
+      <BulletText>{{ experience.text }}</BulletText>
     </div>
     <div class="experience-cards">
-      <NuxtLink to="https://ariansalamat.com" target="_blank" class="card-link">
-        <div class="card shop-card">
-          <img :src="ExperienceArianSalamat" alt="" />
+      <NuxtLink
+        v-for="project in projects"
+        :key="project.name"
+        :to="project.url"
+        target="_blank"
+        class="card-link"
+      >
+        <div class="card" :class="project.backgroundClass">
+          <img :src="project.image" :alt="project.name" />
           <div class="card-info">
-            <div class="project-name">Arian Salamat</div>
-            <div class="project-framework">This project was developed using html and css</div>
-          </div>
-        </div>
-      </NuxtLink>
-      <NuxtLink to="https://spying.netlify.app/" target="_blank" class="card-link">
-        <div class="card spy-card">
-          <img :src="Experiencespy" alt="" />
-          <div class="card-info">
-            <div class="project-name">Spy</div>
-            <div class="project-framework">This project was developed using Vue.js</div>
-          </div>
-        </div>
-      </NuxtLink>
-      <NuxtLink to="https://dontsayhi.com/" target="_blank" class="card-link">
-        <div class="card dsh-card">
-          <img :src="Experiencedsh" alt="" />
-          <div class="card-info">
-            <div class="project-name">Don't Say hi</div>
-            <div class="project-framework">This project was developed using Vue.js</div>
+            <div class="project-name">{{ project.name }}</div>
+            <div class="project-framework">{{ project.framework }}</div>
           </div>
         </div>
       </NuxtLink>

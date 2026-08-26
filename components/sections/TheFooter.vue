@@ -1,5 +1,5 @@
 <script setup>
-import TheBotton from "@/components/shared/TheBotton.vue";
+import BaseButton from "@/components/shared/BaseButton.vue";
 import Github from '~/assets/icons/GitHub.svg'
 import Linkedin from '~/assets/icons/Linkedin.svg'
 import Telegram from '~/assets/icons/Telegram.svg'
@@ -7,9 +7,9 @@ import Telegram from '~/assets/icons/Telegram.svg'
 <template>
     <div class="footer">
         <div class="footer-icons">
-            <TheBotton to="https://www.linkedin.com/in/bonyavid/" btnSize="3.125" :Logo="Linkedin" opacityMode />
-            <TheBotton to="https://github.com/BonyaviD" btnSize="3.125" :Logo="Github" opacityMode />
-            <TheBotton to="https://t.me/StreetNote" btnSize="3.125" :Logo="Telegram" opacityMode />
+            <BaseButton to="https://www.linkedin.com/in/bonyavid/" btnSize="3.125" :logo="Linkedin" opacityMode />
+            <BaseButton to="https://github.com/BonyaviD" btnSize="3.125" :logo="Github" opacityMode />
+            <BaseButton to="https://t.me/StreetNote" btnSize="3.125" :logo="Telegram" opacityMode />
         </div>
         <div>© 2024 <span class="my-name">Navid Bonyadi</span>, all rights reserved 👨🏻‍💻🤘🏻</div>
     </div>

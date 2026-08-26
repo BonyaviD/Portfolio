@@ -2,18 +2,19 @@
 import Logo from "~/assets/img/Logo.svg";
 import Github from '~/assets/icons/GitHub.svg'
 import Linkedin from '~/assets/icons/Linkedin.svg'
-import TheBotton from "@/components/shared/TheBotton.vue";
+import BaseButton from "@/components/shared/BaseButton.vue";
 </script>
 
 <template>
   <div class="header-section">
     <div class="header-items container">
-      <div class="header-logo">
-        <img :src="Logo" alt="" srcset="" />
-      </div>
+      <NuxtLink to="/" class="header-logo">
+        <img :src="Logo" alt="Navid Bonyadi logo" />
+      </NuxtLink>
       <div class="header-btns">
-        <TheBotton to="https://www.linkedin.com/in/bonyavid/" text="LinkedIn" :Logo="Linkedin" opacityMode />
-        <TheBotton to="https://github.com/BonyaviD" text="GitHub" :Logo="Github" opacityMode />
+        <BaseButton to="/about" text="About" opacityMode />
+        <BaseButton to="https://www.linkedin.com/in/bonyavid/" text="LinkedIn" :logo="Linkedin" opacityMode />
+        <BaseButton to="https://github.com/BonyaviD" text="GitHub" :logo="Github" opacityMode />
       </div>
     </div>
   </div>
@@ -27,7 +28,7 @@ import TheBotton from "@/components/shared/TheBotton.vue";
   height: 5rem;
   z-index: 100;
   backdrop-filter: blur(0.5rem);
-  background-color: var(--second-sark-color);
+  background-color: var(--second-dark-color);
 }
 
 .header-items {

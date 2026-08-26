@@ -1,30 +1,38 @@
 <script setup>
 import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import TheSkillsItem from "@/components/sections/TheSkills/TheSkillsItem.vue";
+
+const skills = [
+  { text: "Html", level: "Expert" },
+  { text: "Css", level: "Expert" },
+  { text: "Sass", level: "Advanced" },
+  { text: "Scss", level: "Advanced" },
+  { text: "Tailwind CSS", level: "Intermediate" },
+  { text: "Bootstrap", level: "Intermediate" },
+  { text: "JavaScript", level: "Advanced" },
+  { text: "TypeScript", level: "Beginner" },
+  { text: "HTTP Requests", level: "Advanced" },
+  { text: "RESTful APIs", level: "Advanced" },
+  { text: "Pinia", level: "Advanced" },
+  { text: "Vite", level: "Intermediate" },
+  { text: "GIT", level: "Advanced" },
+  { text: "GITHUB", level: "Advanced" },
+  { text: "Vue", level: "Advanced" },
+  { text: "Nuxt", level: "Advanced" },
+];
 </script>
 <template>
   <div class="container">
     <SectionTitle text="Skills" marginTop="6.25rem" marginBottom="3.125rem" />
     <div class="skills-content">
       <div class="first-skills skills">
-        <TheSkillsItem text="Html" level="Expert"/>
-        <TheSkillsItem text="Css" level="Expert"/>
-        <TheSkillsItem text="Sass" level="Advanced"/>
-        <TheSkillsItem text="Scss" level="Advanced"/>
-        <TheSkillsItem text="Tailwind CSS" level="Intermediate" />
-        <TheSkillsItem text="Bootstrap" level="Intermediate" /> 
-        <TheSkillsItem text="JavaScript" level="Advanced" />
-        <TheSkillsItem text="TypeScript" level="Beginner " /> 
-        <TheSkillsItem text="HTTP Requests" level="Advanced" />
-        <TheSkillsItem text="RESTful APIs" level="Advanced" />
-        <TheSkillsItem text="Pinia" level="Advanced" />
-        <TheSkillsItem text="Vite" level="Intermediate" />
-        <TheSkillsItem text="GIT" level="Advanced" /> 
-        <TheSkillsItem text="GITHUB" level="Advanced" /> 
-        <TheSkillsItem text="Vue" level="Advanced" /> 
-        <TheSkillsItem text="Nuxt" level="Advanced" /> 
+        <TheSkillsItem
+          v-for="skill in skills"
+          :key="skill.text"
+          :text="skill.text"
+          :level="skill.level"
+        />
       </div>
-
     </div>
   </div>
 </template>

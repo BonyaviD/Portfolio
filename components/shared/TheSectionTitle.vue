@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from "vue";
-import { defineProps } from "vue";
 
 // Define props
 const props = defineProps({

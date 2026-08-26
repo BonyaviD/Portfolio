@@ -2,7 +2,7 @@
 import BulletText from "@/components/shared/BulletText.vue";
 import TheLastOfUs from "~/assets/img/gaming/the-last-of-us.jpg";
 import PrinceOfPersia from "~/assets/img/gaming/prince-of-persia.jpg"
-import BeyondTwoTheSouls from "~/assets/img/gaming/beyond-two-souls.jpg";
+import BeyondTwoSouls from "~/assets/img/gaming/beyond-two-souls.jpg";
 import Kena from "~/assets/img/gaming/kena.jpg";
 import HellBlade from "~/assets/img/gaming/hellbalde.jpg";
 import Detroit from "~/assets/img/gaming/detroit.jpg";
@@ -15,6 +15,22 @@ import ItTakesTwo from "~/assets/img/gaming/it-takes-two.jpg"
 import NierAutomata from "~/assets/img/gaming/nier-automata.jpg"
 import ResidentEvil from "~/assets/img/gaming/resident-evil.jpg"
 
+const games = [
+  { src: TheLastOfUs, alt: "The Last of Us" },
+  { src: PrinceOfPersia, alt: "Prince of Persia" },
+  { src: BeyondTwoSouls, alt: "Beyond: Two Souls" },
+  { src: Kena, alt: "Kena: Bridge of Spirits" },
+  { src: HellBlade, alt: "Hellblade: Senua's Sacrifice" },
+  { src: Detroit, alt: "Detroit: Become Human" },
+  { src: Plague, alt: "A Plague Tale: Innocence" },
+  { src: Control, alt: "Control" },
+  { src: FinalFantasy, alt: "Final Fantasy" },
+  { src: CyberPunk, alt: "Cyberpunk 2077" },
+  { src: ItTakesTwo, alt: "It Takes Two" },
+  { src: NierAutomata, alt: "NieR: Automata" },
+  { src: ResidentEvil, alt: "Resident Evil Village" },
+  { src: GhostOfTsushima, alt: "Ghost of Tsushima" },
+];
 </script>
 
 <template>
@@ -23,20 +39,12 @@ import ResidentEvil from "~/assets/img/gaming/resident-evil.jpg"
       <BulletText>I'm also passionate about gaming, and it’s one of my favorite ways to unwind and have fun.</BulletText>
     </div>
     <div class="games">
-      <img :src="TheLastOfUs" alt="" />
-      <img :src="PrinceOfPersia" alt="" />
-      <img :src="BeyondTwoTheSouls" alt="" />
-      <img :src="Kena" alt="" />
-      <img :src="HellBlade" alt="" />
-      <img :src="Detroit" alt="" />
-      <img :src="Plague" alt="" />
-      <img :src="Control" alt="" />
-      <img :src="FinalFantasy" alt="" />
-      <img :src="CyberPunk" alt="" />
-      <img :src="ItTakesTwo" alt="" />
-      <img :src="NierAutomata" alt="" />
-      <img :src="ResidentEvil" alt="" />
-      <img :src="GhostOfTsushima" alt="" />
+      <img
+        v-for="game in games"
+        :key="game.alt"
+        :src="game.src"
+        :alt="game.alt"
+      />
     </div>
 
 </template>

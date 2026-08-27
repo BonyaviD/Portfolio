@@ -39,7 +39,7 @@ const btnMode = computed(() => ({
   backgroundColor: `${
     props.opacityMode ? "var(--primary-opacity-color)" : "var(--primary-color)"
   }`,
-  border: `${props.opacityMode ? "2px solid var(--primary-color)" : "none"}`,
+  border: "none",
 }));
 
 const isExternalLink = computed(

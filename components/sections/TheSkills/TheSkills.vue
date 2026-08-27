@@ -1,6 +1,7 @@
 <script setup>
 import SectionTitle from "@/components/shared/TheSectionTitle.vue";
 import TheSkillsItem from "@/components/sections/TheSkills/TheSkillsItem.vue";
+import ParticleFieldCanvas from "@/components/shared/ParticleFieldCanvas.vue";
 
 const skills = [
   { text: "Html", level: "Expert" },
@@ -22,22 +23,44 @@ const skills = [
 ];
 </script>
 <template>
-  <div class="container">
-    <SectionTitle text="Skills" marginTop="6.25rem" marginBottom="3.125rem" />
-    <div class="skills-content">
-      <div class="first-skills skills">
-        <TheSkillsItem
-          v-for="skill in skills"
-          :key="skill.text"
-          :text="skill.text"
-          :level="skill.level"
-        />
+  <div class="skills-section">
+    <ParticleFieldCanvas :particle-count="4000" mode="repel" />
+    <div class="skills-overlay"></div>
+
+    <div class="container skills-inner">
+      <SectionTitle text="Skills" marginTop="6.25rem" marginBottom="3.125rem" />
+      <div class="skills-content">
+        <div class="first-skills skills">
+          <TheSkillsItem
+            v-for="skill in skills"
+            :key="skill.text"
+            :text="skill.text"
+            :level="skill.level"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.skills-section {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Keeps cards & title readable above the glowing particles */
+.skills-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(13, 27, 42, 0.30) 0%, rgba(13, 27, 42, 0.62) 100%);
+}
+
+.skills-inner {
+  position: relative;
+  z-index: 1;
+}
 .skills-content {
   /* width: 100%; */
   border-radius: 8px;
@@ -49,7 +72,4 @@ const skills = [
   gap: 0.5rem;
   overflow: hidden;
 }
-
-
-
 </style>

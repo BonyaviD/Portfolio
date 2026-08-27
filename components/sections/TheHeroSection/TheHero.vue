@@ -60,7 +60,7 @@ function createRippleScene(canvas) {
   const vs =
     "attribute vec2 p;varying vec2 uv;void main(){uv=(p+1.)*.5;gl_Position=vec4(p,0.,1.);}";
   const fs =
-    "precision mediump float;varying vec2 uv;uniform sampler2D tex;uniform float time;uniform float power;uniform vec4 r[32];uniform int count;void main(){vec2 q=uv;for(int i=0;i<32;i++){if(i>=count)break;vec2 c=r[i].xy;float age=time-r[i].z;float d=distance(q,c);float wave=sin((d-age*.30)*92.)*exp(-d*10.)*exp(-age*.58);vec2 dir=normalize(q-c+vec2(.0001));q+=dir*wave*power*r[i].w;}vec4 col=texture2D(tex,q);float glow=0.;for(int i=0;i<32;i++){if(i>=count)break;float age=time-r[i].z;float d=distance(uv,r[i].xy);glow+=exp(-d*18.)*exp(-age*.85)*.16;}col.rgb+=vec3(.16,.42,.72)*glow;gl_FragColor=vec4(col.rgb,1.);}";
+    "precision mediump float;varying vec2 uv;uniform sampler2D tex;uniform float time;uniform float power;uniform vec4 r[32];uniform int count;uniform vec2 tsc;void main(){vec2 q=uv;for(int i=0;i<32;i++){if(i>=count)break;vec2 c=r[i].xy;float age=time-r[i].z;float d=distance(q,c);float wave=sin((d-age*.30)*92.)*exp(-d*10.)*exp(-age*.58);vec2 dir=normalize(q-c+vec2(.0001));q+=dir*wave*power*r[i].w;}vec4 col=texture2D(tex,vec2(.5)+(q-.5)*tsc);float glow=0.;for(int i=0;i<32;i++){if(i>=count)break;float age=time-r[i].z;float d=distance(uv,r[i].xy);glow+=exp(-d*18.)*exp(-age*.85)*.16;}col.rgb+=vec3(.16,.42,.72)*glow;gl_FragColor=vec4(col.rgb,1.);}";
 
   function compileShader(type, src) {
     const s = gl.createShader(type);
@@ -92,6 +92,10 @@ function createRippleScene(canvas) {
   const up = gl.getUniformLocation(pg, "power");
   const ur = gl.getUniformLocation(pg, "r");
   const uc = gl.getUniformLocation(pg, "count");
+  const uts = gl.getUniformLocation(pg, "tsc");
+
+  // Aspect ratio of the loaded image (defaults to canvas ratio until the image loads)
+  let imgAspect = W / H;
 
   function draw() {
     const now = performance.now() * 0.001;
@@ -106,6 +110,18 @@ function createRippleScene(canvas) {
       nextAmbientDelay = getRandomAmbientDelay();
     }
 
+    // object-fit: cover equivalent — center-crop UVs so the image is never stretched
+    let sx = 1;
+    let sy = 1;
+    if (H > 0) {
+      const canvasAspect = W / H;
+      if (imgAspect > canvasAspect) {
+        sx = canvasAspect / imgAspect; // image wider -> crop left/right
+      } else {
+        sy = imgAspect / canvasAspect; // image taller -> crop top/bottom
+      }
+    }
+
     const data = new Float32Array(32 * 4);
     ripples.forEach((v, i) => data.set(v, i * 4));
 
@@ -115,6 +131,7 @@ function createRippleScene(canvas) {
     gl.uniform1f(up, strength);
     gl.uniform4fv(ur, data);
     gl.uniform1i(uc, ripples.length);
+    gl.uniform2f(uts, sx, sy);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     rafId = requestAnimationFrame(draw);
   }
@@ -130,6 +147,7 @@ function createRippleScene(canvas) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    imgAspect = img.width / img.height;
     resize();
     rafId = requestAnimationFrame(draw);
   };

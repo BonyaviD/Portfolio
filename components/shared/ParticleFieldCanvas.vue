@@ -1,300 +1,254 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 
 const props = defineProps({
-  particleCount: { type: Number, default: 4000 },
-  // "repel" -> particles flee from the cursor | "attract" -> they gather & swirl around it
-  mode: { type: String, default: "repel" },
-  radius: { type: Number, default: 150 }, // mouse influence radius in CSS px
-  strength: { type: Number, default: 260 }, // push/pull acceleration (CSS px /s²)
+  particleCount: { type: Number, default: 12000 },
+  baseColor: { type: String, default: "#07ace4" },
+  secondaryColor: { type: String, default: "#b823e1" },
+  attractMode: { type: Boolean, default: true }, // شروع با جذب
+  mouseRadius: { type: Number, default: 400 },
+  forceStrength: { type: Number, default: 1.5 },
+  particleSize: { type: Number, default: 5 },
+  glowStrength: { type: Number, default: 10 },
+  backgroundColor: { type: String, default: "#0d1b2a" },
+  toggleOnMove: { type: Boolean, default: true }, // تغییر به دفع بعد از حرکت موس
 });
 
-const canvasEl = ref(null);
+const containerEl = ref(null);
 let sceneApi = null;
+let currentMode = ref(true); // true = attract, false = repel
+let mouseHasMoved = ref(false);
 
-function createScene(canvas, surface) {
-  const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true });
-  if (!gl) throw new Error("WebGL unavailable");
 
-  const reducedMotion =
-    window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reducedMotion) return null;
-
-  let dpr = Math.min(window.devicePixelRatio || 1, 2);
-  let W = canvas.clientWidth || surface.clientWidth || 800;
-  let H = canvas.clientHeight || surface.clientHeight || 400;
-
-  // Scale particle count with viewport area (lighter on phones)
-  const areaFactor = Math.min(1, Math.max(0.35, (W * H) / (1440 * 900)));
-  const count = Math.max(250, Math.round(props.particleCount * areaFactor));
-
-  // --- GPU resources --------------------------------------------------------
-  const vs =
-    "attribute vec2 aPos;attribute vec2 aData;" +
-    "uniform vec2 uRes;uniform float uDpr;uniform float uSizeScale;" +
-    "varying float vTint;" +
-    "void main(){" +
-    "vTint=aData.y;" +
-    "gl_Position=vec4((aPos.x/uRes.x)*2.0-1.0,1.0-(aPos.y/uRes.y)*2.0,0.0,1.0);" +
-    "gl_PointSize=aData.x*uSizeScale*uDpr;}";
-
-  const fs =
-    "precision mediump float;varying float vTint;uniform float uIntensity;" +
-    "void main(){" +
-    "vec2 c=gl_PointCoord*2.0-1.0;" +
-    "float d=dot(c,c);" +
-    "if(d>1.0){discard;}" +
-    "float alpha=exp(-d*3.5)*uIntensity;" +
-    "vec3 lightGold=vec3(0.902,0.714,0.424);" +
-    "vec3 deepGold=vec3(0.545,0.392,0.176);" +
-    "vec3 col=mix(deepGold,lightGold,vTint);" +
-    "col+=vec3(1.0)*alpha*alpha*0.35;" + // white-hot core => bloom feel
-    "gl_FragColor=vec4(col,alpha);}";
-
-  function compileShader(type, src) {
-    const s = gl.createShader(type);
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-    return s;
+function createScene(container) {
+  if (typeof THREE === "undefined") {
+    console.warn("THREE.js not loaded");
+    return null;
   }
 
-  const pg = gl.createProgram();
-  gl.attachShader(pg, compileShader(gl.VERTEX_SHADER, vs));
-  gl.attachShader(pg, compileShader(gl.FRAGMENT_SHADER, fs));
-  gl.linkProgram(pg);
-  gl.useProgram(pg);
+  const scene = new THREE.Scene();
+  const bgColor = new THREE.Color(props.backgroundColor);
+  scene.fog = new THREE.FogExp2(bgColor, 0.0008);
 
-  // --- Particle state -------------------------------------------------------
-  const pos = new Float32Array(count * 2); // CSS px
-  const home = new Float32Array(count * 2); // resting position -> spring back
-  const vel = new Float32Array(count * 2);
-  const data = new Float32Array(count * 2); // [size, tintMix]
-  const phase = new Float32Array(count);
+  const camera = new THREE.PerspectiveCamera(
+    70,
+    container.clientWidth / container.clientHeight,
+    1,
+    3000
+  );
+  camera.position.z = 600;
 
-  const MARGIN = 40;
-  for (let i = 0; i < count; i++) {
-    pos[i * 2] = Math.random() * (W + MARGIN * 2) - MARGIN;
-    pos[i * 2 + 1] = Math.random() * (H + MARGIN * 2) - MARGIN;
-    home[i * 2] = pos[i * 2];
-    home[i * 2 + 1] = pos[i * 2 + 1];
-    // Mostly tiny sparks, some bigger stars
-    const big = Math.random() < 0.08;
-    data[i * 2] = big ? 3.0 + Math.random() * 1.8 : 1.1 + Math.random() * 1.9;
-    data[i * 2 + 1] = Math.random(); // gold <-> ice gradient
-    phase[i] = Math.random() * Math.PI * 2;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setClearColor(props.backgroundColor, 1);
+  container.appendChild(renderer.domElement);
+
+  function makeTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext("2d");
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, "rgba(255,255,255,1)");
+    g.addColorStop(0.35, "rgba(255,255,255,0.45)");
+    g.addColorStop(0.7, "rgba(255,255,255,0.08)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.needsUpdate = true;
+    return tex;
   }
-  const posBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, pos, gl.DYNAMIC_DRAW);
-  const aPos = gl.getAttribLocation(pg, "aPos");
-  gl.enableVertexAttribArray(aPos);
-  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-  const dataBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, dataBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-  const aData = gl.getAttribLocation(pg, "aData");
-  gl.enableVertexAttribArray(aData);
-  gl.vertexAttribPointer(aData, 2, gl.FLOAT, false, 0, 0);
+  const texture = makeTexture();
+  const COUNT = props.particleCount;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(COUNT * 3);
+  const velocities = new Float32Array(COUNT * 3);
+  const colors = new Float32Array(COUNT * 3);
+  const home = new Float32Array(COUNT * 3);
 
-  // Duplicate attribute binding for the second draw pass (same buffers)
-  const uRes = gl.getUniformLocation(pg, "uRes");
-  const uDpr = gl.getUniformLocation(pg, "uDpr");
-  const uSizeScale = gl.getUniformLocation(pg, "uSizeScale");
-  const uIntensity = gl.getUniformLocation(pg, "uIntensity");
+  const c1 = new THREE.Color(props.baseColor);
+  const c2 = new THREE.Color(props.secondaryColor);
+  const rangeX = 1400,
+    rangeY = 900,
+    rangeZ = 700;
 
-  gl.disable(gl.DEPTH_TEST);
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // additive => glow/bloom
+  for (let i = 0; i < COUNT; i++) {
+    const x = (Math.random() - 0.5) * rangeX;
+    const y = (Math.random() - 0.5) * rangeY;
+    const z = (Math.random() - 0.5) * rangeZ;
+    positions[i * 3] = x;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = z;
+    home[i * 3] = x;
+    home[i * 3 + 1] = y;
+    home[i * 3 + 2] = z;
+    velocities[i * 3] = (Math.random() - 0.5) * 0.4;
+    velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.4;
+    velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+    const c = Math.random() > 0.45 ? c1 : c2;
+    colors[i * 3] = c.r;
+    colors[i * 3 + 1] = c.g;
+    colors[i * 3 + 2] = c.b;
+  }
 
-  let rafId = 0;
-  const mouse = { x: -9999, y: -9999, tx: -9999, ty: -9999 };
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-  let lastW = W;
-  let lastH = H;
+  const coreMaterial = new THREE.PointsMaterial({
+    size: props.particleSize,
+    map: texture,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+    opacity: 0.95,
+    sizeAttenuation: true,
+  });
+  const core = new THREE.Points(geometry, coreMaterial);
+  scene.add(core);
+
+  const glowMaterial = new THREE.PointsMaterial({
+    size: props.particleSize * (2.5 + props.glowStrength * 0.5),
+    map: texture,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+    opacity: 0.18,
+    sizeAttenuation: true,
+  });
+  const glow = new THREE.Points(geometry, glowMaterial);
+  scene.add(glow);
+
+  const mouse = new THREE.Vector2(-9999, -9999);
+  const raycaster = new THREE.Raycaster();
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  const mouseWorld = new THREE.Vector3();
+
+  function updateMouse(e) {
+    const rect = container.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left) / rect.width * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height * 2 - 1);
+    
+    // تبدیل به دفع بعد از اولین حرکت
+    if (props.toggleOnMove && !mouseHasMoved.value) {
+      mouseHasMoved.value = true;
+      currentMode.value = false; // تبدیل به repel
+    }
+  }
+
+  container.addEventListener("mousemove", updateMouse, { passive: true });
+  container.addEventListener("mouseleave", () => mouse.set(-9999, -9999));
+  container.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches[0]) updateMouse(e.touches[0]);
+    },
+    { passive: true }
+  );
+  container.addEventListener(
+    "touchmove",
+    (e) => {
+      if (e.touches[0]) {
+        updateMouse(e.touches[0]);
+      }
+    },
+    { passive: true }
+  );
+  container.addEventListener("touchend", () => mouse.set(-9999, -9999));
+
+  const clock = new THREE.Clock();
+  const rSq = props.mouseRadius * props.mouseRadius;
+  const dir = new THREE.Vector3();
+
+  function animate() {
+    const raf = requestAnimationFrame(animate);
+    const dt = Math.min(clock.getDelta(), 0.05);
+
+    raycaster.setFromCamera(mouse, camera);
+    raycaster.ray.intersectPlane(plane, mouseWorld);
+
+    const pos = geometry.attributes.position.array;
+    for (let i = 0; i < COUNT; i++) {
+      const ix = i * 3,
+        iy = i * 3 + 1,
+        iz = i * 3 + 2;
+      pos[ix] += velocities[ix] * dt * 60;
+      pos[iy] += velocities[iy] * dt * 60;
+      pos[iz] += velocities[iz] * dt * 60;
+
+      pos[ix] += (home[ix] - pos[ix]) * 0.008 * dt * 60;
+      pos[iy] += (home[iy] - pos[iy]) * 0.008 * dt * 60;
+      pos[iz] += (home[iz] - pos[iz]) * 0.008 * dt * 60;
+
+      const dx = pos[ix] - mouseWorld.x;
+      const dy = pos[iy] - mouseWorld.y;
+      const dz = pos[iz] - mouseWorld.z;
+      const distSq = dx * dx + dy * dy + dz * dz;
+      if (distSq < rSq && distSq > 0.01) {
+        const dist = Math.sqrt(distSq);
+        const force = (1 - dist / props.mouseRadius) * props.forceStrength * 6 * dt * 60;
+        dir.set(dx / dist, dy / dist, dz / dist);
+        // استفاده از currentMode.value برای تعیین جذب یا دفع
+        const isAttract = props.toggleOnMove ? currentMode.value : props.attractMode;
+        const sign = isAttract ? -1 : 1;
+        pos[ix] += dir.x * force * sign;
+        pos[iy] += dir.y * force * sign;
+        pos[iz] += dir.z * force * sign;
+      }
+    }
+    geometry.attributes.position.needsUpdate = true;
+
+    core.rotation.y += 0.0003;
+    glow.rotation.y += 0.0003;
+    renderer.render(scene, camera);
+
+    return raf;
+  }
+
+  let rafId = animate();
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const oldW = lastW;
-    const oldH = lastH;
-    W = canvas.clientWidth || W;
-    H = canvas.clientHeight || H;
-    // Rescale positions & homes proportionally so springs never pull off-canvas
-    if (oldW > 0 && oldH > 0 && (oldW !== W || oldH !== H)) {
-      const kx = W / oldW;
-      const ky = H / oldH;
-      for (let i = 0; i < count * 2; i += 2) {
-        home[i] *= kx;
-        home[i + 1] *= ky;
-        pos[i] *= kx;
-        pos[i + 1] *= ky;
-      }
-    }
-    lastW = W;
-    lastH = H;
-    canvas.width = Math.round(W * dpr);
-    canvas.height = Math.round(H * dpr);
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.uniform2f(uRes, W, H);
-    gl.uniform1f(uDpr, dpr);
+    const w = container.clientWidth,
+      h = container.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
   }
 
-  function update(dt, t) {
-    const R = props.radius;
-    const F = props.strength;
-    const repel = props.mode !== "attract";
-    const damp = Math.pow(0.32, dt); // gentle global damping
-    for (let i = 0; i < count; i++) {
-      const ix = i * 2;
-      const iy = ix + 1;
-
-      // Idle float: smooth per-particle noise drift
-      vel[ix] += Math.sin(t * 0.7 + phase[i]) * 6.0 * dt;
-      vel[iy] += Math.cos(t * 0.55 + phase[i] * 1.3) * 6.0 * dt;
-
-      // Spring back home: particles return to their resting spot after being pushed
-      const hx = home[ix] - pos[ix];
-      const hy = home[iy] - pos[iy];
-      vel[ix] += hx * 4.0 * dt;
-      vel[iy] += hy * 4.0 * dt;
-
-      // Mouse interaction
-      const dx = pos[ix] - mouse.x;
-      const dy = pos[iy] - mouse.y;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < R * R && d2 > 0.01) {
-        const d = Math.sqrt(d2);
-        const fall = 1 - d / R;
-        if (repel) {
-          const f = fall * fall * F * dt / d;
-          vel[ix] += dx * f;
-          vel[iy] += dy * f;
-        } else if (d > 34) {
-          const f = -fall * fall * F * dt / d; // pull toward cursor
-          vel[ix] += dx * f;
-          vel[iy] += dy * f;
-        } else {
-          // Very close: orbit instead of collapsing
-          const s = 120 * fall * dt;
-          vel[ix] += (-dy / d) * s;
-          vel[iy] += (dx / d) * s;
-        }
-      }
-
-      vel[ix] *= damp;
-      vel[iy] *= damp;
-
-      // Speed clamp
-      const sp2 = vel[ix] * vel[ix] + vel[iy] * vel[iy];
-      if (sp2 > 320 * 320) {
-        const k = 320 / Math.sqrt(sp2);
-        vel[ix] *= k;
-        vel[iy] *= k;
-      }
-
-      pos[ix] += vel[ix] * dt;
-      pos[iy] += vel[iy] * dt;
-
-      // Soft bounce at edges (spring needs a fixed frame of reference, no wrap)
-      if (pos[ix] < -MARGIN) {
-        pos[ix] = -MARGIN;
-        vel[ix] *= -0.5;
-      } else if (pos[ix] > W + MARGIN) {
-        pos[ix] = W + MARGIN;
-        vel[ix] *= -0.5;
-      }
-      if (pos[iy] < -MARGIN) {
-        pos[iy] = -MARGIN;
-        vel[iy] *= -0.5;
-      } else if (pos[iy] > H + MARGIN) {
-        pos[iy] = H + MARGIN;
-        vel[iy] *= -0.5;
-      }
-    }
-  }
-
-  function draw() {
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    gl.uniform1f(uSizeScale, 1.0);
-    gl.uniform1f(uIntensity, 0.95);
-    gl.drawArrays(gl.POINTS, 0, count);
-
-    // Big soft halo pass => bloom
-    gl.uniform1f(uSizeScale, 4.2);
-    gl.uniform1f(uIntensity, 0.10);
-    gl.drawArrays(gl.POINTS, 0, count);
-  }
-
-  let last = performance.now();
-  function frame(now) {
-    const t = now * 0.001;
-    const dt = Math.min(0.033, (now - last) / 1000);
-    last = now;
-
-    // Smooth cursor follow for organic motion
-    mouse.x += (mouse.tx - mouse.x) * 0.18;
-    mouse.y += (mouse.ty - mouse.y) * 0.18;
-
-    update(dt, t);
-    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, pos);
-    draw();
-    rafId = requestAnimationFrame(frame);
-  }
-  // --- Events ---------------------------------------------------------------
-  function toLocal(e) {
-    const r = surface.getBoundingClientRect();
-    return [e.clientX - r.left, e.clientY - r.top];
-  }
-
-  function onPointerMove(e) {
-    const [x, y] = toLocal(e);
-    mouse.tx = x;
-    mouse.ty = y;
-    // Snap when the cursor re-enters from far away (prevents streak across screen)
-    if (mouse.x < -9000) {
-      mouse.x = x;
-      mouse.y = y;
-    }
-  }
-
-  function onPointerLeave() {
-    mouse.tx = -9999;
-    mouse.ty = -9999;
-  }
-
-  surface.addEventListener("pointermove", onPointerMove, { passive: true });
-  surface.addEventListener("pointerleave", onPointerLeave);
-
-  const onWinResize = () => resize();
-  window.addEventListener("resize", onWinResize);
-  const ro = new ResizeObserver(onWinResize);
-  ro.observe(surface);
-
-  resize();
-  rafId = requestAnimationFrame(frame);
+  window.addEventListener("resize", resize);
 
   return {
     destroy() {
       cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", onWinResize);
-      ro.disconnect();
-      surface.removeEventListener("pointermove", onPointerMove);
-      surface.removeEventListener("pointerleave", onPointerLeave);
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      window.removeEventListener("resize", resize);
+      container.removeEventListener("mousemove", updateMouse);
+      container.removeEventListener("mouseleave", () => {});
+      container.removeEventListener("touchstart", () => {});
+      container.removeEventListener("touchmove", () => {});
+      container.removeEventListener("touchend", () => {});
+      renderer.dispose();
     },
   };
 }
 
+
 onMounted(() => {
-  try {
-    sceneApi = createScene(canvasEl.value, canvasEl.value.parentElement);
-  } catch (err) {
-    console.warn("Particle field disabled:", err.message);
-  }
+  // Load THREE.js dynamically
+  const script = document.createElement("script");
+  script.src = "https://unpkg.com/three@0.160.0/build/three.min.js";
+  script.async = true;
+  script.onload = () => {
+    try {
+      sceneApi = createScene(containerEl.value);
+    } catch (err) {
+      console.warn("Particle field disabled:", err.message);
+    }
+  };
+  document.head.appendChild(script);
 });
 
 onBeforeUnmount(() => {
@@ -304,7 +258,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <canvas ref="canvasEl" class="particle-field-canvas" aria-hidden="true"></canvas>
+  <div ref="containerEl" class="particle-field-canvas" aria-hidden="true"></div>
 </template>
 
 <style scoped>

@@ -189,11 +189,13 @@ function handlePointerDown(event) {
 </script>
 
 <template>
-  <div ref="heroSection" class="hero-section" @pointerdown="handlePointerDown">
+  <div class="custom-section">
+    <div ref="heroSection" class="hero-section" @pointerdown="handlePointerDown">
     <!-- Plain <img> kept as a graceful fallback when WebGL is unavailable -->
     <img class="hero-background" :src="TehranPeople" alt="People walking at night in Tehran" />
     <canvas v-show="webglActive" ref="rippleCanvas" class="ripple-canvas"></canvas>
     <HeroIconsDance />
+    </div>
   </div>
 </template>
 

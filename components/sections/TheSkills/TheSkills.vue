@@ -23,11 +23,12 @@ const skills = [
 ];
 </script>
 <template>
-  <div class="skills-section">
-    <ParticleFieldCanvas :particle-count="4000" mode="repel" />
-    <div class="skills-overlay"></div>
+  <div class="custom-section">
+    <div class="skills-section">
+      <!-- <ParticleFieldCanvas :particle-count="12000" mode="repel" /> -->
+      <div class="skills-overlay"></div>
 
-    <div class="container skills-inner">
+      <div class="container skills-inner">
       <SectionTitle text="Skills" marginTop="6.25rem" marginBottom="3.125rem" />
       <div class="skills-content">
         <div class="first-skills skills">
@@ -39,6 +40,7 @@ const skills = [
           />
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>
@@ -53,10 +55,8 @@ const skills = [
 .skills-overlay {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(13, 27, 42, 0.30) 0%, rgba(13, 27, 42, 0.62) 100%);
-}
-
+  pointer-events: none;}
+  
 .skills-inner {
   position: relative;
   z-index: 1;

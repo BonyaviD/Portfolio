@@ -5,8 +5,9 @@ import BulletText from "@/components/shared/BulletText.vue";
 import Baloon from "@/assets/icons/Baloon.svg";
 </script>
 <template>
-  <div class="container">
-    <SectionTitle text="About Me" marginTop="2rem" marginBottom="10rem" />
+  <div class="custom-section">
+    <div class="container">
+      <SectionTitle text="About Me" marginTop="2rem" marginBottom="10rem" />
     <div class="aboutme">
       <div class="profile-section">
         <img class="profile-pic" :src="ProfileSrc" alt="" />
@@ -22,6 +23,7 @@ import Baloon from "@/assets/icons/Baloon.svg";
         <BulletText>Experienced in collaborating with cross-functional teams to deliver high-quality, scalable applications.</BulletText>
         <BulletText>Constantly learning new technologies and staying updated with the latest web development trends.</BulletText>
       </div>
+    </div>
     </div>
   </div>
 </template>

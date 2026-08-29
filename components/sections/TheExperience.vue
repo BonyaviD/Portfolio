@@ -57,8 +57,9 @@ const projects = [
 ];
 </script>
 <template>
-  <div class="container">
-    <SectionTitle text="Experience" marginTop="6.25rem" marginBottom="3.75rem" />
+  <div class="custom-section">
+    <div class="container">
+      <SectionTitle text="Experience" marginTop="6.25rem" marginBottom="3.75rem" />
     <div v-for="experience in experiences" :key="experience.title" class="experience-detail">
       <div class="experience-title">{{ experience.title }}</div>
       <BulletText>{{ experience.text }}</BulletText>
@@ -79,6 +80,7 @@ const projects = [
           </div>
         </div>
       </NuxtLink>
+    </div>
     </div>
   </div>
 </template>

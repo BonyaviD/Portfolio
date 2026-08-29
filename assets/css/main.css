@@ -15,3 +15,8 @@
     --footer-linear-background-color: linear-gradient(180deg, #0D1B2A 2.05%, #01080F 100%);
      
   }
+
+  .custom-section {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }

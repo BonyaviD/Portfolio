@@ -1,274 +1,197 @@
 <script setup>
-import SectionTitle from "@/components/shared/TheSectionTitle.vue";
-import BulletText from "@/components/shared/BulletText.vue";
-import BaseButton from "@/components/shared/BaseButton.vue";
-import TheSkillsItem from "@/components/sections/TheSkills/TheSkillsItem.vue";
-import ProfileSrc from "@/assets/img/me.jpg";
-import Baloon from "@/assets/icons/Baloon.svg";
-import Github from "~/assets/icons/GitHub.svg";
-import Linkedin from "~/assets/icons/Linkedin.svg";
-import Telegram from "~/assets/icons/Telegram.svg";
+import BaseSection from "@/components/base/BaseSection.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
+import BaseCard from "@/components/base/BaseCard.vue";
+import BulletList from "@/components/base/BulletList.vue";
+import BulletText from "@/components/base/BulletText.vue";
+import ProfilePortrait from "@/components/base/ProfilePortrait.vue";
+import SkillTile from "@/components/base/SkillTile.vue";
+import SocialActions from "@/components/base/SocialActions.vue";
+import { aboutStory, quickFacts } from "@/data/about";
+import { coreStack } from "@/data/skills";
+import { profileImageUrl, site, socialUrlById } from "@/data/site";
+import LinkedinIcon from "~/assets/icons/Linkedin.svg";
+import TelegramIcon from "~/assets/icons/Telegram.svg";
 
-const siteUrl = "https://bonyadi.netlify.app";
+const description = `More about ${site.name}, a self-taught frontend developer based in ${site.location.city}, specialized in Vue and Nuxt.`;
 
-const quickFacts = [
-  { label: "Based in", value: "Tehran, Iran" },
-  { label: "Experience", value: "+2 Years" },
-  { label: "Focus", value: "Vue / Nuxt" },
-  { label: "Languages", value: "FA / EN" },
-];
-
-const story = [
-  "I'm Navid, a self-taught front-end developer who fell in love with the web while customizing tiny HTML pages - and never stopped building since.",
-  "For over two years I've been crafting responsive, accessible and user-friendly interfaces, turning Figma designs into pixel-perfect reality.",
-  "My daily toolkit revolves around Vue and Nuxt, backed by strong fundamentals in semantic HTML, modern CSS architecture and vanilla JavaScript.",
-  "I care deeply about clean componentization, performance budgets and smooth micro-interactions that make a UI feel alive.",
-  "Beyond coding, I enjoy photography walks, story-driven video games and sharing what I learn with the developer community.",
-];
-
-const coreStack = [
-  { text: "Vue", level: "Advanced" },
-  { text: "Nuxt", level: "Advanced" },
-  { text: "JavaScript", level: "Advanced" },
-  { text: "TypeScript", level: "Beginner" },
-  { text: "Pinia", level: "Advanced" },
-  { text: "Vite", level: "Intermediate" },
-  { text: "Sass / Scss", level: "Advanced" },
-  { text: "Tailwind CSS", level: "Intermediate" },
-  { text: "RESTful APIs", level: "Advanced" },
-  { text: "Git / GitHub", level: "Advanced" },
-];
-
-useHead({
-  titleTemplate: "%s - About",
-  meta: [
-    { hid: "description", name: "description", content: "More about Navid Bonyadi, a self-taught frontend developer based in Tehran, specialized in Vue and Nuxt." },
-    { hid: "og:title", property: "og:title", content: "About Navid Bonyadi" },
-    { hid: "og:description", property: "og:description", content: "Self-taught frontend developer specialized in Vue, Nuxt and responsive interfaces." },
-    { hid: "og:image", property: "og:image", content: siteUrl + "/images/me.jpg" },
-    { hid: "og:url", property: "og:url", content: siteUrl + "/about" },
-  ],
+useSeoMeta({
+  title: "About",
+  description,
+  ogTitle: `About ${site.name}`,
+  ogDescription: "Self-taught frontend developer specialized in Vue, Nuxt and responsive interfaces.",
+  ogImage: profileImageUrl,
+  ogUrl: `${site.url}/about`,
 });
 </script>
 
 <template>
-  <main class="about-page">
-    <!-- ============ Intro ============ -->
-    <section class="about-intro container">
-      <div class="profile-section">
-        <img class="profile-pic" :src="ProfileSrc" alt="Portrait of Navid Bonyadi" />
-        <div class="profile-circle"></div>
-        <img class="baloon" :src="Baloon" alt="" />
-      </div>
+  <div>
+    <!-- ---------------------------------------------------------- intro -->
+    <section class="section intro" aria-labelledby="intro-heading">
+      <div class="container intro__inner">
+        <ProfilePortrait />
 
-      <div class="intro-content">
-        <h1 class="intro-name">Navid Bonyadi</h1>
-        <p class="intro-role">Front-End Developer</p>
-        <BulletText>
-          Front-end developer with strong teamwork skills and expertise in building responsive, user-friendly websites.
-        </BulletText>
+        <div class="intro__content">
+          <h1 id="intro-heading" class="intro__name">{{ site.name }}</h1>
+          <p class="intro__role">Front-End Developer</p>
 
-        <dl class="quick-facts">
-          <div v-for="fact in quickFacts" :key="fact.label" class="fact-box">
-            <dt class="fact-label">{{ fact.label }}</dt>
-            <dd class="fact-value">{{ fact.value }}</dd>
-          </div>
-        </dl>
+          <BulletText>
+            Front-end developer with strong teamwork skills and expertise in building
+            responsive, user-friendly websites.
+          </BulletText>
 
-        <div class="about-actions">
-          <BaseButton to="https://www.linkedin.com/in/bonyavid/" text="LinkedIn" :logo="Linkedin" opacityMode />
-          <BaseButton to="https://github.com/BonyaviD" text="GitHub" :logo="Github" opacityMode />
-          <BaseButton to="https://t.me/StreetNote" text="Telegram" :logo="Telegram" opacityMode />
+          <dl class="facts">
+            <BaseCard v-for="fact in quickFacts" :key="fact.label" class="facts__item">
+              <dt class="facts__label">{{ fact.label }}</dt>
+              <dd class="facts__value">{{ fact.value }}</dd>
+            </BaseCard>
+          </dl>
+
+          <SocialActions variant="soft" />
         </div>
       </div>
     </section>
 
-    <!-- ============ Story ============ -->
-    <section class="about-story container">
-      <SectionTitle text="More About Me" marginTop="6.25rem" marginBottom="3.125rem" />
-      <div class="story-content">
-        <BulletText v-for="(paragraph, index) in story" :key="index">{{ paragraph }}</BulletText>
+    <!-- ---------------------------------------------------------- story -->
+    <BaseSection id="story" title="More About Me">
+      <div class="story">
+        <BulletList :items="aboutStory" />
       </div>
-    </section>
+    </BaseSection>
 
-    <!-- ============ Tech stack ============ -->
-    <section class="about-stack container">
-      <SectionTitle text="Tech Stack" marginTop="6.25rem" marginBottom="3.125rem" />
-      <div class="stack-grid">
-        <TheSkillsItem
-          v-for="skill in coreStack"
-          :key="skill.text"
-          :text="skill.text"
+    <!-- ------------------------------------------------------ tech stack -->
+    <BaseSection id="stack" title="Tech Stack">
+      <ul class="stack" role="list">
+        <SkillTile
+          v-for="(skill, index) in coreStack"
+          :key="skill.name"
+          :name="skill.name"
           :level="skill.level"
+          :index="index"
         />
-      </div>
-    </section>
+      </ul>
+    </BaseSection>
 
-    <!-- ============ CTA ============ -->
-    <section class="about-cta container">
-      <SectionTitle text="Let's Build Something Together" marginTop="6.25rem" marginBottom="1.875rem" />
-      <p class="cta-text">Have a project in mind, or just want to say hi? My inbox is always open.</p>
-      <div class="cta-actions">
-        <BaseButton to="https://www.linkedin.com/in/bonyavid/" text="Say Hello" :logo="Linkedin" />
-        <BaseButton to="https://t.me/StreetNote" text="Message Me" :logo="Telegram" opacityMode />
+    <!-- ------------------------------------------------------------ cta -->
+    <BaseSection id="contact" title="Let's Build Something Together">
+      <div class="cta">
+        <p class="cta__text">
+          Have a project in mind, or just want to say hi? My inbox is always open.
+        </p>
+        <div class="cta__actions">
+          <BaseButton
+            :to="socialUrlById.linkedin"
+            label="Say Hello"
+            :icon="LinkedinIcon"
+            variant="solid"
+          />
+          <BaseButton
+            :to="socialUrlById.telegram"
+            label="Message Me"
+            :icon="TelegramIcon"
+            variant="soft"
+          />
+        </div>
       </div>
-    </section>
-  </main>
+    </BaseSection>
+  </div>
 </template>
 
 <style scoped>
-/* ---------- Intro ---------- */
-.about-intro {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.25rem 7.5rem;
-  padding-top: 3.75rem;
-}
-
-.profile-section {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.profile-pic {
-  width: clamp(13rem, 22vw, 21.875rem);
-  border-radius: 30px;
-  object-fit: cover;
-  object-position: bottom;
-}
-
-.profile-circle {
-  position: absolute;
-  left: 0.5rem;
-  top: 0.5rem;
-  width: 3rem;
-  height: 3rem;
-  background-color: var(--dark-background-color);
-  border-radius: 100%;
-}
-
-.baloon {
-  position: absolute;
-  left: -1.5rem;
-  top: -9.5rem;
-  transform: rotate(50deg);
-  animation: turnBaloon 2s alternate-reverse infinite;
-}
-
-@keyframes turnBaloon {
-  from { transform: rotate(44deg); }
-  to { transform: rotate(55deg); }
-}
-
-.intro-content {
-  max-width: 43.75rem;
-}
-
-.intro-name {
-  font-size: clamp(2.2rem, 5vw, 3.5rem);
-  font-weight: 700;
-}
-
-.intro-role {
-  display: inline-block;
-  color: var(--primary-color);
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin-bottom: 2.5rem;
-}
-
-.quick-facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.938rem;
-  margin: 2.5rem 0;
-}
-
-.fact-box {
-  border: 1px solid var(--primary-opacity-color);
-  background: linear-gradient(140deg, #523c1b5d 0%, #3a2a1244 20%, #0b162e 75%, #0a1f35 100%);
-  border-radius: 8px;
-  padding: 0.938rem 1.25rem;
-}
-
-.fact-label {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b8c1c9;
-}
-
-.fact-value {
-  color: var(--primary-color);
-  font-size: 1.15rem;
-  font-weight: 800;
-}
-
-.about-actions,
-.cta-actions {
+/* ------------------------------------------------------------------ intro */
+.intro__inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.625rem;
+  justify-content: center;
+  gap: var(--space-5) var(--space-24);
 }
 
-/* ---------- Story ---------- */
-.story-content {
+.intro__content {
+  flex: 1 1 20rem;
+  max-width: 43.75rem;
+}
+
+.intro__name {
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.intro__role {
+  margin-bottom: var(--space-10);
+  color: var(--color-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ------------------------------------------------------------ quick facts */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-4);
+  margin-block: var(--space-10);
+}
+
+.facts__label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.facts__value {
+  color: var(--color-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ------------------------------------------------------------------ story */
+.story {
   max-width: 62.5rem;
 }
 
-/* ---------- Tech stack ---------- */
-.stack-grid {
+/* ------------------------------------------------------------------ stack */
+.stack {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-  gap: 1.25rem;
+  gap: var(--space-5);
+  list-style: none;
 }
 
-/* ---------- CTA ---------- */
-.about-cta {
+/* -------------------------------------------------------------------- cta */
+.cta {
   text-align: center;
-  padding-bottom: 3.125rem;
 }
 
-.cta-text {
+.cta__text {
   max-width: 40rem;
-  margin: 0 auto 2.5rem auto;
-  font-size: 1.25rem;
-  line-height: 1.9;
+  margin: 0 auto var(--space-10);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
 }
 
-.cta-actions {
+.cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  padding-bottom: 2rem;
+  gap: var(--space-3);
 }
 
-/* ---------- Responsive ---------- */
 @media (max-width: 60rem) {
-  .about-intro {
-    flex-direction: column;
-    gap: 2.5rem;
-    padding-top: 1.5rem;
+  .intro__inner {
+    gap: var(--space-10);
   }
 
-  .baloon {
-    display: none;
-  }
-
-  .quick-facts {
+  .facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .stack-grid {
+  .stack {
     grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-    gap: 0.938rem;
-  }
-}
-
-@media (max-width: 30rem) {
-  .quick-facts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.625rem;
+    gap: var(--space-4);
   }
 }
 </style>

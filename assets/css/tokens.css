@@ -1,0 +1,164 @@
+/* ============================================================================
+   Design tokens
+   Single source of truth for the visual language. Components consume the
+   *semantic* tokens only — never the raw palette, and never literal values.
+
+   Breakpoints cannot live in custom properties (they are invalid inside
+   @media), so they are fixed by convention and documented here:
+     sm   30rem   /  480px
+     md   48rem   /  768px
+     lg   60rem   /  960px
+     xl   68rem   / 1088px
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------- palette
+     Raw values. Do not reference these outside this file. */
+  --palette-navy-950: #01080f;
+  --palette-navy-900: #0a1f35;
+  --palette-navy-850: #0b162e;
+  --palette-navy-800: #0d1b2a;
+  --palette-navy-700: #1b263b;
+  --palette-navy-600: #29263a;
+  --palette-ink-900: #131313;
+
+  --palette-gold-400: #e6b66c;
+  --palette-gold-600: #c68a36;
+  --palette-gold-900: #523c1b;
+  --palette-gold-950: #3a2a12;
+
+  --palette-slate-300: #b8c1c9;
+  --palette-slate-800: #30363d;
+  --palette-white: #ffffff;
+
+  /* ------------------------------------------------------------------ color */
+  --color-bg: var(--palette-navy-800);
+  --color-bg-deep: var(--palette-navy-950);
+  --color-surface: var(--palette-navy-700);
+  --color-surface-translucent: rgb(48 54 61 / 25%);
+
+  --color-text: var(--palette-white);
+  --color-text-muted: var(--palette-slate-300);
+  --color-text-on-primary: var(--palette-navy-800);
+
+  --color-primary: var(--palette-gold-400);
+  --color-primary-strong: var(--palette-gold-600);
+  --color-primary-soft: rgb(230 182 108 / 30%);
+  --color-primary-shadow: rgb(198 138 54 / 34%);
+  --color-primary-shadow-subtle: rgb(198 138 54 / 12%);
+
+  --color-border: var(--color-primary-soft);
+  --color-border-strong: var(--color-primary);
+
+  /* Project screenshots sit on their own site's brand colour. */
+  --color-plate-light: var(--palette-white);
+  --color-plate-ink: var(--palette-ink-900);
+  --color-plate-violet: var(--palette-navy-600);
+
+  /* -------------------------------------------------------------- gradients */
+  --gradient-surface: linear-gradient(
+    140deg,
+    rgb(82 60 27 / 36%) 0%,
+    rgb(58 42 18 / 27%) 20%,
+    var(--palette-navy-850) 75%,
+    var(--palette-navy-900) 100%
+  );
+  --gradient-footer: linear-gradient(
+    180deg,
+    var(--palette-navy-800) 2%,
+    var(--palette-navy-950) 100%
+  );
+
+  /* ------------------------------------------------------------- typography */
+  --font-family-base: "Jura", ui-sans-serif, system-ui, sans-serif;
+
+  --font-size-xs: 0.75rem;    /* 12 */
+  --font-size-sm: 0.875rem;   /* 14 */
+  --font-size-base: 1rem;     /* 16 */
+  --font-size-md: 1.125rem;   /* 18 */
+  --font-size-lg: 1.25rem;    /* 20 */
+  --font-size-xl: 1.5rem;     /* 24 */
+  --font-size-2xl: 1.875rem;  /* 30 */
+  --font-size-3xl: 2.25rem;   /* 36 */
+  --font-size-4xl: 3rem;      /* 48 */
+
+  /* Fluid steps for headings that must survive small viewports. */
+  --font-size-heading: clamp(2rem, 6vw, 3rem);
+  --font-size-display: clamp(2.25rem, 5vw, 3.5rem);
+  --font-size-subheading: clamp(1.5rem, 3.5vw, 2.25rem);
+
+  /* Jura ships 300-700 only: never ask for 800, it gets faux-bolded. */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.75;
+
+  --letter-spacing-wide: 0.05em;
+
+  /* ---------------------------------------------------------------- spacing
+     4px base scale. The numeric suffix is the multiplier (space-4 = 4 * 4px). */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4 */
+  --space-2: 0.5rem;    /* 8 */
+  --space-3: 0.75rem;   /* 12 */
+  --space-4: 1rem;      /* 16 */
+  --space-5: 1.25rem;   /* 20 */
+  --space-6: 1.5rem;    /* 24 */
+  --space-8: 2rem;      /* 32 */
+  --space-10: 2.5rem;   /* 40 */
+  --space-12: 3rem;     /* 48 */
+  --space-14: 3.5rem;   /* 56 */
+  --space-16: 4rem;     /* 64 */
+  --space-20: 5rem;     /* 80 */
+  --space-24: 6rem;     /* 96 */
+  --space-32: 8rem;     /* 128 */
+  --space-36: 9rem;     /* 144 */
+
+  /* ----------------------------------------------------------------- radius */
+  --radius-sm: 0.25rem;   /* 4 */
+  --radius-md: 0.375rem;  /* 6 */
+  --radius-lg: 0.5rem;    /* 8 */
+  --radius-xl: 1.125rem;  /* 18 */
+  --radius-2xl: 1.875rem; /* 30 */
+  --radius-pill: 62.438rem;
+  --radius-circle: 50%;
+
+  /* ----------------------------------------------------------------- border */
+  --border-width-hairline: 1px;
+  --border-width-thin: 1.5px;
+  --border-width-thick: 2px;
+
+  /* ---------------------------------------------------------------- shadows */
+  --shadow-raised:
+    0 2px 2px 0 var(--color-primary-shadow-subtle),
+    0 6px 8px -2px var(--color-primary-shadow);
+  --shadow-glow:
+    0 1px 8px 2px rgb(198 138 54 / 24%),
+    0 6px 8px -2px var(--color-primary-shadow);
+
+  /* ----------------------------------------------------------------- motion */
+  --duration-fast: 150ms;
+  --duration-base: 240ms;
+  --duration-slow: 400ms;
+  --duration-slower: 1000ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---------------------------------------------------------------- z-index */
+  --z-behind: -1;
+  --z-base: 0;
+  --z-raised: 1;
+  --z-overlay: 10;
+  --z-header: 100;
+
+  /* ---------------------------------------------------------------- layout */
+  --container-max-width: 120rem;
+  --container-gutter: 5%;
+  --header-height: 5rem;
+  --section-padding-block: clamp(var(--space-12), 8vw, var(--space-24));
+  --blur-backdrop: 0.5rem;
+}

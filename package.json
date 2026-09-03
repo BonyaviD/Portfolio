@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "navid-bonyadi-portfolio",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,5 +16,6 @@
   },
   "devDependencies": {
     "@nuxtjs/google-fonts": "^3.2.0"
-  }
+  },
+  "description": "Personal portfolio of Navid Bonyadi, built with Nuxt 3."
 }

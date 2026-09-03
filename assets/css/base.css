@@ -1,47 +1,26 @@
-/* Universal box-sizing */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+/* ============================================================================
+   Base — document and element defaults, expressed purely in tokens.
+   ========================================================================== */
 
-/* Remove default margin and padding */
-* {
-    margin: 0;
-    padding: 0;
-}
-
-/* Set a more readable line-height and basic body styles */
 html {
-    line-height: 1.5;
-    -webkit-text-size-adjust: 100%;
-    scroll-behavior: smooth;
-}
-
-
-/* Remove default link styles */
-a {
-    text-decoration: none;
-    color: inherit;
-}
-
-/* Reset heading styles */
-h1, h2, h3, h4, h5, h6 {
-    font-size: inherit;
-    font-weight: inherit;
+  line-height: var(--line-height-base);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  /* Anchors and in-page scrolling must clear the fixed header. */
+  scroll-padding-top: var(--header-height);
 }
 
 body {
-    background-color: var(--dark-background-color); /* Replace with your color variable */
-    font-family: 'Jura', sans-serif;
-    color: var(--light-text-color);
-    
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
 }
 
-.container {
-    max-width: 120rem;
-    margin: 0 auto;
-    padding: 0 5%;
+/* Visible keyboard focus, consistent everywhere. */
+:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }

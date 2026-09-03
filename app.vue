@@ -1,17 +1,5 @@
-<script setup>
-import TheHeader from '@/components/sections/TheHeader.vue';
-import TheFooter from '@/components/sections/TheFooter.vue';
-</script>
-
 <template>
-  <div id="app">
-    <TheHeader />
+  <NuxtLayout>
     <NuxtPage />
-    <TheFooter />
-  </div>
+  </NuxtLayout>
 </template>
-<style scoped>
-#app{
-  margin-top: 5rem;
-}
-</style>

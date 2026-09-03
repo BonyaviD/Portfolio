@@ -1,20 +1,23 @@
-::-webkit-scrollbar {
-    height: 0.5rem;
-    width: 0.5rem;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background-color: var(--primary-color);
-    border-radius: 20px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background-color: var(--second-dark-color);
-  }
-  
+/* ============================================================================
+   Scrollbar — global themed scrollbars. Scoped overrides are unnecessary;
+   these selectors already cover nested scroll containers.
+   ========================================================================== */
 
-  html {
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) var(--second-dark-color);
-  }
-  
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) var(--color-surface);
+}
+
+::-webkit-scrollbar {
+  width: var(--space-2);
+  height: var(--space-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-surface);
+}

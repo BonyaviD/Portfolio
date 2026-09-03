@@ -2,48 +2,52 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useArtworkAccents } from "@/composables/useArtworkAccents";
 import { games } from "@/data/hobbies";
+import ProfileImage from "@/assets/img/me.jpg";
 
 /**
- * A console home screen, in the spirit of a PS5 dashboard: a rail of game
- * tiles along the bottom, and the whole background belonging to whichever
- * tile is selected.
+ * A console home screen, laid out after a PS5 dashboard: tabs and status along
+ * the top, a rail of game tiles under them with the selected one enlarged and
+ * named, the game's own art filling the screen, and the title, tagline and
+ * actions down the left with cards stacked on the right.
  *
- * The chrome across the top is scenery. It is aria-hidden and cannot be
- * clicked, because the only thing here that does anything is moving along the
- * rail - by tile, arrow key, buttons or swipe.
+ * Everything except moving along the rail is scenery. The chrome and the
+ * action buttons are aria-hidden and cannot be clicked, so nothing here
+ * pretends to be a control that does something.
  *
- * Rendered with CSS rather than WebGL on purpose: it is a straight crossfade
- * and a scaling tile, so it stays sharp, cheap and works without a GPU path.
+ * Rendered with CSS rather than WebGL: it is a crossfade and a scaling tile,
+ * so it stays sharp, costs little, and needs no GPU path.
  */
 const { accents } = useArtworkAccents(games.map((game) => game.src));
 
 const index = ref(0);
 const current = computed(() => games[index.value]);
 const accent = computed(() => accents.value[index.value]?.css ?? "rgb(230 182 108)");
+const position = computed(() => `${index.value + 1} / ${games.length}`);
+
+const railEl = ref(null);
+
+function keepSelectedInView() {
+  const tile = railEl.value?.querySelector(".tile.is-selected");
+  tile?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+}
 
 function go(step) {
   index.value = (index.value + step + games.length) % games.length;
+  keepSelectedInView();
 }
 
 function select(next) {
   index.value = next;
-}
-
-// Keep the selected tile in view as the rail moves.
-const railEl = ref(null);
-function scrollSelectedIntoView() {
-  const tile = railEl.value?.querySelector(".tile.is-selected");
-  tile?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  keepSelectedInView();
 }
 
 function onKeydown(event) {
   if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
   event.preventDefault();
   go(event.key === "ArrowRight" ? 1 : -1);
-  scrollSelectedIntoView();
 }
 
-// --------------------------------------------------------------- swiping
+// ---------------------------------------------------------------- swiping
 let startX = null;
 let startY = null;
 const SWIPE_THRESHOLD = 44;
@@ -62,17 +66,16 @@ function onPointerUp(event) {
   // Horizontal intent only; vertical belongs to the page.
   if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
     go(dx < 0 ? 1 : -1);
-    scrollSelectedIntoView();
   }
 }
 
-/** Decorative clock, so the chrome does not show a frozen fake time. */
+/** A live clock, so the chrome is not showing a frozen fake time. */
 const clock = ref("");
 let timer = null;
 
 function tick() {
-  clock.value = new Intl.DateTimeFormat("en-GB", {
-    hour: "2-digit",
+  clock.value = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
     minute: "2-digit",
   }).format(new Date());
 }
@@ -87,7 +90,7 @@ onBeforeUnmount(() => clearInterval(timer));
 
 <template>
   <div
-    class="console"
+    class="ps"
     :style="{ '--accent': accent }"
     role="group"
     aria-roledescription="carousel"
@@ -98,58 +101,36 @@ onBeforeUnmount(() => clearInterval(timer));
     @pointerup="onPointerUp"
     @pointercancel="startX = null"
   >
-    <!-- Background belongs to the selected game. -->
-    <div class="console__scene" aria-hidden="true">
-      <transition name="scene" mode="default">
-        <img :key="current.id" class="console__wallpaper" :src="current.src" alt="" />
+    <!-- The selected game's art fills the screen behind everything. -->
+    <div class="ps__scene" aria-hidden="true">
+      <transition name="scene">
+        <img :key="current.id" class="ps__art" :src="current.src" alt="" />
       </transition>
-      <span class="console__scrim"></span>
-      <span class="console__glow"></span>
+      <span class="ps__scrim"></span>
     </div>
 
-    <!-- Scenery. Not interactive, not announced. -->
-    <div class="chrome" aria-hidden="true">
-      <div class="chrome__tabs">
-        <span class="chrome__tab is-active">Games</span>
-        <span class="chrome__tab">Media</span>
+    <!-- Scenery: not interactive, not announced. -->
+    <header class="bar" aria-hidden="true">
+      <nav class="bar__tabs">
+        <span class="bar__tab is-active">Games</span>
+        <span class="bar__tab">Media</span>
+      </nav>
+
+      <div class="bar__status">
+        <Icon name="lucide:search" class="bar__icon" />
+        <Icon name="lucide:settings" class="bar__icon" />
+        <span class="bar__avatar">
+          <img :src="ProfileImage" alt="" />
+          <i class="bar__online"></i>
+        </span>
+        <span class="bar__clock">{{ clock }}</span>
       </div>
-      <div class="chrome__status">
-        <Icon name="lucide:search" />
-        <Icon name="lucide:bell" />
-        <Icon name="lucide:wifi" />
-        <span class="chrome__clock">{{ clock }}</span>
-        <span class="chrome__avatar">NB</span>
-      </div>
-    </div>
+    </header>
 
-    <!-- Hero: the selected game. -->
-    <div class="hero">
-      <transition name="hero" mode="out-in">
-        <div :key="current.id" class="hero__inner">
-          <img class="hero__art" :src="current.src" :alt="`${current.title} cover art`" />
-
-          <div class="hero__text">
-            <h4 class="hero__title">{{ current.title }}</h4>
-            <p class="hero__meta">
-              {{ current.studio }}<template v-if="current.year"> &middot; {{ current.year }}</template>
-            </p>
-            <span class="hero__play">
-              <Icon name="lucide:play" aria-hidden="true" />
-              Play
-            </span>
-          </div>
-        </div>
-      </transition>
-    </div>
-
-    <!-- The rail: the one thing that actually does something. -->
+    <!-- The rail. The only thing here that does anything. -->
     <div class="rail">
-      <button type="button" class="rail__arrow" aria-label="Previous game" @click="go(-1); scrollSelectedIntoView()">
-        <Icon name="lucide:chevron-left" aria-hidden="true" />
-      </button>
-
       <ul ref="railEl" class="rail__list" role="list">
-        <li v-for="(game, i) in games" :key="game.id">
+        <li v-for="(game, i) in games" :key="game.id" class="rail__item">
           <button
             type="button"
             class="tile"
@@ -162,69 +143,104 @@ onBeforeUnmount(() => clearInterval(timer));
         </li>
       </ul>
 
-      <button type="button" class="rail__arrow" aria-label="Next game" @click="go(1); scrollSelectedIntoView()">
-        <Icon name="lucide:chevron-right" aria-hidden="true" />
-      </button>
+      <p class="rail__name">{{ current.title }}</p>
+    </div>
+
+    <!-- Left: the game. Right: its cards. -->
+    <div class="stage">
+      <transition name="stage" mode="out-in">
+        <div :key="current.id" class="stage__inner">
+          <div class="detail">
+            <h4 class="detail__title">{{ current.title }}</h4>
+            <p class="detail__tagline">{{ current.blurb }}</p>
+
+            <div class="detail__actions" aria-hidden="true">
+              <span class="detail__play">Play</span>
+              <span class="detail__more">
+                <Icon name="lucide:ellipsis" />
+              </span>
+            </div>
+          </div>
+
+          <div class="cards">
+            <div class="cards__art">
+              <img :src="current.src" :alt="`${current.title} cover art`" />
+              <span class="cards__badge">{{ current.genre }}</span>
+              <span class="cards__year">{{ current.year || "Series" }}</span>
+            </div>
+
+            <div class="cards__stats">
+              <Icon name="lucide:trophy" class="cards__trophy" aria-hidden="true" />
+              <span class="cards__stat">
+                <span class="cards__label">Studio</span>
+                <span class="cards__value">{{ current.studio }}</span>
+              </span>
+              <span class="cards__stat">
+                <span class="cards__label">In shelf</span>
+                <span class="cards__value">{{ position }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </transition>
     </div>
   </div>
 </template>
 
 <style scoped>
-.console {
+.ps {
   --inset: clamp(0.75rem, 2.5vw, 2.5rem);
 
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  min-height: min(100svh - 2 * var(--inset), 56rem);
+  grid-template-rows: auto auto 1fr;
+  /* A screen, so it keeps a TV's shape rather than the page's. */
+  aspect-ratio: 16 / 9;
+  min-height: 30rem;
+  max-height: calc(100svh - 2 * var(--inset));
   width: calc(100vw - 2 * var(--inset));
   margin-left: 50%;
   margin-block: var(--inset);
   overflow: hidden;
-  border: var(--border-width-hairline) solid var(--glass-border);
   border-radius: var(--radius-2xl);
   transform: translateX(-50%);
   touch-action: pan-y;
 }
 
-.console:focus-visible {
+.ps:focus-visible {
   outline: var(--border-width-thick) solid var(--color-primary);
   outline-offset: calc(var(--border-width-thick) * -3);
 }
 
 /* ------------------------------------------------------------------ scene */
-.console__scene {
+.ps__scene {
   position: absolute;
   inset: 0;
   z-index: var(--z-base);
+  background: var(--palette-navy-950, #071019);
 }
 
-/* Portrait cover art blown up as a wallpaper: heavily blurred and scaled, so
-   it reads as atmosphere rather than a cropped poster. */
-.console__wallpaper {
+/**
+ * The console shows wide key art here. Every cover in this repo is portrait,
+ * so it is blown up and blurred to stand in as atmosphere; the sharp copy of
+ * the same art sits in the card on the right.
+ */
+.ps__art {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.25);
-  filter: blur(38px) saturate(130%) brightness(0.5);
+  transform: scale(1.3);
+  filter: blur(26px) saturate(125%);
 }
 
-.console__scrim {
+.ps__scrim {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgb(4 10 18 / 78%) 0%, rgb(4 10 18 / 35%) 40%, rgb(4 10 18 / 92%) 100%),
-    linear-gradient(90deg, rgb(4 10 18 / 72%) 0%, transparent 60%);
-}
-
-.console__glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(48% 55% at 72% 42%, var(--accent) 0%, transparent 68%);
-  opacity: 0.28;
-  transition: background var(--duration-slower) var(--ease-standard);
+    linear-gradient(90deg, rgb(4 10 18 / 88%) 0%, rgb(4 10 18 / 45%) 45%, rgb(4 10 18 / 70%) 100%),
+    linear-gradient(180deg, rgb(4 10 18 / 85%) 0%, transparent 32%, rgb(4 10 18 / 55%) 100%);
 }
 
 .scene-enter-active,
@@ -237,178 +253,90 @@ onBeforeUnmount(() => clearInterval(timer));
   opacity: 0;
 }
 
-/* ----------------------------------------------------------------- chrome */
-.chrome {
+/* -------------------------------------------------------------- title bar */
+.bar {
   position: relative;
   z-index: var(--z-raised);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
-  padding: clamp(var(--space-4), 2.5vw, var(--space-8));
-  /* Scenery: never clickable. */
+  padding: clamp(var(--space-3), 2vw, var(--space-6)) clamp(var(--space-4), 3vw, var(--space-10));
   pointer-events: none;
 }
 
-.chrome__tabs {
+.bar__tabs {
   display: flex;
-  gap: var(--space-5);
+  gap: clamp(var(--space-4), 2vw, var(--space-8));
 }
 
-.chrome__tab {
-  color: var(--color-text-subtle);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+.bar__tab {
+  color: rgb(255 255 255 / 45%);
+  font-size: clamp(0.95rem, 1.5vw, 1.4rem);
+  font-weight: var(--font-weight-medium);
 }
 
-.chrome__tab.is-active {
-  position: relative;
+.bar__tab.is-active {
   color: var(--color-text);
-}
-
-.chrome__tab.is-active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.4rem;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--color-text);
-}
-
-.chrome__status {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-}
-
-.chrome__clock {
-  font-variant-numeric: tabular-nums;
-}
-
-.chrome__avatar {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-circle);
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
 }
 
-/* ------------------------------------------------------------------- hero */
-.hero {
+.bar__status {
+  display: flex;
+  align-items: center;
+  gap: clamp(var(--space-3), 1.6vw, var(--space-6));
+  color: rgb(255 255 255 / 78%);
+}
+
+.bar__icon {
+  width: clamp(1rem, 1.5vw, 1.4rem);
+  height: clamp(1rem, 1.5vw, 1.4rem);
+}
+
+.bar__avatar {
   position: relative;
-  z-index: var(--z-raised);
-  display: flex;
-  align-items: center;
-  padding-inline: clamp(var(--space-4), 4vw, var(--space-16));
+  display: block;
+  width: clamp(1.5rem, 2.2vw, 2.1rem);
+  height: clamp(1.5rem, 2.2vw, 2.1rem);
 }
 
-.hero__inner {
-  display: flex;
-  align-items: center;
-  gap: clamp(var(--space-5), 4vw, var(--space-12));
+.bar__avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-circle);
+  object-fit: cover;
+  object-position: top;
 }
 
-/* The complete artwork, sharp and uncropped. */
-.hero__art {
-  flex-shrink: 0;
-  width: clamp(8rem, 15vw, 13rem);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 85%);
+/* The presence dot the console shows on the signed-in profile. */
+.bar__online {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-circle);
+  background: #3ddc84;
+  box-shadow: 0 0 0 2px rgb(4 10 18 / 80%);
 }
 
-.hero__title {
-  font-size: clamp(1.75rem, 4vw, 3.25rem);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
-.hero__meta {
-  margin-top: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
-}
-
-/* Looks like the console's play button; it is a label, not a control. */
-.hero__play {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-6);
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-pill);
-  background: var(--color-text);
-  color: var(--palette-navy-950, #071019);
-  font-weight: var(--font-weight-bold);
-}
-
-.hero-enter-active {
-  transition:
-    opacity var(--duration-base) var(--ease-out),
-    transform var(--duration-slow) var(--ease-spring);
-}
-
-.hero-leave-active {
-  transition:
-    opacity var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
-}
-
-.hero-enter-from {
-  opacity: 0;
-  transform: translateY(1.25rem);
-}
-
-.hero-leave-to {
-  opacity: 0;
-  transform: translateY(-0.75rem);
+.bar__clock {
+  font-size: clamp(0.9rem, 1.4vw, 1.3rem);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ------------------------------------------------------------------- rail */
 .rail {
   position: relative;
   z-index: var(--z-raised);
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: clamp(var(--space-4), 2vw, var(--space-8));
-}
-
-.rail__arrow {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: var(--border-width-hairline) solid var(--glass-border);
-  border-radius: var(--radius-circle);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  color: var(--color-text);
-  cursor: pointer;
-  transition: background-color var(--duration-base) var(--ease-standard);
-}
-
-.rail__arrow:hover {
-  background: var(--glass-bg-strong);
+  padding-left: clamp(var(--space-4), 3vw, var(--space-10));
 }
 
 .rail__list {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-block: var(--space-4);
+  align-items: flex-start;
+  gap: clamp(var(--space-2), 1vw, var(--space-4));
+  padding-block: var(--space-2) var(--space-3);
   overflow-x: auto;
   list-style: none;
   scrollbar-width: none;
@@ -418,37 +346,43 @@ onBeforeUnmount(() => clearInterval(timer));
   display: none;
 }
 
+/* Reserves the enlarged tile's height so the row does not shift on select. */
+.rail__item {
+  display: flex;
+  align-items: flex-start;
+  height: clamp(4.5rem, 9vw, 7rem);
+}
+
 .tile {
   display: block;
   flex-shrink: 0;
-  width: clamp(3.5rem, 6vw, 5rem);
+  width: clamp(2.9rem, 5.6vw, 4.4rem);
   padding: 0;
-  border: var(--border-width-thick) solid transparent;
-  border-radius: var(--radius-md);
+  border: 0;
+  border-radius: clamp(0.5rem, 0.9vw, 0.75rem);
   background: none;
   overflow: hidden;
   cursor: pointer;
-  opacity: 0.55;
-  transform-origin: bottom center;
+  opacity: 0.72;
+  transform-origin: top left;
   transition:
-    transform var(--duration-slow) var(--ease-spring),
+    width var(--duration-slow) var(--ease-spring),
     opacity var(--duration-base) var(--ease-standard),
-    border-color var(--duration-base) var(--ease-standard),
     box-shadow var(--duration-base) var(--ease-standard);
 }
 
 .tile:hover {
-  opacity: 0.85;
+  opacity: 1;
 }
 
-/* The selected tile lifts and lights up, the way a console highlights it. */
+/* The console enlarges the highlighted tile in place and rings it. */
 .tile.is-selected {
-  border-color: var(--color-text);
+  width: clamp(4.5rem, 9vw, 7rem);
+  border-radius: clamp(0.75rem, 1.3vw, 1.1rem);
   opacity: 1;
-  transform: scale(1.32) translateY(-0.35rem);
   box-shadow:
-    0 18px 34px -12px rgb(0 0 0 / 85%),
-    0 0 26px -4px var(--accent);
+    0 0 0 3px var(--color-text),
+    0 18px 34px -12px rgb(0 0 0 / 85%);
 }
 
 .tile__art {
@@ -458,33 +392,233 @@ onBeforeUnmount(() => clearInterval(timer));
   object-fit: cover;
 }
 
+.rail__name {
+  margin-top: var(--space-2);
+  color: var(--color-text);
+  font-size: clamp(0.9rem, 1.4vw, 1.3rem);
+}
+
+/* ------------------------------------------------------------------ stage */
+.stage {
+  position: relative;
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(var(--space-4), 3vw, var(--space-10));
+  padding-top: 0;
+}
+
+.stage__inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+/* The console prints the game's logo here; the title stands in for it. */
+.detail__title {
+  max-width: 12ch;
+  font-size: clamp(1.6rem, 4.4vw, 3.75rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-shadow: 0 4px 24px rgb(0 0 0 / 60%);
+}
+
+.detail__tagline {
+  max-width: 34ch;
+  margin-top: clamp(var(--space-3), 1.4vw, var(--space-5));
+  color: rgb(255 255 255 / 82%);
+  font-size: clamp(0.85rem, 1.3vw, 1.15rem);
+  line-height: var(--line-height-relaxed);
+  /* Two lines, like the console's one-line strapline, without clipping words. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.detail__actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(var(--space-3), 1.4vw, var(--space-5));
+  margin-top: clamp(var(--space-4), 2vw, var(--space-8));
+}
+
+.detail__play {
+  display: grid;
+  place-items: center;
+  min-width: clamp(7rem, 12vw, 10rem);
+  padding: clamp(var(--space-2), 1vw, var(--space-3)) var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--color-text);
+  color: #071019;
+  font-size: clamp(0.95rem, 1.4vw, 1.25rem);
+  font-weight: var(--font-weight-bold);
+}
+
+.detail__more {
+  display: grid;
+  place-items: center;
+  width: clamp(2.1rem, 3vw, 2.75rem);
+  height: clamp(2.1rem, 3vw, 2.75rem);
+  border-radius: var(--radius-circle);
+  background: rgb(255 255 255 / 16%);
+  backdrop-filter: blur(8px);
+  color: var(--color-text);
+}
+
+/* ------------------------------------------------------------------ cards */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--space-2), 1vw, var(--space-4));
+  width: clamp(9rem, 21vw, 17rem);
+  flex-shrink: 0;
+}
+
+.cards__art {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 24px 50px -18px rgb(0 0 0 / 85%);
+}
+
+.cards__art img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/**
+ * The console shows an edition badge and a price here. Those would be invented
+ * numbers, so the slots carry the genre and the year instead.
+ */
+.cards__badge {
+  position: absolute;
+  left: var(--space-2);
+  bottom: 2.1rem;
+  padding: 0.15rem var(--space-2);
+  background: rgb(255 255 255 / 92%);
+  color: #071019;
+  font-size: clamp(0.6rem, 0.85vw, 0.8rem);
+  font-weight: var(--font-weight-semibold);
+}
+
+.cards__year {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  color: var(--color-text);
+  font-size: clamp(0.7rem, 1vw, 0.95rem);
+  font-weight: var(--font-weight-bold);
+  text-shadow: 0 2px 10px rgb(0 0 0 / 80%);
+}
+
+.cards__stats {
+  display: flex;
+  align-items: center;
+  gap: clamp(var(--space-2), 1.2vw, var(--space-4));
+  padding: clamp(var(--space-2), 1vw, var(--space-4));
+  border-radius: var(--radius-sm);
+  background: rgb(10 18 28 / 72%);
+  backdrop-filter: blur(10px);
+}
+
+.cards__trophy {
+  width: clamp(1.1rem, 1.8vw, 1.6rem);
+  height: clamp(1.1rem, 1.8vw, 1.6rem);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.cards__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.cards__label {
+  color: rgb(255 255 255 / 55%);
+  font-size: clamp(0.6rem, 0.85vw, 0.78rem);
+}
+
+.cards__value {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: clamp(0.7rem, 1vw, 0.95rem);
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-enter-active {
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-slow) var(--ease-spring);
+}
+
+.stage-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.stage-enter-from {
+  opacity: 0;
+  transform: translateY(1rem);
+}
+
+.stage-leave-to {
+  opacity: 0;
+  transform: translateY(-0.5rem);
+}
+
 /* ------------------------------------------------------------- responsive */
 @media (max-width: 56rem) {
-  .hero__inner {
-    flex-direction: column;
+  /* A 16:9 screen gets too short to hold the layout on a phone. */
+  .ps {
+    aspect-ratio: auto;
+    min-height: min(100svh - 2 * var(--inset), 44rem);
+  }
+
+  .stage__inner {
+    flex-direction: column-reverse;
     align-items: flex-start;
+    gap: var(--space-6);
   }
 
-  .hero__art {
-    width: clamp(7rem, 26vw, 10rem);
+  .cards {
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
   }
 
-  .rail__arrow {
-    display: none;
+  .cards__art {
+    width: 42%;
+  }
+
+  .cards__stats {
+    flex: 1;
+  }
+
+  .detail__title {
+    max-width: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tile,
-  .hero-enter-active,
-  .hero-leave-active,
+  .stage-enter-active,
+  .stage-leave-active,
   .scene-enter-active,
   .scene-leave-active {
     transition-duration: 1ms;
-  }
-
-  .tile.is-selected {
-    transform: none;
   }
 }
 </style>

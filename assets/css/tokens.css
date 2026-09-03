@@ -19,8 +19,6 @@
   --palette-navy-850: #0b162e;
   --palette-navy-800: #0d1b2a;
   --palette-navy-700: #1b263b;
-  --palette-navy-600: #29263a;
-  --palette-ink-900: #131313;
 
   --palette-gold-400: #e6b66c;
   --palette-gold-600: #c68a36;
@@ -49,11 +47,6 @@
 
   --color-border: var(--color-primary-soft);
   --color-border-strong: var(--color-primary);
-
-  /* Project screenshots sit on their own site's brand colour. */
-  --color-plate-light: var(--palette-white);
-  --color-plate-ink: var(--palette-ink-900);
-  --color-plate-violet: var(--palette-navy-600);
 
   /* -------------------------------------------------------------- gradients */
   --gradient-surface: linear-gradient(

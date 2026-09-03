@@ -32,9 +32,8 @@ export const experiences = [
 ];
 
 /**
- * Shipped projects. `surface` names the plate colour the screenshot sits on
- * (each site has its own brand background); `zoomOrigin` tunes the hover
- * zoom so the interesting part of the screenshot stays in frame.
+ * Shipped projects. `tech` is rendered as chips on the card; the domain shown
+ * in the card's browser bar is derived from `url`, so it never drifts.
  */
 export const projects = [
   {
@@ -42,35 +41,27 @@ export const projects = [
     name: "Arian Salamat",
     url: "https://ariansalamat.com",
     image: ArianSalamatImage,
-    stack: "This project was developed using HTML and CSS",
-    surface: "light",
-    zoomOrigin: "top",
+    tech: ["HTML", "CSS"],
   },
   {
     id: "spy",
     name: "Spy",
     url: "https://spying.netlify.app/",
     image: SpyImage,
-    stack: "This project was developed using Vue.js",
-    surface: "ink",
-    zoomOrigin: "top",
+    tech: ["Vue", "Pinia", "Vite"],
   },
   {
     id: "dont-say-hi",
-    name: "Don't Say hi",
+    name: "Don't Say Hi",
     url: "https://dontsayhi.com/",
     image: DontSayHiImage,
-    stack: "This project was developed using Vue.js",
-    surface: "violet",
-    zoomOrigin: "center",
+    tech: ["Vue", "Pinia", "Vite", "Axios"],
   },
   {
     id: "asa-gallery",
     name: "Asa Gallery",
     url: "https://asarose.com/",
     image: AsaRoseImage,
-    stack: "This project theme was developed using HTML and CSS",
-    surface: "light",
-    zoomOrigin: "top",
+    tech: ["HTML", "CSS"],
   },
 ];

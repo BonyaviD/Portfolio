@@ -6,7 +6,9 @@ import { games } from "@/data/hobbies";
 <template>
   <div class="gaming">
     <div class="gaming__intro">
-      <h3 class="gaming__title">Gaming</h3>
+      <h3 class="gaming__title">
+        <Icon name="lucide:gamepad-2" aria-hidden="true" />
+        Gaming</h3>
       <BulletText>
         I'm also passionate about gaming, and it's one of my favorite ways to unwind and have
         fun.
@@ -31,7 +33,15 @@ import { games } from "@/data/hobbies";
 }
 
 .gaming__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   font-size: var(--font-size-subheading);
+}
+
+.gaming__title svg {
+  color: var(--color-primary);
+  font-size: 0.8em;
 }
 
 /* Horizontal rail; focusable so it can also be scrolled from the keyboard.

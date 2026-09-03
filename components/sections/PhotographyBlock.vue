@@ -3,14 +3,14 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import BulletText from "@/components/base/BulletText.vue";
 import { photos } from "@/data/hobbies";
 import { socialUrlById } from "@/data/site";
-import TelegramIcon from "~/assets/icons/Telegram.svg";
-import VscoIcon from "~/assets/icons/Vsco.svg";
 </script>
 
 <template>
   <div class="photography">
     <div class="photography__intro">
-      <h3 class="photography__title">Photography</h3>
+      <h3 class="photography__title">
+        <Icon name="lucide:camera" aria-hidden="true" />
+        Photography</h3>
       <BulletText>
         I really enjoy photography and find great satisfaction in capturing unique moments
         through my lens.
@@ -27,14 +27,14 @@ import VscoIcon from "~/assets/icons/Vsco.svg";
       </figure>
 
       <div class="mosaic__brand">
-        <img :src="VscoIcon" alt="VSCO" />
+        <Icon name="simple-icons:vsco" aria-label="VSCO" />
       </div>
 
       <div class="mosaic__cta">
         <BaseButton
           :to="socialUrlById.telegram"
           label="For More"
-          :icon="TelegramIcon"
+          icon="simple-icons:telegram"
           variant="soft"
           block
         />
@@ -53,7 +53,15 @@ import VscoIcon from "~/assets/icons/Vsco.svg";
 }
 
 .photography__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   font-size: var(--font-size-subheading);
+}
+
+.photography__title svg {
+  color: var(--color-primary);
+  font-size: 0.8em;
 }
 
 /* ------------------------------------------------------------------ mosaic
@@ -155,6 +163,11 @@ import VscoIcon from "~/assets/icons/Vsco.svg";
 
 .mosaic__brand {
   grid-area: 2 / 6 / 4 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: clamp(1.5rem, 4vw, 3rem);
 }
 
 .mosaic__cta {
@@ -204,8 +217,8 @@ import VscoIcon from "~/assets/icons/Vsco.svg";
     justify-content: center;
   }
 
-  .mosaic__brand img {
-    width: 80%;
+  .mosaic__brand {
+    font-size: clamp(1.25rem, 6vw, 2rem);
   }
 
   .mosaic__cta {

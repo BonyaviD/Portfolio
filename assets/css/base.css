@@ -6,10 +6,19 @@ html {
   line-height: var(--line-height-base);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  /* Anchors and in-page scrolling must clear the fixed header. */
-  scroll-padding-top: var(--header-height);
+  /* Anchored scrolling must clear the floating navigation island. */
+  scroll-padding-top: var(--space-24);
 }
 
+@media (max-width: 48rem) {
+  /* The island sits at the bottom on phones, so the top needs less clearance. */
+  html {
+    scroll-padding-top: var(--space-8);
+  }
+}
+
+/* The base colour is a fallback only: PageBackdrop paints the real surface,
+   and every section above it stays transparent. */
 body {
   background-color: var(--color-bg);
   color: var(--color-text);

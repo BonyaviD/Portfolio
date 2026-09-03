@@ -10,8 +10,6 @@ import SocialActions from "@/components/base/SocialActions.vue";
 import { aboutStory, quickFacts } from "@/data/about";
 import { coreStack } from "@/data/skills";
 import { profileImageUrl, site, socialUrlById } from "@/data/site";
-import LinkedinIcon from "~/assets/icons/Linkedin.svg";
-import TelegramIcon from "~/assets/icons/Telegram.svg";
 
 const description = `More about ${site.name}, a self-taught frontend developer based in ${site.location.city}, specialized in Vue and Nuxt.`;
 
@@ -67,6 +65,7 @@ useSeoMeta({
           v-for="(skill, index) in coreStack"
           :key="skill.name"
           :name="skill.name"
+          :icon="skill.icon"
           :level="skill.level"
           :index="index"
         />
@@ -83,13 +82,13 @@ useSeoMeta({
           <BaseButton
             :to="socialUrlById.linkedin"
             label="Say Hello"
-            :icon="LinkedinIcon"
+            icon="simple-icons:linkedin"
             variant="solid"
           />
           <BaseButton
             :to="socialUrlById.telegram"
             label="Message Me"
-            :icon="TelegramIcon"
+            icon="simple-icons:telegram"
             variant="soft"
           />
         </div>

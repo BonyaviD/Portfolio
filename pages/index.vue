@@ -34,7 +34,6 @@ useHead({
     <HeroSection />
     <AboutSection />
 
-    <!-- Skills and Experience each carry their own aurora backdrop. -->
     <SkillsSection />
     <ExperienceSection />
     <HobbiesSection />

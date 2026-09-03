@@ -11,6 +11,8 @@ import { SKILL_LEVELS } from "@/data/skills";
  */
 const props = defineProps({
   name: { type: String, required: true },
+  /** Iconify name for the technology's logo. */
+  icon: { type: String, default: "" },
   level: {
     type: String,
     default: "",
@@ -73,6 +75,10 @@ function resetTilt() {
     <div class="skill-tile__surface">
       <span class="skill-tile__sheen" aria-hidden="true"></span>
 
+      <span v-if="icon" class="skill-tile__glyph">
+        <Icon :name="icon" aria-hidden="true" />
+      </span>
+
       <span class="skill-tile__name">{{ name }}</span>
 
       <span v-if="level" class="skill-tile__meta">
@@ -129,9 +135,9 @@ function resetTilt() {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
   height: 100%;
-  min-height: 7rem;
+  min-height: 9rem;
   padding: var(--space-4);
   overflow: hidden;
   /* Roughly the iOS icon corner ratio. */
@@ -184,8 +190,32 @@ function resetTilt() {
 }
 
 /* ---------------------------------------------------------------- content */
+
+/* Small rounded plate holding the logo, like an icon inside an icon. */
+.skill-tile__glyph {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-lg);
+  border: var(--border-width-hairline) solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 7%);
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  transition:
+    color var(--duration-base) var(--ease-standard),
+    transform var(--duration-slow) var(--ease-spring);
+}
+
+.skill-tile:hover .skill-tile__glyph {
+  transform: translateY(-2px) scale(1.06);
+}
+
 .skill-tile__name {
   position: relative;
+  margin-top: auto;
   color: var(--color-text);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
@@ -235,7 +265,7 @@ function resetTilt() {
 
 @media (max-width: 48rem) {
   .skill-tile__surface {
-    min-height: 5.75rem;
+    min-height: 7.5rem;
     padding: var(--space-3);
     border-radius: 1.125rem;
     /* Cheaper on phones, where a blur behind every tile is the expensive part. */

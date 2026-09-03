@@ -2,7 +2,6 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import BaseSection from "@/components/base/BaseSection.vue";
 import SkillTile from "@/components/base/SkillTile.vue";
-import AuroraField from "@/components/effects/AuroraField.vue";
 import { skills, skillsIntro } from "@/data/skills";
 import { prefersReducedMotion } from "@/utils/loadThree";
 
@@ -62,10 +61,6 @@ onBeforeUnmount(() => {
 
 <template>
   <BaseSection id="skills" title="Skills" class="skills">
-    <template #backdrop>
-      <AuroraField />
-    </template>
-
     <p class="skills__lede">{{ skillsIntro }}</p>
 
     <ul ref="gridEl" class="skills__grid" role="list">
@@ -73,6 +68,7 @@ onBeforeUnmount(() => {
         v-for="(skill, index) in skills"
         :key="skill.name"
         :name="skill.name"
+        :icon="skill.icon"
         :level="skill.level"
         :index="index"
         :revealed="revealed"

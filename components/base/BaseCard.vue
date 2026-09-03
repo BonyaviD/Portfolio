@@ -31,9 +31,11 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  border: var(--border-width-hairline) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--gradient-surface);
+  border: var(--border-width-hairline) solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
   color: var(--color-text-muted);
 }
 

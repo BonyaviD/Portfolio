@@ -2,20 +2,11 @@
 import { computed } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import { socialLinks } from "@/data/site";
-import GithubIcon from "@/assets/icons/GitHub.svg";
-import LinkedinIcon from "@/assets/icons/Linkedin.svg";
-import TelegramIcon from "@/assets/icons/Telegram.svg";
 
 /**
- * The social link row. The URLs live in data/site.js, so the header, footer
- * and About page can no longer drift out of sync the way they used to.
+ * The social link row. URLs and icons live in data/site.js, so the navigation,
+ * footer and About page can no longer drift out of sync.
  */
-const ICONS = {
-  github: GithubIcon,
-  linkedin: LinkedinIcon,
-  telegram: TelegramIcon,
-};
-
 const props = defineProps({
   /** Ids to show, in order. Defaults to every configured link. */
   only: { type: Array, default: null },
@@ -44,7 +35,7 @@ const links = computed(() => {
       <BaseButton
         :to="link.url"
         :label="link.label"
-        :icon="ICONS[link.id]"
+        :icon="link.icon"
         :variant="variant"
         :size="size"
         :icon-only="iconOnly"

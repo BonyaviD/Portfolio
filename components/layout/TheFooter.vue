@@ -5,29 +5,48 @@ import { site } from "@/data/site";
 
 <template>
   <footer class="footer">
-    <div class="container">
-      <SocialActions align="center" variant="soft" icon-only class="footer__social" />
+    <div class="container footer__inner">
+      <SocialActions align="center" variant="soft" icon-only />
+
       <p class="footer__note">
         &copy; {{ site.copyrightYear }}
-        <span class="footer__name">{{ site.name }}</span>, all rights reserved
-        <span aria-hidden="true">&#128104;&#127995;&#8205;&#128187;&#129310;&#127995;</span>
+        <span class="footer__name">{{ site.name }}</span> &middot; built with Nuxt
       </p>
     </div>
   </footer>
 </template>
 
 <style scoped>
+/* No background of its own: the page backdrop shows through, and a single
+   hairline separates the footer from the last section. */
 .footer {
-  padding-block: var(--space-36) var(--space-6);
-  background: var(--gradient-footer);
+  position: relative;
+  border-top: var(--border-width-hairline) solid var(--glass-border);
+  padding-block: var(--space-16) var(--space-10);
+}
+
+.footer__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
   text-align: center;
 }
 
-.footer__social {
-  margin-bottom: var(--space-3);
+.footer__note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .footer__name {
+  color: var(--color-text);
   font-weight: var(--font-weight-bold);
+}
+
+@media (max-width: 48rem) {
+  /* Leave room for the floating navigation island. */
+  .footer {
+    padding-bottom: calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+  }
 }
 </style>

@@ -11,5 +11,7 @@ export const effectPalette = {
   /** Matches --color-primary; the aurora's brightest highlight. */
   accent: "#e6b66c",
   /** Mid-tone of the aurora; sits between background and accent. */
-  auroraMid: "#123a5c",
+  auroraMid: "#0f2c47",
+  /** Cooler highlight, used as the particle field's secondary colour. */
+  auroraLight: "#4a9fd4",
 };

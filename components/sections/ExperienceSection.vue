@@ -1,15 +1,15 @@
 <script setup>
 import BaseSection from "@/components/base/BaseSection.vue";
 import BulletText from "@/components/base/BulletText.vue";
-import AuroraField from "@/components/effects/AuroraField.vue";
+import ParticleField from "@/components/effects/ParticleField.vue";
 import { experiences, projects } from "@/data/experience";
 </script>
 
 <template>
   <BaseSection id="experience" title="Experience">
-    <!-- Dimmer than the Skills aurora: the project screenshots lead here. -->
+    <!-- The one place particles appear; they sit over the page backdrop. -->
     <template #backdrop>
-      <AuroraField :intensity="0.7" />
+      <ParticleField :particle-count="7000" :opacity="0.7" />
     </template>
 
     <div class="experience">
@@ -29,6 +29,9 @@ import { experiences, projects } from "@/data/experience";
           :class="[`project--${project.surface}`, `project--zoom-${project.zoomOrigin}`]"
         >
           <img class="project__shot" :src="project.image" :alt="`${project.name} website`" />
+          <span class="project__badge" aria-hidden="true">
+            <Icon name="lucide:arrow-up-right" />
+          </span>
           <div class="project__info">
             <span class="project__name">{{ project.name }}</span>
             <span class="project__stack">{{ project.stack }}</span>
@@ -108,6 +111,35 @@ import { experiences, projects } from "@/data/experience";
 
 .project--zoom-center .project__shot {
   transform-origin: center center;
+}
+
+/* Small glass chip marking the card as an outbound link. */
+.project__badge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: var(--border-width-hairline) solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  color: var(--color-text);
+  opacity: 0;
+  transform: translateY(-0.25rem);
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-spring);
+}
+
+.project:hover .project__badge,
+.project:focus-visible .project__badge {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .project__info {

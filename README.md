@@ -57,13 +57,29 @@ and documented at the top of `tokens.css`:
   layout via `gap` or the `BaseSection` shell.
 - **Content** — copy, links and image lists live in `data/`, not in templates.
 - **Effects** — WebGL/Three.js code lives in `composables/`, so components stay
-  declarative. Each composable owns its own teardown.
+  declarative. Each composable owns its own teardown, pauses when off-screen or
+  in a background tab, and is skipped entirely under `prefers-reduced-motion`.
+- **Background** — the page has exactly one background: `PageBackdrop` renders a
+  fixed, full-viewport aurora behind everything. Sections must stay transparent
+  and use the `--glass-*` tokens for any raised surface.
+- **Icons** — `@nuxt/icon` with locally installed `simple-icons` (brand logos)
+  and `lucide` (interface) collections, so the deployed site never calls the
+  Iconify API. Icon names that come from `data/` are dynamic and must be listed
+  in `icon.clientBundle.icons` in `nuxt.config.ts` or they will not be bundled.
 - **Imports** — components are imported explicitly. `nuxt.config.ts` also
   registers the component directories with `pathPrefix: false` so auto-import
   names stay flat.
 
-### Known follow-up
+### Navigation
 
-`utils/loadThree.js` pulls Three.js from a CDN because the package
-is not installed. Run `npm i three` and swap the loader for a real import when
-network access allows.
+`TheNavIsland` is a floating capsule that tracks the section under the reading
+line and scrolls to it on click. The tracked sections live in `data/site.js` as
+`sections`; their ids must match the section elements rendered by the home page.
+On viewports under 48rem the island moves to the bottom of the screen as a tab
+bar.
+
+### Pinned versions
+
+`@nuxt/icon` is held at `1.x`. Version 2 requires Nuxt 4 and is silently
+disabled on Nuxt 3, which makes every `<Icon>` render nothing while the build
+still reports success. Upgrade it only together with Nuxt.

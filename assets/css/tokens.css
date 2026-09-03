@@ -63,11 +63,14 @@
     var(--palette-navy-850) 75%,
     var(--palette-navy-900) 100%
   );
-  --gradient-footer: linear-gradient(
-    180deg,
-    var(--palette-navy-800) 2%,
-    var(--palette-navy-950) 100%
-  );
+  /* ------------------------------------------------------------------ glass
+     The frosted material used by every floating surface: navigation island,
+     hero dock, buttons, skill tiles. Defined once so they stay identical. */
+  --glass-bg: rgb(255 255 255 / 6%);
+  --glass-bg-strong: rgb(13 27 42 / 62%);
+  --glass-border: rgb(255 255 255 / 12%);
+  --glass-blur: blur(20px) saturate(170%);
+  --glass-shadow: 0 16px 40px -18px rgb(0 0 0 / 85%);
 
   /* ------------------------------------------------------------- typography */
   --font-family-base: "Jura", ui-sans-serif, system-ui, sans-serif;
@@ -147,6 +150,8 @@
   --duration-slower: 1000ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Slight overshoot, the iOS "settle" feel. */
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 
   /* ---------------------------------------------------------------- z-index */
   --z-behind: -1;
@@ -158,7 +163,6 @@
   /* ---------------------------------------------------------------- layout */
   --container-max-width: 120rem;
   --container-gutter: 5%;
-  --header-height: 5rem;
   --section-padding-block: clamp(var(--space-12), 8vw, var(--space-24));
   --blur-backdrop: 0.5rem;
 }

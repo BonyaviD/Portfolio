@@ -12,12 +12,14 @@ import { computed } from "vue";
 const props = defineProps({
   to: { type: String, required: true },
   label: { type: String, default: "" },
-  /** URL of an SVG/image to show before the label. */
+  /** Iconify name, e.g. "simple-icons:github". */
   icon: { type: String, default: "" },
+  /** Iconify name shown after the label, e.g. an external-link arrow. */
+  trailingIcon: { type: String, default: "" },
   variant: {
     type: String,
     default: "solid",
-    validator: (value) => ["solid", "soft"].includes(value),
+    validator: (value) => ["solid", "soft", "ghost"].includes(value),
   },
   size: {
     type: String,
@@ -53,62 +55,67 @@ const classes = computed(() => [
     class="button"
     :class="classes"
   >
-    <img v-if="icon" class="button__icon" :src="icon" alt="" aria-hidden="true" />
+    <Icon v-if="icon" :name="icon" class="button__icon" aria-hidden="true" />
     <span v-if="label" class="button__label">{{ label }}</span>
+    <Icon
+      v-if="trailingIcon"
+      :name="trailingIcon"
+      class="button__icon button__icon--trailing"
+      aria-hidden="true"
+    />
   </NuxtLink>
 </template>
 
 <style scoped>
-/* Animating a gradient stop needs a registered custom property. */
-@property --button-fill-stop {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 95%;
-}
-
 .button {
-  --button-icon-size: 1.5rem;
+  --button-icon-size: 1.25rem;
 
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-pill);
   color: var(--color-text);
   font-weight: var(--font-weight-semibold);
   text-align: center;
-  box-shadow: var(--shadow-raised);
+  white-space: nowrap;
   transition:
-    --button-fill-stop var(--duration-base) var(--ease-standard),
-    box-shadow var(--duration-slow) var(--ease-standard),
-    background-color var(--duration-base) var(--ease-standard);
+    transform var(--duration-base) var(--ease-spring),
+    background-color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
 }
 
 .button:hover {
-  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: scale(0.96);
+  transition-duration: var(--duration-fast);
 }
 
 /* ------------------------------------------------------------------ sizes */
 .button--sm {
   --button-icon-size: 1rem;
 
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-sm);
 }
 
 .button--md {
-  --button-icon-size: 1.5rem;
+  --button-icon-size: 1.25rem;
 
-  padding: var(--space-3) var(--space-6);
+  padding: var(--space-3) var(--space-5);
   font-size: var(--font-size-base);
 }
 
 .button--lg {
-  --button-icon-size: 2rem;
+  --button-icon-size: 1.5rem;
 
   padding: var(--space-4) var(--space-8);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-md);
 }
 
 .button--icon-only.button--sm {
@@ -131,44 +138,39 @@ const classes = computed(() => [
 
 /* --------------------------------------------------------------- variants */
 
-/* Translucent plate with a gold hairline; the fill rises on hover. */
+/* Frosted plate, the default chrome treatment across the site. */
 .button--soft {
-  background: linear-gradient(
-    180deg,
-    var(--color-primary-soft) 10%,
-    var(--color-primary-soft) var(--button-fill-stop),
-    var(--color-primary) 80%
-  );
-}
-
-.button--soft::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  padding: var(--border-width-thin);
-  border-radius: inherit;
-  background: var(--color-primary);
-  /* Border-as-gradient: paint the padding ring only. */
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+  border: var(--border-width-hairline) solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .button--soft:hover {
-  --button-fill-stop: 8%;
+  border-color: var(--color-primary-soft);
+  background: var(--glass-bg-strong);
 }
 
 .button--solid {
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
   font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-raised);
 }
 
 .button--solid:hover {
   background-color: var(--color-primary-strong);
+  box-shadow: var(--shadow-glow);
+}
+
+/* No plate at all: for dense rows where the icon carries the affordance. */
+.button--ghost {
+  color: var(--color-text-muted);
+}
+
+.button--ghost:hover {
+  color: var(--color-text);
+  background: var(--glass-bg);
 }
 
 /* ---------------------------------------------------------------- content */
@@ -176,6 +178,10 @@ const classes = computed(() => [
   flex-shrink: 0;
   width: var(--button-icon-size);
   height: var(--button-icon-size);
+}
+
+.button__icon--trailing {
+  opacity: 0.7;
 }
 
 /* Visually hidden, still announced: keeps icon buttons named. */

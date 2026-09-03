@@ -4,10 +4,10 @@ import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
 /**
  * A full-bleed animated gradient, in the spirit of an iOS dynamic wallpaper:
  * slow drifting light through layered noise, warmed by a glow that follows the
- * pointer.
+ * pointer and shifted gently by page scroll.
  *
- * It is a single full-screen quad, so the cost is one fragment pass rather than
- * the per-particle CPU loop the old field ran every frame.
+ * It is a single full-screen quad, so the cost is one fragment pass regardless
+ * of how large the surface is.
  */
 
 const VERTEX_SHADER = `
@@ -20,11 +20,15 @@ void main() {
 /**
  * 2D simplex noise (Ashima / Stefan Gustavson), layered into fbm. Two fields
  * drift against each other so the light never visibly loops.
+ *
+ * Colour maths runs in linear space (Three.js converts the sRGB hex uniforms
+ * on the way in); `colorspace_fragment` converts back on the way out.
  */
 const FRAGMENT_SHADER = `
 varying vec2 vUv;
 
 uniform float uTime;
+uniform float uScroll;
 uniform vec2 uResolution;
 uniform vec2 uPointer;
 uniform float uPointerStrength;
@@ -76,37 +80,42 @@ void main() {
   float aspect = uResolution.x / max(uResolution.y, 1.0);
   vec2 p = (vUv - 0.5) * vec2(aspect, 1.0);
 
+  // Scroll slides the noise field, so the backdrop reads as one tall surface
+  // the page travels across rather than a loop pinned to the viewport.
+  p.y += uScroll;
+
   float t = uTime * 0.045;
 
   float n1 = fbm(p * 1.5 + vec2(t, t * 0.62));
   float n2 = fbm(p * 2.3 - vec2(t * 0.74, t * 0.41) + n1 * 0.45);
 
-  // Soft light that trails the pointer.
-  float glow = exp(-distance(p, uPointer) * 2.4) * uPointerStrength;
+  float glow = exp(-distance(p - vec2(0.0, uScroll), uPointer) * 2.4) * uPointerStrength;
 
   float band = n1 + n2 * 0.5 + glow * 0.9;
 
-  vec3 color = mix(uColorBase, uColorMid, smoothstep(-0.15, 0.8, band));
-  color = mix(color, uColorHot, smoothstep(0.6, 1.25, band + glow * 0.7));
+  vec3 color = mix(uColorBase, uColorMid, smoothstep(-0.05, 1.0, band));
+  color = mix(color, uColorHot, smoothstep(0.9, 1.6, band + glow * 0.6));
 
-  // Melt the edges into the page so the section has no hard seam.
-  float vignette = smoothstep(1.2, 0.2, length(vUv - 0.5) * 1.55);
+  // Soften the outer edges so the surface never shows a hard frame.
+  float vignette = smoothstep(1.35, 0.15, length(vUv - 0.5) * 1.4);
   color = mix(uColorBase, color, vignette * uIntensity);
 
   // Dithering: kills the banding that large, low-frequency gradients show.
   float grain = fract(sin(dot(vUv * uResolution, vec2(12.9898, 78.233))) * 43758.5453);
-  color += (grain - 0.5) * 0.016;
+  color += (grain - 0.5) * 0.007;
 
   gl_FragColor = vec4(color, 1.0);
+  #include <colorspace_fragment>
 }`;
 
 /**
  * @param {object} containerRef Vue ref holding the host element.
  * @param {object} options
- * @param {string} [options.baseColor] Colour the edges fade to; match the section background.
+ * @param {string} [options.baseColor] Colour the edges fade to.
  * @param {string} [options.midColor] Mid-tone of the drifting light.
  * @param {string} [options.hotColor] Brightest highlight colour.
  * @param {number} [options.intensity] 0-1 overall strength of the effect.
+ * @param {boolean} [options.followScroll] Shift the field as the page scrolls.
  * @returns {{ isActive: object }}
  */
 export function useAuroraField(containerRef, options = {}) {
@@ -115,6 +124,7 @@ export function useAuroraField(containerRef, options = {}) {
     midColor = "#123a5c",
     hotColor = "#e6b66c",
     intensity = 1,
+    followScroll = false,
   } = options;
 
   const isActive = ref(false);
@@ -137,6 +147,7 @@ export function useAuroraField(containerRef, options = {}) {
 
     const uniforms = {
       uTime: { value: 0 },
+      uScroll: { value: 0 },
       uResolution: { value: new THREE.Vector2(1, 1) },
       uPointer: { value: new THREE.Vector2(0, 0) },
       uPointerStrength: { value: 0 },
@@ -165,17 +176,6 @@ export function useAuroraField(containerRef, options = {}) {
       const rect = container.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
 
-      const inside =
-        event.clientX >= rect.left &&
-        event.clientX <= rect.right &&
-        event.clientY >= rect.top &&
-        event.clientY <= rect.bottom;
-
-      if (!inside) {
-        target.strength = 0;
-        return;
-      }
-
       const aspect = rect.width / rect.height;
       target.x = ((event.clientX - rect.left) / rect.width - 0.5) * aspect;
       target.y = 0.5 - (event.clientY - rect.top) / rect.height;
@@ -192,17 +192,26 @@ export function useAuroraField(containerRef, options = {}) {
       uniforms.uResolution.value.set(width, height);
     }
 
-    // The section grows as content reflows, so observe the box, not the window.
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
     resize();
+
+    let scrollTarget = 0;
+    if (followScroll) {
+      const readScroll = () => {
+        // Normalised against viewport height, then damped: a full page of
+        // scrolling should nudge the field, not race through it.
+        scrollTarget = (window.scrollY / Math.max(window.innerHeight, 1)) * 0.18;
+      };
+      readScroll();
+      window.addEventListener("scroll", readScroll, { passive: true, signal });
+    }
 
     const clock = new THREE.Clock();
     let rafId = 0;
     let running = false;
 
     function renderFrame() {
-      // Idle drift: without a pointer the highlight still wanders slowly.
       const idle = clock.elapsedTime * 0.12;
       const idleX = Math.cos(idle) * 0.32;
       const idleY = Math.sin(idle * 0.8) * 0.22;
@@ -217,6 +226,7 @@ export function useAuroraField(containerRef, options = {}) {
         idleY + (current.y - idleY) * blend
       );
       uniforms.uPointerStrength.value = 0.35 + current.strength;
+      uniforms.uScroll.value += (scrollTarget - uniforms.uScroll.value) * 0.08;
       uniforms.uTime.value = clock.getElapsedTime();
 
       renderer.render(threeScene, camera);
@@ -241,7 +251,7 @@ export function useAuroraField(containerRef, options = {}) {
       clock.stop();
     }
 
-    // Only burn frames while the section is actually on screen. Skipped
+    // Only burn frames while the surface is actually on screen. Skipped
     // entirely under reduced motion, where a single static frame is painted.
     let visibility = null;
 
@@ -251,6 +261,7 @@ export function useAuroraField(containerRef, options = {}) {
         { threshold: 0 }
       );
       visibility.observe(container);
+      start();
 
       document.addEventListener(
         "visibilitychange",
@@ -286,7 +297,7 @@ export function useAuroraField(containerRef, options = {}) {
       scene = createScene(THREE, containerRef.value, !prefersReducedMotion());
       isActive.value = true;
     } catch (error) {
-      // Decorative: the section keeps its CSS gradient fallback.
+      // Decorative: the CSS gradient fallback stays visible.
       console.warn("Aurora field disabled:", error.message);
       isActive.value = false;
     }

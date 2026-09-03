@@ -77,8 +77,10 @@ defineProps({
 }
 
 @media (max-width: 60rem) {
+  /* Centred and capped: a full-width portrait swamped the section. */
   .portrait {
-    width: 100%;
+    width: min(100%, 20rem);
+    margin-inline: auto;
   }
 
   /* No headroom for the balloon once the portrait goes full-width. */

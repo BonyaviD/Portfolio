@@ -1,15 +1,20 @@
 <script setup>
-import TheHeader from "@/components/layout/TheHeader.vue";
+import PageBackdrop from "@/components/effects/PageBackdrop.vue";
+import TheNavIsland from "@/components/layout/TheNavIsland.vue";
 import TheFooter from "@/components/layout/TheFooter.vue";
 </script>
 
 <template>
   <div class="app-shell">
     <a class="skip-link" href="#main">Skip to content</a>
-    <TheHeader />
+
+    <PageBackdrop />
+    <TheNavIsland />
+
     <main id="main" class="app-shell__main">
       <slot />
     </main>
+
     <TheFooter />
   </div>
 </template>
@@ -21,10 +26,8 @@ import TheFooter from "@/components/layout/TheFooter.vue";
   min-height: 100vh;
 }
 
-/* Clears the fixed header. */
 .app-shell__main {
   flex: 1;
-  margin-top: var(--header-height);
 }
 
 .skip-link {
@@ -33,7 +36,7 @@ import TheFooter from "@/components/layout/TheFooter.vue";
   left: var(--space-2);
   z-index: calc(var(--z-header) + 1);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-pill);
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
   font-weight: var(--font-weight-bold);

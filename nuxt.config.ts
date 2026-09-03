@@ -46,6 +46,16 @@ export default defineNuxtConfig({
   icon: {
     mode: "svg",
     /**
+     * No server bundle: every icon below is embedded in the client bundle,
+     * which the server renderer uses too, so SSR still inlines them.
+     *
+     * It also avoids a crash - the server bundle emits
+     * `createRequire(globalThis._importMeta_.url)`, and ESM hoisting means
+     * Nitro's runtime chunk runs before the entry sets that, leaving the
+     * placeholder "file:///_entry.js" and throwing on boot.
+     */
+    serverBundle: false,
+    /**
      * Icons are bundled into the client build so the deployed site never calls
      * the Iconify API. `scan` catches literal `<Icon name="...">` usage; names
      * that come from data/ are dynamic, so they must be listed explicitly.
@@ -72,6 +82,7 @@ export default defineNuxtConfig({
         "simple-icons:linkedin",
         "simple-icons:telegram",
         "simple-icons:vsco",
+        "simple-icons:playstation",
         // Interface icons
         "lucide:house",
         "lucide:user",

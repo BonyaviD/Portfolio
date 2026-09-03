@@ -9,13 +9,10 @@ import { games } from "@/data/hobbies";
  * which meant the posters were unlabelled for anyone who did not recognise the
  * cover art.
  */
-/**
- * Both facts are derived from the list itself. Nothing here asserts anything
- * about hardware or hours played that the data does not actually support.
- */
 const facts = [
   { id: "count", icon: "lucide:library", value: `${games.length} favourites` },
   { id: "genre", icon: "lucide:drama", value: "Story-driven" },
+  { id: "platform", icon: "simple-icons:playstation", value: "Mostly PlayStation" },
 ];
 </script>
 

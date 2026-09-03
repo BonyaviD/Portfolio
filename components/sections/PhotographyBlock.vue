@@ -1,14 +1,14 @@
 <script setup>
 import { computed, ref } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
-import { usePhotoWall } from "@/composables/usePhotoWall";
+import { usePhotoLine } from "@/composables/usePhotoLine";
 import { formatPhotoDate, usePhotoFeed } from "@/composables/usePhotoFeed";
 import { socialUrlById } from "@/data/site";
 
 const { photos } = await usePhotoFeed();
 
 const wallEl = ref(null);
-const { isActive, activeIndex, focus } = usePhotoWall(wallEl, { photos: photos.value });
+const { isActive, activeIndex, focus } = usePhotoLine(wallEl, { photos: photos.value });
 
 const hovered = computed(() => photos.value[activeIndex.value] ?? null);
 </script>
@@ -22,7 +22,7 @@ const hovered = computed(() => photos.value[activeIndex.value] ?? null);
       </h3>
 
       <p class="photography__lede">
-        Moments caught on walks around Iran. Drag the wall to move through them.
+        Prints from walks around Iran, pegged up to dry. Drag the line, and point at one to watch it develop.
       </p>
     </div>
 
@@ -43,7 +43,7 @@ const hovered = computed(() => photos.value[activeIndex.value] ?? null);
         </div>
       </transition>
 
-      <p v-if="isActive" class="wall__hint" aria-hidden="true">Drag to explore</p>
+      <p v-if="isActive" class="wall__hint" aria-hidden="true">Drag the line</p>
     </div>
 
     <ul class="grid" :class="{ 'grid--replaced': isActive }" role="list">
@@ -98,7 +98,7 @@ const hovered = computed(() => photos.value[activeIndex.value] ?? null);
 .wall {
   position: relative;
   display: none;
-  height: clamp(24rem, 58vh, 36rem);
+  height: clamp(26rem, 64vh, 40rem);
   /* Full-bleed: the wall reads better edge to edge than inside the container. */
   width: 100vw;
   margin-left: 50%;

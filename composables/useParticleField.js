@@ -242,6 +242,10 @@ export function useParticleField(containerRef, options = {}) {
       { threshold: 0 }
     );
     visibility.observe(container);
+    // Start straight away and let the observer only pause: if
+    // IntersectionObserver never reports (throttled or unavailable), the
+    // effect must still render rather than silently showing nothing.
+    start();
 
     document.addEventListener(
       "visibilitychange",

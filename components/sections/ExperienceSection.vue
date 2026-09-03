@@ -9,7 +9,7 @@ import { projects } from "@/data/experience";
   <BaseSection id="experience" title="Experience">
     <!-- The one place particles appear; they sit over the page backdrop. -->
     <template #backdrop>
-      <ParticleField :particle-count="7000" :opacity="0.7" />
+      <ParticleField :particle-count="12000" :opacity="0.7" />
     </template>
 
     <ul class="projects" role="list">

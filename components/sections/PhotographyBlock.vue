@@ -2,13 +2,15 @@
 import { computed, ref } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import { usePhotoWall } from "@/composables/usePhotoWall";
-import { photos } from "@/data/hobbies";
+import { formatPhotoDate, usePhotoFeed } from "@/composables/usePhotoFeed";
 import { socialUrlById } from "@/data/site";
 
-const wallEl = ref(null);
-const { isActive, activeIndex, focus } = usePhotoWall(wallEl, { photos });
+const { photos } = await usePhotoFeed();
 
-const hovered = computed(() => photos[activeIndex.value] ?? null);
+const wallEl = ref(null);
+const { isActive, activeIndex, focus } = usePhotoWall(wallEl, { photos: photos.value });
+
+const hovered = computed(() => photos.value[activeIndex.value] ?? null);
 </script>
 
 <template>
@@ -30,13 +32,15 @@ const hovered = computed(() => photos[activeIndex.value] ?? null);
       <div ref="wallEl" class="wall__stage" aria-hidden="true"></div>
 
       <transition name="caption">
-        <p v-if="isActive && hovered" class="wall__caption">
-          <span class="wall__caption-title">{{ hovered.title }}</span>
-          <span class="wall__caption-place">
-            <Icon name="lucide:map-pin" aria-hidden="true" />
-            {{ hovered.place }}
-          </span>
-        </p>
+        <div v-if="isActive && hovered" class="wall__caption">
+          <p v-if="hovered.description" class="wall__caption-text">
+            {{ hovered.description }}
+          </p>
+          <p v-if="hovered.date" class="wall__caption-date">
+            <Icon name="lucide:calendar" aria-hidden="true" />
+            {{ formatPhotoDate(hovered.date) }}
+          </p>
+        </div>
       </transition>
 
       <p v-if="isActive" class="wall__hint" aria-hidden="true">Drag to explore</p>
@@ -47,8 +51,8 @@ const hovered = computed(() => photos[activeIndex.value] ?? null);
         <button type="button" class="grid__button" @click="focus(index)">
           <img class="grid__image" :src="photo.src" :alt="photo.alt" loading="lazy" />
           <span class="grid__caption">
-            <span class="grid__title">{{ photo.title }}</span>
-            <span class="grid__place">{{ photo.place }}</span>
+            <span class="grid__text">{{ photo.description }}</span>
+            <span v-if="photo.date" class="grid__date">{{ formatPhotoDate(photo.date) }}</span>
           </span>
         </button>
       </li>
@@ -116,9 +120,11 @@ const hovered = computed(() => photos[activeIndex.value] ?? null);
   bottom: var(--space-4);
   left: 50%;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-2) var(--space-5);
+  gap: var(--space-1);
+  max-width: min(90vw, 34rem);
+  padding: var(--space-3) var(--space-5);
   border: var(--border-width-hairline) solid var(--glass-border);
   border-radius: var(--radius-pill);
   background: var(--glass-bg-strong);
@@ -127,16 +133,24 @@ const hovered = computed(() => photos[activeIndex.value] ?? null);
   pointer-events: none;
 }
 
-.wall__caption-title {
-  font-weight: var(--font-weight-bold);
+/* Captions come from the channel and can run long; two lines is the budget. */
+.wall__caption-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  white-space: pre-line;
 }
 
-.wall__caption-place {
+.wall__caption-date {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 .wall__hint {
@@ -203,17 +217,23 @@ const hovered = computed(() => photos[activeIndex.value] ?? null);
 
 .grid__caption {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: var(--space-1);
   padding: var(--space-3);
+  text-align: left;
 }
 
-.grid__title {
+.grid__text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
   font-weight: var(--font-weight-semibold);
+  white-space: pre-line;
 }
 
-.grid__place {
+.grid__date {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }

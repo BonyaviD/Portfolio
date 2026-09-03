@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/fetch-telegram-photos.mjs",
+    "fetch:photos": "node scripts/fetch-telegram-photos.mjs",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",

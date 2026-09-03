@@ -22,3 +22,10 @@ logs
 .env
 .env.*
 !.env.example
+
+# Images downloaded at build time by scripts/fetch-telegram-photos.mjs.
+# feed.json is committed (empty) so dev and no-network builds never 404 for it.
+public/telegram/*.jpg
+public/telegram/*.jpeg
+public/telegram/*.png
+public/telegram/*.webp

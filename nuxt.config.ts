@@ -41,71 +41,7 @@ export default defineNuxtConfig({
     { path: "~/components/sections", pathPrefix: false },
   ],
 
-  modules: ["@nuxt/icon", "@nuxtjs/google-fonts"],
-
-  icon: {
-    mode: "svg",
-    /**
-     * No server bundle: every icon below is embedded in the client bundle,
-     * which the server renderer uses too, so SSR still inlines them.
-     *
-     * It also avoids a crash - the server bundle emits
-     * `createRequire(globalThis._importMeta_.url)`, and ESM hoisting means
-     * Nitro's runtime chunk runs before the entry sets that, leaving the
-     * placeholder "file:///_entry.js" and throwing on boot.
-     */
-    serverBundle: false,
-    /**
-     * Icons are bundled into the client build so the deployed site never calls
-     * the Iconify API. `scan` catches literal `<Icon name="...">` usage; names
-     * that come from data/ are dynamic, so they must be listed explicitly.
-     */
-    clientBundle: {
-      scan: true,
-      icons: [
-        // Tech / brand logos
-        "simple-icons:html5",
-        "simple-icons:css",
-        "simple-icons:sass",
-        "simple-icons:tailwindcss",
-        "simple-icons:bootstrap",
-        "simple-icons:javascript",
-        "simple-icons:typescript",
-        "simple-icons:pinia",
-        "simple-icons:vite",
-        "simple-icons:git",
-        "simple-icons:github",
-        "simple-icons:vuedotjs",
-        "simple-icons:nuxtdotjs",
-        "simple-icons:visualstudiocode",
-        "simple-icons:postman",
-        "simple-icons:linkedin",
-        "simple-icons:telegram",
-        "simple-icons:vsco",
-        "simple-icons:playstation",
-        // Interface icons
-        "lucide:house",
-        "lucide:user",
-        "lucide:sparkles",
-        "lucide:briefcase",
-        "lucide:camera",
-        "lucide:gamepad-2",
-        "lucide:library",
-        "lucide:drama",
-        "lucide:monitor",
-        "lucide:webhook",
-        "lucide:network",
-        "lucide:arrow-up-right",
-        "lucide:arrow-down",
-        "lucide:external-link",
-        "lucide:map-pin",
-        "lucide:calendar",
-        "lucide:languages",
-        "lucide:code",
-        "lucide:x",
-      ],
-    },
-  },
+  modules: ["@nuxtjs/google-fonts"],
 
   googleFonts: {
     // Jura ships 300-700 only; never request 800 or it gets faux-bolded.

@@ -39,6 +39,22 @@ export const photos = [
 export const heroPhoto = photos[0];
 
 /**
+ * Optional landscape key art, keyed by game id.
+ *
+ * Vite resolves this at build time, so dropping `the-last-of-us.jpg` into
+ * assets/img/gaming/wide/ is all it takes for that game to start using it.
+ * Anything without a file here falls back to its portrait cover.
+ */
+const wideArt = Object.fromEntries(
+  Object.entries(
+    import.meta.glob("../assets/img/gaming/wide/*.{jpg,jpeg,png,webp}", {
+      eager: true,
+      import: "default",
+    })
+  ).map(([path, url]) => [path.split("/").pop().replace(/\.[^.]+$/, ""), url])
+);
+
+/**
  * Favourite games. `studio`, `year` and `genre` are public facts about each
  * title; `blurb` describes the game, not my opinion of it. The slide's accent
  * colour is sampled from the artwork at runtime, so it is never hand-guessed.
@@ -184,3 +200,12 @@ export const games = [
       "A samurai abandons his code to fight the Mongol invasion, on an island built to be looked at.",
   },
 ];
+
+/**
+ * Games with their key art resolved. `wide` is the landscape image where one
+ * exists, otherwise null, so a caller can decide whether to fall back.
+ */
+export const gamesWithArt = games.map((game) => ({
+  ...game,
+  wide: wideArt[game.id] ?? null,
+}));

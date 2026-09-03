@@ -1,7 +1,7 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useArtworkAccents } from "@/composables/useArtworkAccents";
-import { games } from "@/data/hobbies";
+import { gamesWithArt as games } from "@/data/hobbies";
 import ProfileImage from "@/assets/img/me.jpg";
 
 /**
@@ -25,20 +25,43 @@ const accent = computed(() => accents.value[index.value]?.css ?? "rgb(230 182 10
 const position = computed(() => `${index.value + 1} / ${games.length}`);
 
 const railEl = ref(null);
+const stripEl = ref(null);
+/** How far the strip is shifted so the selection lands on the focus point. */
+const shift = ref(0);
+/** Slots from the left edge that the selected game always occupies. */
+const SELECTED_SLOT = 2;
 
-function keepSelectedInView() {
-  const tile = railEl.value?.querySelector(".tile.is-selected");
-  tile?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+/**
+ * Moves the strip, not the selection.
+ *
+ * A console keeps one fixed slot and slides the games through it. Scrolling
+ * the selected tile into view did the opposite - the slot moved to the tile -
+ * so the whole row appeared to drift.
+ */
+async function alignToFocus() {
+  await nextTick();
+  const strip = stripEl.value;
+  const tile = strip?.querySelector(".tile.is-selected");
+  if (!strip || !tile) return;
+
+  const unselected = [...strip.querySelectorAll(".tile")].find(
+    (el) => !el.classList.contains("is-selected")
+  );
+  const slot = unselected?.offsetWidth ?? 0;
+  const gap = Number.parseFloat(getComputedStyle(strip).columnGap) || 0;
+
+  // Two slots in: the selection always sits in the third position.
+  shift.value = SELECTED_SLOT * (slot + gap) - tile.offsetLeft;
 }
 
 function go(step) {
   index.value = (index.value + step + games.length) % games.length;
-  keepSelectedInView();
+  alignToFocus();
 }
 
 function select(next) {
   index.value = next;
-  keepSelectedInView();
+  alignToFocus();
 }
 
 function onKeydown(event) {
@@ -83,9 +106,14 @@ function tick() {
 onMounted(() => {
   tick();
   timer = setInterval(tick, 30_000);
+  alignToFocus();
+  window.addEventListener("resize", alignToFocus, { passive: true });
 });
 
-onBeforeUnmount(() => clearInterval(timer));
+onBeforeUnmount(() => {
+  clearInterval(timer);
+  window.removeEventListener("resize", alignToFocus);
+});
 </script>
 
 <template>
@@ -104,7 +132,13 @@ onBeforeUnmount(() => clearInterval(timer));
     <!-- The selected game's art fills the screen behind everything. -->
     <div class="ps__scene" aria-hidden="true">
       <transition name="scene">
-        <img :key="current.id" class="ps__art" :src="current.src" alt="" />
+        <img
+          :key="current.id"
+          class="ps__art"
+          :class="{ 'ps__art--wide': current.wide }"
+          :src="current.wide || current.src"
+          alt=""
+        />
       </transition>
       <span class="ps__scrim"></span>
     </div>
@@ -128,21 +162,29 @@ onBeforeUnmount(() => clearInterval(timer));
     </header>
 
     <!-- The rail. The only thing here that does anything. -->
-    <div class="rail">
-      <ul ref="railEl" class="rail__list" role="list">
-        <li v-for="(game, i) in games" :key="game.id" class="rail__item">
-          <button
-            type="button"
-            class="tile"
-            :class="{ 'is-selected': i === index }"
-            :aria-current="i === index ? 'true' : undefined"
-            @click="select(i)"
-          >
-            <img class="tile__art" :src="game.src" :alt="game.title" loading="lazy" />
-          </button>
-        </li>
-      </ul>
+    <div ref="railEl" class="rail">
+      <div class="rail__viewport">
+        <ul
+          ref="stripEl"
+          class="rail__strip"
+          :style="{ transform: `translateX(${shift}px)` }"
+          role="list"
+        >
+          <li v-for="(game, i) in games" :key="game.id" class="rail__item">
+            <button
+              type="button"
+              class="tile"
+              :class="{ 'is-selected': i === index }"
+              :aria-current="i === index ? 'true' : undefined"
+              @click="select(i)"
+            >
+              <img class="tile__art" :src="game.src" :alt="game.title" loading="lazy" />
+            </button>
+          </li>
+        </ul>
+      </div>
 
+      <!-- Sits under the focus point, so it is always under the selected game. -->
       <p class="rail__name">{{ current.title }}</p>
     </div>
 
@@ -194,10 +236,15 @@ onBeforeUnmount(() => clearInterval(timer));
   position: relative;
   display: grid;
   grid-template-rows: auto auto 1fr;
-  /* A screen, so it keeps a TV's shape rather than the page's. */
-  aspect-ratio: 16 / 9;
-  min-height: 30rem;
-  max-height: calc(100svh - 2 * var(--inset));
+  /* An implicit `auto` column sizes to content, so a wide row pushed the
+     stage past the card's right edge and the overflow clipped it. */
+  grid-template-columns: minmax(0, 1fr);
+  /**
+   * Height follows the content, with the viewport as a floor rather than a
+   * ceiling. A fixed 16:9 box got clamped on short viewports and, with the
+   * overflow hidden, clipped the buttons off the bottom row.
+   */
+  min-height: min(calc(100svh - 2 * var(--inset)), 46rem);
   width: calc(100vw - 2 * var(--inset));
   margin-left: 50%;
   margin-block: var(--inset);
@@ -221,9 +268,8 @@ onBeforeUnmount(() => clearInterval(timer));
 }
 
 /**
- * The console shows wide key art here. Every cover in this repo is portrait,
- * so it is blown up and blurred to stand in as atmosphere; the sharp copy of
- * the same art sits in the card on the right.
+ * A portrait cover has to be blown up and blurred to work as a backdrop.
+ * Real landscape key art needs none of that, so it is shown nearly sharp.
  */
 .ps__art {
   position: absolute;
@@ -233,6 +279,12 @@ onBeforeUnmount(() => clearInterval(timer));
   object-fit: cover;
   transform: scale(1.3);
   filter: blur(26px) saturate(125%);
+}
+
+/* Real key art is shown as-is: the console does not blur it. */
+.ps__art--wide {
+  transform: none;
+  filter: none;
 }
 
 .ps__scrim {
@@ -330,23 +382,26 @@ onBeforeUnmount(() => clearInterval(timer));
   position: relative;
   z-index: var(--z-raised);
   padding-left: clamp(var(--space-4), 3vw, var(--space-10));
+  overflow: hidden;
 }
 
-.rail__list {
+/* The window the strip slides behind. */
+.rail__viewport {
+  overflow: hidden;
+}
+
+.rail__strip {
   display: flex;
   align-items: flex-start;
   gap: clamp(var(--space-2), 1vw, var(--space-4));
   padding-block: var(--space-2) var(--space-3);
-  overflow-x: auto;
   list-style: none;
-  scrollbar-width: none;
+  /* Only this moves. The selection itself never travels. */
+  transition: transform var(--duration-slow) var(--ease-out);
+  will-change: transform;
 }
 
-.rail__list::-webkit-scrollbar {
-  display: none;
-}
-
-/* Reserves the enlarged tile's height so the row does not shift on select. */
+/* Reserves the enlarged tile's height so the row never shifts vertically. */
 .rail__item {
   display: flex;
   align-items: flex-start;
@@ -364,9 +419,9 @@ onBeforeUnmount(() => clearInterval(timer));
   overflow: hidden;
   cursor: pointer;
   opacity: 0.72;
-  transform-origin: top left;
+  /* Width is not animated: the strip's offset is measured from real layout,
+     so an in-flight width would make the focus point land in the wrong place. */
   transition:
-    width var(--duration-slow) var(--ease-spring),
     opacity var(--duration-base) var(--ease-standard),
     box-shadow var(--duration-base) var(--ease-standard);
 }
@@ -375,7 +430,7 @@ onBeforeUnmount(() => clearInterval(timer));
   opacity: 1;
 }
 
-/* The console enlarges the highlighted tile in place and rings it. */
+/* The console enlarges the highlighted tile and rings it. */
 .tile.is-selected {
   width: clamp(4.5rem, 9vw, 7rem);
   border-radius: clamp(0.75rem, 1.3vw, 1.1rem);
@@ -392,8 +447,10 @@ onBeforeUnmount(() => clearInterval(timer));
   object-fit: cover;
 }
 
+/* Pinned under the focus point, so it is always under the selected game. */
 .rail__name {
   margin-top: var(--space-2);
+  margin-left: calc(2 * (clamp(2.9rem, 5.6vw, 4.4rem) + clamp(var(--space-2), 1vw, var(--space-4))));
   color: var(--color-text);
   font-size: clamp(0.9rem, 1.4vw, 1.3rem);
 }
@@ -404,16 +461,24 @@ onBeforeUnmount(() => clearInterval(timer));
   z-index: var(--z-raised);
   display: flex;
   align-items: flex-end;
+  min-width: 0;
   padding: clamp(var(--space-4), 3vw, var(--space-10));
-  padding-top: 0;
+  padding-top: clamp(var(--space-6), 4vw, var(--space-16));
 }
 
 .stage__inner {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-8);
+  gap: clamp(var(--space-4), 3vw, var(--space-8));
   width: 100%;
+  /* Without this the copy refuses to shrink and shoves the cards off the
+     right edge, where the card's overflow clips them. */
+  min-width: 0;
+}
+
+.detail {
+  min-width: 0;
 }
 
 /* The console prints the game's logo here; the title stands in for it. */
@@ -476,8 +541,9 @@ onBeforeUnmount(() => clearInterval(timer));
   display: flex;
   flex-direction: column;
   gap: clamp(var(--space-2), 1vw, var(--space-4));
-  width: clamp(9rem, 21vw, 17rem);
-  flex-shrink: 0;
+  width: clamp(9rem, 18vw, 17rem);
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .cards__art {
@@ -580,13 +646,7 @@ onBeforeUnmount(() => clearInterval(timer));
 }
 
 /* ------------------------------------------------------------- responsive */
-@media (max-width: 56rem) {
-  /* A 16:9 screen gets too short to hold the layout on a phone. */
-  .ps {
-    aspect-ratio: auto;
-    min-height: min(100svh - 2 * var(--inset), 44rem);
-  }
-
+@media (max-width: 64rem) {
   .stage__inner {
     flex-direction: column-reverse;
     align-items: flex-start;

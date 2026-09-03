@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check:art": "node scripts/check-art.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "prebuild": "node scripts/fetch-telegram-photos.mjs",
     "fetch:photos": "node scripts/fetch-telegram-photos.mjs",

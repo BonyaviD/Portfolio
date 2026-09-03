@@ -176,6 +176,7 @@ watch(index, () => {
   position: relative;
   display: grid;
   align-items: center;
+  grid-template-columns: minmax(0, 1fr);
   min-height: min(100svh - 2 * var(--card-inset), 56rem);
   width: calc(100vw - 2 * var(--card-inset));
   /* Only the left margin centres it; `margin-inline` would collapse the box. */

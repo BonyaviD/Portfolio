@@ -78,6 +78,16 @@ line and scrolls to it on click. The tracked sections live in `data/site.js` as
 On viewports under 48rem the island moves to the bottom of the screen as a tab
 bar.
 
+### Game artwork
+
+The covers in `assets/img/gaming` are portrait, which is all the card slider
+needs. The console shelf wants landscape key art behind it, so it looks for
+`assets/img/gaming/wide/<game id>.jpg` and falls back to the portrait cover
+when there is none. Dropping a file in is the whole change - Vite resolves the
+folder at build time.
+
+`npm run check:art` lists which games are still missing one.
+
 ### Pinned versions
 
 `@nuxt/icon` is held at `1.x`. Version 2 requires Nuxt 4 and is silently

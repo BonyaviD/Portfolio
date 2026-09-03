@@ -1,5 +1,6 @@
 import { onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
+import { sampleAccent } from "@/composables/useArtworkAccents";
 
 /**
  * The poster stage for the games slider.
@@ -34,6 +35,9 @@ uniform vec2 uCard;
 uniform float uRadius;
 uniform float uSeam;
 uniform vec3 uAccent;
+/** Height of the sharp poster, as a fraction of the card. */
+uniform float uPosterHeight;
+uniform float uPosterCentre;
 
 float roundedBox(vec2 p, vec2 b, float r) {
   vec2 q = abs(p) - b + r;
@@ -140,13 +144,56 @@ void main() {
   float mask = smoothstep(block * 0.55, block * 0.55 + 0.45, uProgress);
   vec3 color = mix(from, to, mask);
 
-  // Darken and tint the washed side so the copy on top stays readable.
-  vec3 tinted = mix(color * 0.34, uAccent * 0.5, 0.35);
-  color = mix(color, tinted, wash * 0.92);
+  // The washed side falls away into darkness, not light, so the title on top
+  // always has something dark behind it.
+  vec3 shaded = mix(color * 0.12, uAccent * 0.10, 0.5);
+  color = mix(color, shaded, wash * 0.96);
 
   // A faint glow along the seam so the join reads as deliberate.
-  float seamGlow = exp(-abs(vUv.x - edge) * 26.0) * 0.16;
+  float seamGlow = exp(-abs(vUv.x - edge) * 26.0) * 0.12;
   color += uAccent * seamGlow;
+
+  /**
+   * The whole artwork, sharp, over the cropped backdrop. A cover-fit portrait
+   * poster on a wide card loses most of the picture, which made it impossible
+   * to tell which game a slide was.
+   */
+  float artAspect = mix(uFromAspect, uToAspect, mask);
+  float halfH = uPosterHeight * 0.5;
+  float halfW = halfH * artAspect / boxAspect;
+  vec2 centre = vec2(uPosterCentre, 0.5);
+  vec2 half = vec2(halfW, halfH);
+
+  // Shadow first, offset down and out from the poster.
+  vec2 shadowP = (vUv - centre - vec2(0.0, -0.012)) / half;
+  float shadow = 1.0 - smoothstep(0.86, 1.22, max(abs(shadowP.x), abs(shadowP.y)));
+  color *= mix(1.0, 0.42, shadow * 0.85);
+
+  vec2 local = (vUv - centre) / half;
+  float inside = 1.0 - smoothstep(0.985, 1.0, max(abs(local.x), abs(local.y)));
+
+  if (inside > 0.001) {
+    vec2 artUv = local * 0.5 + 0.5;
+    // Same tear and channel split as the backdrop, so it glitches as one.
+    artUv.x += tear;
+    vec3 artFrom = vec3(
+      texture2D(uFrom, artUv + vec2(split, 0.0)).r,
+      texture2D(uFrom, artUv).g,
+      texture2D(uFrom, artUv - vec2(split, 0.0)).b
+    );
+    vec3 artTo = vec3(
+      texture2D(uTo, artUv + vec2(split, 0.0)).r,
+      texture2D(uTo, artUv).g,
+      texture2D(uTo, artUv - vec2(split, 0.0)).b
+    );
+    vec3 art = mix(artFrom, artTo, mask);
+
+    // A hairline of the slide colour around the poster edge.
+    float rim = smoothstep(0.93, 1.0, max(abs(local.x), abs(local.y)));
+    art = mix(art, uAccent, rim * 0.35);
+
+    color = mix(color, art, inside);
+  }
 
   // A bright edge riding the dissolve front.
   color += vec3(0.55, 0.42, 0.18) * (1.0 - abs(mask * 2.0 - 1.0)) * burst * 0.45;
@@ -161,61 +208,6 @@ void main() {
   gl_FragColor = vec4(color, card);
   #include <colorspace_fragment>
 }`;
-
-/**
- * The most characterful colour in an image.
- *
- * A plain average of artwork turns to mud, so pixels are weighted by
- * saturation and penalised at the extremes of brightness. That lands on the
- * colour a person would name if asked what the poster looks like.
- */
-function sampleAccent(image) {
-  const size = 24;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return null;
-
-  context.drawImage(image, 0, 0, size, size);
-
-  let data;
-  try {
-    data = context.getImageData(0, 0, size, size).data;
-  } catch {
-    // Tainted canvas: the artwork is same-origin today, but never throw here.
-    return null;
-  }
-
-  let r = 0;
-  let g = 0;
-  let b = 0;
-  let total = 0;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const [pr, pg, pb] = [data[i] / 255, data[i + 1] / 255, data[i + 2] / 255];
-    const max = Math.max(pr, pg, pb);
-    const min = Math.min(pr, pg, pb);
-    const saturation = max === 0 ? 0 : (max - min) / max;
-    const brightness = (max + min) / 2;
-
-    // Favour saturated, mid-bright pixels; ignore near-black and near-white.
-    const weight = saturation * saturation * Math.sin(Math.PI * brightness) + 0.02;
-
-    r += pr * weight;
-    g += pg * weight;
-    b += pb * weight;
-    total += weight;
-  }
-
-  if (!total) return null;
-
-  const norm = (value) => Math.min(1, value / total);
-  const rgb = [norm(r), norm(g), norm(b)];
-  const css = `rgb(${rgb.map((v) => Math.round(v * 255)).join(" ")})`;
-  return { rgb, css };
-}
 
 /**
  * @param {object} containerRef Vue ref holding the host element.
@@ -272,6 +264,8 @@ export function useGameStage(containerRef, options = {}) {
       /** Where the sharp picture gives way to the blurred wash, in card UV. */
       uSeam: { value: 0.44 },
       uAccent: { value: new THREE.Color(0.9, 0.71, 0.42) },
+      uPosterHeight: { value: 0.7 },
+      uPosterCentre: { value: 0.72 },
     };
 
     const geometry = new THREE.PlaneGeometry(1, 1);
@@ -307,7 +301,10 @@ export function useGameStage(containerRef, options = {}) {
       uniforms.uCard.value.set(viewWidth, viewHeight);
 
       const split = width >= 900;
-      uniforms.uSeam.value = split ? 0.46 : 0.04;
+      uniforms.uSeam.value = split ? 0.5 : 0.04;
+      // Narrow cards put the poster in the middle and leave the copy below.
+      uniforms.uPosterHeight.value = split ? 0.72 : 0.6;
+      uniforms.uPosterCentre.value = split ? 0.72 : 0.5;
       // Corner radius in world units, matched to the CSS card radius.
       uniforms.uRadius.value = (viewHeight / height) * 28;
     }

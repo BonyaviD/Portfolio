@@ -135,14 +135,6 @@ watch(index, () => {
           </p>
 
           <h4 class="copy__title">{{ current.title }}</h4>
-
-          <ul class="copy__meta" role="list">
-            <li>{{ current.studio }}</li>
-            <li v-if="current.year">{{ current.year }}</li>
-            <li>{{ current.genre }}</li>
-          </ul>
-
-          <p class="copy__blurb">{{ current.blurb }}</p>
         </div>
       </transition>
 
@@ -302,43 +294,6 @@ watch(index, () => {
   text-wrap: balance;
 }
 
-.copy__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  margin-top: var(--space-4);
-  list-style: none;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
-}
-
-.copy__meta li + li {
-  position: relative;
-  padding-left: var(--space-4);
-}
-
-.copy__meta li + li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 4px;
-  height: 4px;
-  border-radius: var(--radius-circle);
-  background: var(--color-primary);
-  transform: translateY(-50%);
-}
-
-.copy__blurb {
-  max-width: 30rem;
-  margin-top: var(--space-5);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-md);
-  line-height: var(--line-height-relaxed);
-}
-
 /* The copy arrives like a panel booting in, not a gentle fade. */
 .slide-enter-active {
   transition:
@@ -453,10 +408,6 @@ watch(index, () => {
     z-index: -1;
     background: linear-gradient(180deg, transparent, rgb(6 14 24 / 82%) 38%);
     pointer-events: none;
-  }
-
-  .copy__blurb {
-    font-size: var(--font-size-base);
   }
 }
 

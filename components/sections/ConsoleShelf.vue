@@ -30,6 +30,8 @@ const stripEl = ref(null);
 const shift = ref(0);
 /** Slots from the left edge that the selected game always occupies. */
 const SELECTED_SLOT = 2;
+/** Where the name sits: right of the selected tile, under the next one. */
+const nameOffset = ref({ left: 0, top: 0 });
 
 /**
  * Moves the strip, not the selection.
@@ -42,7 +44,7 @@ async function alignToFocus() {
   await nextTick();
   const strip = stripEl.value;
   const tile = strip?.querySelector(".tile.is-selected");
-  if (!strip || !tile) return;
+  if (!railEl.value || !strip || !tile) return;
 
   const unselected = [...strip.querySelectorAll(".tile")].find(
     (el) => !el.classList.contains("is-selected")
@@ -52,6 +54,25 @@ async function alignToFocus() {
 
   // Two slots in: the selection always sits in the third position.
   shift.value = SELECTED_SLOT * (slot + gap) - tile.offsetLeft;
+
+  /**
+   * The name goes beside the enlarged tile, level with the bottom of the
+   * small one next to it.
+   *
+   * Derived from the slot metrics rather than measured on screen: the strip
+   * animates its transform, so reading live positions returned wherever the
+   * tiles happened to be mid-slide and the label landed short by exactly the
+   * shift. Since the selection always occupies the same slot, this is a
+   * constant.
+   */
+  const rail = railEl.value;
+  const railPadding = Number.parseFloat(getComputedStyle(rail).paddingLeft) || 0;
+  const stripPaddingTop = Number.parseFloat(getComputedStyle(strip).paddingTop) || 0;
+
+  nameOffset.value = {
+    left: Math.round(railPadding + SELECTED_SLOT * (slot + gap) + tile.offsetWidth + gap),
+    top: Math.round(stripPaddingTop + slot + gap * 0.5),
+  };
 }
 
 function go(step) {
@@ -184,8 +205,13 @@ onBeforeUnmount(() => {
         </ul>
       </div>
 
-      <!-- Sits under the focus point, so it is always under the selected game. -->
-      <p class="rail__name">{{ current.title }}</p>
+      <!-- Beside the enlarged tile, under the one after it. -->
+      <p
+        class="rail__name"
+        :style="{ left: `${nameOffset.left}px`, top: `${nameOffset.top}px` }"
+      >
+        {{ current.title }}
+      </p>
     </div>
 
     <!-- Left: the game. Right: its cards. -->
@@ -447,12 +473,18 @@ onBeforeUnmount(() => {
   object-fit: cover;
 }
 
-/* Pinned under the focus point, so it is always under the selected game. */
+/* Positioned from measured geometry, so it tracks the tiles exactly. */
 .rail__name {
-  margin-top: var(--space-2);
-  margin-left: calc(2 * (clamp(2.9rem, 5.6vw, 4.4rem) + clamp(var(--space-2), 1vw, var(--space-4))));
+  position: absolute;
+  margin: 0;
   color: var(--color-text);
   font-size: clamp(0.9rem, 1.4vw, 1.3rem);
+  white-space: nowrap;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 70%);
+  transition:
+    left var(--duration-slow) var(--ease-out),
+    top var(--duration-slow) var(--ease-out);
+  pointer-events: none;
 }
 
 /* ------------------------------------------------------------------ stage */

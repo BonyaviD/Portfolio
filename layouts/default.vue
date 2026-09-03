@@ -28,6 +28,10 @@ import TheFooter from "@/components/layout/TheFooter.vue";
 
 .app-shell__main {
   flex: 1;
+  /* Full-bleed children use 100vw, which overshoots when a vertical scrollbar
+     is present. `clip` contains them without creating a scroll container the
+     way `hidden` would. */
+  overflow-x: clip;
 }
 
 .skip-link {

@@ -105,12 +105,14 @@ import { site, socialUrlById } from "@/data/site";
   letter-spacing: var(--letter-spacing-wide);
 }
 
+/* Sized off the viewport width and never allowed to wrap: the name is meant
+   to read as one line at every width. */
 .hero__name {
-  font-size: clamp(2.75rem, 9vw, 6rem);
+  font-size: clamp(1.75rem, 10.5vw, 4.5rem);
   font-weight: var(--font-weight-bold);
-  line-height: 0.95;
+  line-height: 1.05;
   letter-spacing: -0.03em;
-  text-wrap: balance;
+  white-space: nowrap;
 }
 
 .hero__tagline {

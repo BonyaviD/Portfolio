@@ -1,55 +1,74 @@
 <script setup>
+import { computed, ref } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
-import BulletText from "@/components/base/BulletText.vue";
+import { usePhotoWall } from "@/composables/usePhotoWall";
 import { photos } from "@/data/hobbies";
 import { socialUrlById } from "@/data/site";
+
+const wallEl = ref(null);
+const { isActive, activeIndex, focus } = usePhotoWall(wallEl, { photos });
+
+const hovered = computed(() => photos[activeIndex.value] ?? null);
 </script>
 
 <template>
   <div class="photography">
-    <div class="photography__intro">
+    <div class="photography__head">
       <h3 class="photography__title">
         <Icon name="lucide:camera" aria-hidden="true" />
-        Photography</h3>
-      <BulletText>
-        I really enjoy photography and find great satisfaction in capturing unique moments
-        through my lens.
-      </BulletText>
+        Photography
+      </h3>
+
+      <p class="photography__lede">
+        Moments caught on walks around Iran. Drag the wall to move through them.
+      </p>
     </div>
 
-    <div class="mosaic">
-      <figure v-for="photo in photos" :key="photo.id" class="tile" :class="`tile--${photo.id}`">
-        <img class="tile__image" :src="photo.src" :alt="photo.alt" />
-        <figcaption class="tile__caption">
-          <span class="tile__title">{{ photo.title }}</span>
-          <span class="tile__place">{{ photo.place }}</span>
-        </figcaption>
-      </figure>
+    <!-- The wall is decorative chrome around content that also exists as a
+         plain list below, which is what assistive tech and no-WebGL get. -->
+    <div class="wall" :class="{ 'wall--live': isActive }">
+      <div ref="wallEl" class="wall__stage" aria-hidden="true"></div>
 
-      <div class="mosaic__brand">
-        <Icon name="simple-icons:vsco" aria-label="VSCO" />
-      </div>
+      <transition name="caption">
+        <p v-if="isActive && hovered" class="wall__caption">
+          <span class="wall__caption-title">{{ hovered.title }}</span>
+          <span class="wall__caption-place">
+            <Icon name="lucide:map-pin" aria-hidden="true" />
+            {{ hovered.place }}
+          </span>
+        </p>
+      </transition>
 
-      <div class="mosaic__cta">
-        <BaseButton
-          :to="socialUrlById.telegram"
-          label="For More"
-          icon="simple-icons:telegram"
-          variant="soft"
-          block
-        />
-      </div>
+      <p v-if="isActive" class="wall__hint" aria-hidden="true">Drag to explore</p>
+    </div>
+
+    <ul class="grid" :class="{ 'grid--replaced': isActive }" role="list">
+      <li v-for="(photo, index) in photos" :key="photo.id" class="grid__item">
+        <button type="button" class="grid__button" @click="focus(index)">
+          <img class="grid__image" :src="photo.src" :alt="photo.alt" loading="lazy" />
+          <span class="grid__caption">
+            <span class="grid__title">{{ photo.title }}</span>
+            <span class="grid__place">{{ photo.place }}</span>
+          </span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="photography__cta">
+      <BaseButton
+        :to="socialUrlById.telegram"
+        label="More photos"
+        icon="simple-icons:telegram"
+        trailing-icon="lucide:arrow-up-right"
+        variant="soft"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
-.photography__intro {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-10);
-  margin-bottom: var(--space-16);
+.photography__head {
+  margin-bottom: var(--space-8);
 }
 
 .photography__title {
@@ -64,165 +83,148 @@ import { socialUrlById } from "@/data/site";
   font-size: 0.8em;
 }
 
-/* ------------------------------------------------------------------ mosaic
-   A fixed 11-column collage. Tile placement is keyed off each photo's id,
-   so data/hobbies.js and the `.tile--*` rules below must stay in sync. */
-.mosaic {
-  display: grid;
-  grid-auto-columns: minmax(3.75rem, auto);
-  grid-auto-rows: minmax(0.625rem, auto);
-  gap: var(--space-10);
-  margin-bottom: var(--space-16);
+.photography__lede {
+  margin-top: var(--space-3);
+  max-width: 34rem;
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
 }
 
-.tile {
+/* -------------------------------------------------------------------- wall */
+.wall {
   position: relative;
-  overflow: hidden;
-  border: var(--border-width-thick) solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  display: none;
+  height: clamp(24rem, 58vh, 36rem);
+  /* Full-bleed: the wall reads better edge to edge than inside the container. */
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  touch-action: pan-y;
 }
 
-.tile__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition:
-    transform var(--duration-slower) var(--ease-standard),
-    filter var(--duration-slower) var(--ease-standard);
+.wall--live {
+  display: block;
 }
 
-.tile:hover .tile__image {
-  transform: scale(1.5);
-  filter: blur(2px) grayscale(100%);
-}
-
-.tile__caption {
-  opacity: 0;
-  transition: opacity var(--duration-slower) var(--ease-standard);
-}
-
-.tile:hover .tile__caption {
-  opacity: 1;
-}
-
-.tile__title,
-.tile__place {
+.wall__stage {
   position: absolute;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: var(--space-1) var(--space-2);
+  inset: 0;
 }
 
-.tile__title {
-  top: 50%;
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
-  color: var(--color-primary);
-  font-size: var(--font-size-2xl);
+.wall__caption {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-5);
+  border: var(--border-width-hairline) solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.wall__caption-title {
   font-weight: var(--font-weight-bold);
 }
 
-.tile__place {
-  top: 85%;
-  border-radius: var(--radius-xl);
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  backdrop-filter: blur(2px);
-}
-
-/* -------------------------------------------------------- tile placement */
-.tile--tehran-people {
-  grid-area: 1 / 1 / 2 / 4;
-}
-
-.tile--flower {
-  grid-area: 1 / 4 / 4 / 6;
-}
-
-.tile--street {
-  grid-area: 1 / 6 / 2 / 9;
-}
-
-.tile--milad-tower {
-  grid-area: 1 / 9 / 8 / 12;
-}
-
-.tile--airplane {
-  grid-area: 2 / 1 / 6 / 4;
-}
-
-.tile--astara-snow {
-  grid-area: 4 / 4 / 8 / 7;
-}
-
-.tile--hormuz {
-  grid-area: 2 / 7 / 8 / 9;
-}
-
-.mosaic__brand {
-  grid-area: 2 / 6 / 4 / 7;
-  display: flex;
+.wall__caption-place {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--space-1);
   color: var(--color-text-muted);
-  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-size: var(--font-size-sm);
 }
 
-.mosaic__cta {
-  grid-area: 6 / 1 / 8 / 4;
+.wall__hint {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-6);
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
-@media (max-width: 68rem) {
-  .mosaic {
-    grid-auto-columns: minmax(0.625rem, auto);
-    gap: var(--space-2);
-  }
+.caption-enter-active,
+.caption-leave-active {
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-spring);
 }
 
-@media (max-width: 60rem) {
-  .tile--tehran-people {
-    grid-area: 1 / 1 / 2 / 8;
-  }
+.caption-enter-from,
+.caption-leave-to {
+  opacity: 0;
+  transform: translate(-50%, var(--space-2));
+}
 
-  .tile--flower {
-    grid-area: 2 / 1 / 6 / 8;
-  }
+/* --------------------------------------------------------- fallback grid
+   Shown when WebGL is unavailable or motion is reduced. When the wall is
+   live this collapses to a screen-reader-only list, so the photos keep
+   their alt text and remain reachable. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-4);
+  list-style: none;
+}
 
-  .tile--street {
-    grid-area: 8 / 6 / 10 / 12;
-  }
+.grid--replaced {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
-  .tile--milad-tower {
-    grid-area: 1 / 8 / 8 / 12;
-  }
+.grid__button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: var(--border-width-hairline) solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: none;
+  overflow: hidden;
+  cursor: pointer;
+}
 
-  .tile--airplane {
-    grid-area: 6 / 1 / 10 / 6;
-  }
+.grid__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
 
-  .tile--astara-snow {
-    grid-area: 10 / 7 / 14 / 12;
-  }
+.grid__caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
 
-  .tile--hormuz {
-    grid-area: 10 / 1 / 14 / 7;
-  }
+.grid__title {
+  font-weight: var(--font-weight-semibold);
+}
 
-  .mosaic__brand {
-    grid-area: 6 / 6 / 8 / 8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.grid__place {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
 
-  .mosaic__brand {
-    font-size: clamp(1.25rem, 6vw, 2rem);
-  }
+.photography__cta {
+  margin-top: var(--space-8);
+}
 
-  .mosaic__cta {
-    grid-area: 14 / 1 / 17 / 12;
+@media (max-width: 48rem) {
+  .wall__hint {
+    display: none;
   }
 }
 </style>

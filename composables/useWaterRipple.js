@@ -27,6 +27,7 @@ uniform float power;
 uniform vec4 r[${MAX_RIPPLES}];
 uniform int count;
 uniform vec2 tsc;
+uniform float aspect;
 
 void main() {
   vec2 q = uv;
@@ -34,9 +35,13 @@ void main() {
     if (i >= count) break;
     vec2 origin = r[i].xy;
     float age = time - r[i].z;
-    float dist = distance(q, origin);
+    // Measure in screen proportions, not UV, or a wide canvas turns the
+    // ripple into an ellipse. The direction is converted back to UV so the
+    // displacement still points radially on screen.
+    vec2 diff = (q - origin) * vec2(aspect, 1.0);
+    float dist = length(diff);
     float wave = sin((dist - age * 0.30) * 92.0) * exp(-dist * 10.0) * exp(-age * 0.58);
-    vec2 dir = normalize(q - origin + vec2(0.0001));
+    vec2 dir = normalize(diff + vec2(0.0001)) / vec2(aspect, 1.0);
     q += dir * wave * power * r[i].w;
   }
 
@@ -46,7 +51,7 @@ void main() {
   for (int i = 0; i < ${MAX_RIPPLES}; i++) {
     if (i >= count) break;
     float age = time - r[i].z;
-    float dist = distance(uv, r[i].xy);
+    float dist = length((uv - r[i].xy) * vec2(aspect, 1.0));
     glow += exp(-dist * 18.0) * exp(-age * 0.85) * 0.16;
   }
   color.rgb += vec3(0.16, 0.42, 0.72) * glow;
@@ -154,6 +159,7 @@ export function useWaterRipple(canvasRef, options) {
       ripples: gl.getUniformLocation(program, "r"),
       count: gl.getUniformLocation(program, "count"),
       textureScale: gl.getUniformLocation(program, "tsc"),
+      aspect: gl.getUniformLocation(program, "aspect"),
     };
     const rippleBuffer = new Float32Array(MAX_RIPPLES * 4);
 
@@ -219,6 +225,7 @@ export function useWaterRipple(canvasRef, options) {
       gl.uniform4fv(uniforms.ripples, rippleBuffer);
       gl.uniform1i(uniforms.count, ripples.length);
       gl.uniform2f(uniforms.textureScale, scaleX, scaleY);
+      gl.uniform1f(uniforms.aspect, canvas.height ? canvas.width / canvas.height : 1);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       rafId = requestAnimationFrame(draw);

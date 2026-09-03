@@ -1,9 +1,8 @@
 <script setup>
 import BaseSection from "@/components/base/BaseSection.vue";
-import BulletText from "@/components/base/BulletText.vue";
 import ParticleField from "@/components/effects/ParticleField.vue";
 import ProjectCard from "@/components/base/ProjectCard.vue";
-import { experiences, projects } from "@/data/experience";
+import { projects } from "@/data/experience";
 </script>
 
 <template>
@@ -13,13 +12,6 @@ import { experiences, projects } from "@/data/experience";
       <ParticleField :particle-count="7000" :opacity="0.7" />
     </template>
 
-    <div class="experience">
-      <article v-for="experience in experiences" :key="experience.id" class="experience__entry">
-        <h3 class="experience__title">{{ experience.title }}</h3>
-        <BulletText>{{ experience.description }}</BulletText>
-      </article>
-    </div>
-
     <ul class="projects" role="list">
       <ProjectCard
         v-for="(project, index) in projects"
@@ -27,6 +19,7 @@ import { experiences, projects } from "@/data/experience";
         :name="project.name"
         :url="project.url"
         :image="project.image"
+        :description="project.description"
         :tech="project.tech"
         :index="index"
       />
@@ -35,25 +28,6 @@ import { experiences, projects } from "@/data/experience";
 </template>
 
 <style scoped>
-.experience {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-  margin-bottom: var(--space-16);
-}
-
-.experience__entry {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-10);
-}
-
-.experience__title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-}
-
 /* ------------------------------------------------------------ project grid */
 .projects {
   display: grid;

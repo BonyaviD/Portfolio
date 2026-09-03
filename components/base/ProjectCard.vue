@@ -12,6 +12,7 @@ const props = defineProps({
   name: { type: String, required: true },
   url: { type: String, required: true },
   image: { type: String, required: true },
+  description: { type: String, default: "" },
   tech: { type: Array, default: () => [] },
   /** Drives the staggered entrance delay. */
   index: { type: Number, default: 0 },
@@ -56,6 +57,8 @@ const domain = computed(() => {
             <Icon name="lucide:arrow-up-right" />
           </span>
         </span>
+
+        <span v-if="description" class="project__description">{{ description }}</span>
 
         <span v-if="tech.length" class="project__tech">
           <span v-for="item in tech" :key="item" class="project__chip">{{ item }}</span>
@@ -174,6 +177,7 @@ const domain = computed(() => {
 .project__body {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: var(--space-3);
   padding: 0 var(--space-2) var(--space-2);
 }
@@ -214,10 +218,19 @@ const domain = computed(() => {
   transform: rotate(45deg);
 }
 
+.project__description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
 .project__tech {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  /* Pins the chips to the card's base so a row of cards lines up. */
+  margin-top: auto;
+  padding-top: var(--space-1);
 }
 
 .project__chip {

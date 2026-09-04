@@ -49,6 +49,7 @@ export const sections = [
   { id: "about", label: "About", icon: "lucide:user" },
   { id: "skills", label: "Skills", icon: "lucide:sparkles" },
   { id: "experience", label: "Work", icon: "lucide:briefcase" },
+  { id: "contact", label: "Contact", icon: "lucide:mail" },
   { id: "hobbies", label: "Hobbies", icon: "lucide:camera" },
 ];
 

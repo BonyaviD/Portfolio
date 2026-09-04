@@ -88,6 +88,24 @@ folder at build time.
 
 `npm run check:art` lists which games are still missing one.
 
+### Contact form
+
+`server/api/contact.post.js` relays the form to Telegram. The send happens on
+the server for the same reason the photos are proxied: the visitor's browser
+must never be asked to reach `api.telegram.org`, which is blocked from Iran.
+
+Two environment variables are required, and the route answers 503 with
+"The form is not connected yet" until both are set:
+
+| variable | where it comes from |
+| --- | --- |
+| `TELEGRAM_BOT_TOKEN` | [@BotFather](https://t.me/BotFather) → `/newbot` |
+| `TELEGRAM_CHAT_ID` | send the bot a message, then read `result[0].message.chat.id` from `https://api.telegram.org/bot<token>/getUpdates` |
+
+Spam is handled without a third party or a CAPTCHA: a honeypot field that no
+person can see, and a minimum fill time. Both answer 200 so a bot learns
+nothing from being caught.
+
 ### Photography feed
 
 The prints on the washing line are the photo posts of a public Telegram

@@ -26,8 +26,11 @@
   --palette-gold-950: #3a2a12;
 
   --palette-slate-300: #b8c1c9;
+  --palette-slate-500: #7f8b96;
   --palette-slate-800: #30363d;
   --palette-white: #ffffff;
+
+  --palette-coral-400: #ff9a8b;
 
   /* ------------------------------------------------------------------ color */
   --color-bg: var(--palette-navy-800);
@@ -37,7 +40,11 @@
 
   --color-text: var(--palette-white);
   --color-text-muted: var(--palette-slate-300);
+  /* One step quieter than muted: timestamps, counters, hints. */
+  --color-text-subtle: var(--palette-slate-500);
   --color-text-on-primary: var(--palette-navy-800);
+
+  --color-danger: var(--palette-coral-400);
 
   --color-primary: var(--palette-gold-400);
   --color-primary-strong: var(--palette-gold-600);

@@ -155,6 +155,8 @@
   --z-raised: 1;
   --z-overlay: 10;
   --z-header: 100;
+  /* Above the navigation island, which is the highest thing on the page. */
+  --z-modal: 200;
 
   /* ---------------------------------------------------------------- layout */
   --container-max-width: 120rem;

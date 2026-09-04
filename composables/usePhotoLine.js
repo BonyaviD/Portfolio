@@ -21,11 +21,24 @@ void main() {
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`;
 
-/** Signed distance to a rounded rectangle, shared by every plate below. */
+/**
+ * Signed distance to a rounded rectangle, shared by every plate below.
+ *
+ * `edgeAlpha` is what keeps the prints from tearing as they swing. A fixed
+ * softness is a fixed width in *card* space, and a rotated card maps that to
+ * a different number of pixels along each edge - so one side of a print would
+ * come out crisp and the next stepped. Deriving the band from fwidth makes it
+ * exactly one pixel wide whatever the angle, size or device ratio.
+ */
 const SDF = `
 float roundedBox(vec2 p, vec2 b, float r) {
   vec2 q = abs(p) - b + r;
   return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+}
+
+float edgeAlpha(float d, float softness) {
+  float band = max(softness, fwidth(d) * 0.5);
+  return 1.0 - smoothstep(-band, band, d);
 }`;
 
 /** Value noise, summed over four octaves: the ragged edge of the burn. */
@@ -75,7 +88,7 @@ ${NOISE}
 
 void main() {
   vec2 p = (vUv - 0.5) * uCard;
-  float cardAlpha = 1.0 - smoothstep(-1.0, 1.0, roundedBox(p, uCard * 0.5, uRadius));
+  float cardAlpha = edgeAlpha(roundedBox(p, uCard * 0.5, uRadius), 0.0);
   if (cardAlpha <= 0.002) discard;
 
   // The paper: warm white, very slightly shaded towards the thick bottom edge.
@@ -92,7 +105,15 @@ void main() {
   vec2 window = vec2(x1 - x0, y1 - y0);
   vec2 puv = (vUv - vec2(x0, y0)) / window;
 
-  if (puv.x > 0.0 && puv.x < 1.0 && puv.y > 0.0 && puv.y < 1.0) {
+  // The photo's own border is the longest straight edge on the card, so a
+  // hard in/out test is where the stepping showed worst. One pixel of feather
+  // on each side, measured in screen space, is enough to hold the line
+  // through the swing.
+  vec2 fw = fwidth(puv);
+  vec2 inside = smoothstep(vec2(0.0), fw, puv) * smoothstep(vec2(0.0), fw, 1.0 - puv);
+  float windowMask = inside.x * inside.y;
+
+  if (windowMask > 0.001) {
     // Cover-fit the photo into its window whatever the source aspect is.
     float boxAspect = (window.x * uCard.x) / (window.y * uCard.y);
     vec2 fit = uImageAspect > boxAspect
@@ -136,7 +157,7 @@ void main() {
     // Corners sit slightly darker, as prints do - but that shading lifts as
     // the print finishes, so a developed photo is not tinted by anything.
     float vignette = smoothstep(1.15, 0.35, length(puv - 0.5) * 1.35);
-    color = photo * mix(mix(0.88, 1.0, vignette), 1.0, uDevelop);
+    color = mix(color, photo * mix(mix(0.88, 1.0, vignette), 1.0, uDevelop), windowMask);
   }
 
   // The caption is marker on paper, not part of the emulsion, so it is there
@@ -160,8 +181,8 @@ ${SDF}
 
 void main() {
   vec2 p = (vUv - 0.5) * uCard;
-  float d = roundedBox(p, uCard * 0.5, uRadius);
-  float alpha = 1.0 - smoothstep(-uSoftness, uSoftness, d);
+  // The shadow keeps its deliberate blur; the peg falls back to one pixel.
+  float alpha = edgeAlpha(roundedBox(p, uCard * 0.5, uRadius), uSoftness);
   gl_FragColor = vec4(uColor, alpha * uOpacity);
   #include <colorspace_fragment>
 }`;
@@ -379,7 +400,7 @@ async function waitForMarkerFont() {
 }
 
 export function usePhotoLine(containerRef, options = {}) {
-  const { photos = [] } = options;
+  const { photos = [], onPick = null } = options;
 
   const isActive = ref(false);
   const activeIndex = ref(-1);
@@ -643,17 +664,77 @@ export function usePhotoLine(containerRef, options = {}) {
     const pointer = new THREE.Vector2(-9999, -9999);
     const raycaster = new THREE.Raycaster();
 
+    // A press that never really moved is a tap on a print, not a drag of the
+    // line - the line is dragged constantly, so the threshold is what keeps
+    // one from firing the other.
+    const TAP_SLOP = 6;
+    let pressX = 0;
+    let pressY = 0;
+    let travelled = 0;
+
     container.addEventListener(
       "pointerdown",
       (event) => {
         dragging = true;
         lastPointerX = event.clientX;
+        pressX = event.clientX;
+        pressY = event.clientY;
+        travelled = 0;
         velocity = 0;
         container.setPointerCapture?.(event.pointerId);
         container.style.cursor = "grabbing";
       },
       { signal }
     );
+
+    /** The print under a viewport point, or -1. */
+    function printAt(clientX, clientY) {
+      const rect = container.getBoundingClientRect();
+      const ndc = new THREE.Vector2(
+        ((clientX - rect.left) / rect.width) * 2 - 1,
+        -(((clientY - rect.top) / rect.height) * 2 - 1)
+      );
+      raycaster.setFromCamera(ndc, camera);
+      const hit = raycaster.intersectObjects(
+        items.map((item) => item.print),
+        false
+      )[0];
+      return hit ? hit.object.userData.index : -1;
+    }
+
+    /**
+     * Where a print sits on screen, so the page can grow the picture out of
+     * the print the visitor actually pointed at rather than from nowhere.
+     */
+    function rectOf(index) {
+      const item = items[index];
+      if (!item) return null;
+
+      item.print.updateWorldMatrix(true, false);
+      const rect = container.getBoundingClientRect();
+      const corner = new THREE.Vector3();
+      let left = Infinity;
+      let top = Infinity;
+      let right = -Infinity;
+      let bottom = -Infinity;
+
+      for (const [x, y] of [
+        [-0.5, -0.5],
+        [0.5, -0.5],
+        [0.5, 0.5],
+        [-0.5, 0.5],
+      ]) {
+        corner.set(x, y, 0).applyMatrix4(item.print.matrixWorld).project(camera);
+        const px = rect.left + ((corner.x + 1) / 2) * rect.width;
+        const py = rect.top + ((1 - corner.y) / 2) * rect.height;
+        left = Math.min(left, px);
+        right = Math.max(right, px);
+        top = Math.min(top, py);
+        bottom = Math.max(bottom, py);
+      }
+
+      return { left, top, width: right - left, height: bottom - top };
+    }
 
     container.addEventListener(
       "pointermove",
@@ -666,6 +747,10 @@ export function usePhotoLine(containerRef, options = {}) {
         if (!dragging) return;
         const delta = event.clientX - lastPointerX;
         lastPointerX = event.clientX;
+        travelled = Math.max(
+          travelled,
+          Math.hypot(event.clientX - pressX, event.clientY - pressY)
+        );
         target += delta * 1.6;
         velocity = delta * 1.6;
       },
@@ -679,7 +764,21 @@ export function usePhotoLine(containerRef, options = {}) {
       container.style.cursor = "grab";
     }
 
-    container.addEventListener("pointerup", endDrag, { signal });
+    container.addEventListener(
+      "pointerup",
+      (event) => {
+        const wasTap = dragging && travelled < TAP_SLOP;
+        endDrag(event);
+        if (!wasTap || !onPick) return;
+
+        const index = printAt(event.clientX, event.clientY);
+        if (index >= 0) {
+          velocity = 0;
+          onPick(index, rectOf(index));
+        }
+      },
+      { signal }
+    );
     container.addEventListener("pointercancel", endDrag, { signal });
     container.addEventListener(
       "pointerleave",
@@ -826,6 +925,7 @@ export function usePhotoLine(containerRef, options = {}) {
 
     return {
       focus,
+      rectOf,
       /** Drops a photo into a print that is already hanging on the line. */
       adopt(index, texture) {
         const item = items[index];
@@ -917,5 +1017,6 @@ export function usePhotoLine(containerRef, options = {}) {
     isActive,
     activeIndex,
     focus: (index) => scene?.focus(index),
+    rectOf: (index) => scene?.rectOf(index) ?? null,
   };
 }

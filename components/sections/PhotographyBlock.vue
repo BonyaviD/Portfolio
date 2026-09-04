@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
+import PhotoLightbox from "@/components/sections/PhotoLightbox.vue";
 import { usePhotoLine } from "@/composables/usePhotoLine";
 import { formatPhotoDate, usePhotoFeed } from "@/composables/usePhotoFeed";
 import { socialUrlById } from "@/data/site";
@@ -10,7 +11,31 @@ const { photos } = await usePhotoFeed();
 // The caption is written onto the print itself, so the wall needs no chrome
 // of its own; the list below still carries the full text for assistive tech.
 const wallEl = ref(null);
-const { isActive, focus } = usePhotoLine(wallEl, { photos: photos.value });
+
+/** Index of the print brought forward, and where it was hanging. */
+const opened = ref(null);
+const openedFrom = ref(null);
+
+const { isActive, focus, rectOf } = usePhotoLine(wallEl, {
+  photos: photos.value,
+  onPick: (index, rect) => {
+    openedFrom.value = rect;
+    opened.value = index;
+  },
+});
+
+/** Wraps, so the arrows never dead-end. */
+function step(direction) {
+  if (opened.value === null) return;
+  const count = photos.value.length;
+  const next = (opened.value + direction + count) % count;
+
+  // Bring the line along, so closing leaves it on the photo just looked at,
+  // and so the next FLIP has a real print to grow from.
+  focus(next);
+  opened.value = next;
+  openedFrom.value = rectOf(next);
+}
 
 /** Matches what the WebGL prints write on their bottom border. */
 function footnoteFor(photo) {
@@ -42,12 +67,30 @@ function footnoteFor(photo) {
     <div class="wall" :class="{ 'wall--live': isActive }">
       <div ref="wallEl" class="wall__stage" aria-hidden="true"></div>
 
-      <p v-if="isActive" class="wall__hint" aria-hidden="true">Drag the line</p>
+      <p v-if="isActive" class="wall__hint" aria-hidden="true">
+        Drag the line &middot; tap a print
+      </p>
     </div>
+
+    <PhotoLightbox
+      :photos="photos"
+      :index="opened"
+      :origin="openedFrom"
+      @close="opened = null"
+      @navigate="step"
+    />
 
     <ul class="grid" :class="{ 'grid--replaced': isActive }" role="list">
       <li v-for="(photo, index) in photos" :key="photo.id" class="grid__item">
-        <button type="button" class="grid__button" @click="focus(index)">
+        <button
+          type="button"
+          class="grid__button"
+          @click="
+            focus(index);
+            openedFrom = rectOf(index);
+            opened = index;
+          "
+        >
           <!-- Dropped once the wall is up. The list stays for assistive tech
                and keyboard use, but the images would be a second download of
                everything the WebGL scene has already fetched - and being

@@ -19,8 +19,7 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.129",
-    "@iconify-json/simple-icons": "^1.2.94",
-    "@nuxtjs/google-fonts": "^3.2.0"
+    "@iconify-json/simple-icons": "^1.2.94"
   },
   "description": "Personal portfolio of Navid Bonyadi, built with Nuxt 3."
 }

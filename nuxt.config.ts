@@ -22,6 +22,7 @@ export default defineNuxtConfig({
    * consumes, the reset clears defaults, then base/utilities build on top.
    */
   css: [
+    "~/assets/css/fonts.css",
     "~/assets/css/tokens.css",
     "~/assets/css/reset.css",
     "~/assets/css/base.css",
@@ -41,13 +42,17 @@ export default defineNuxtConfig({
     { path: "~/components/sections", pathPrefix: false },
   ],
 
-  modules: ["@nuxtjs/google-fonts"],
-
-  googleFonts: {
-    // Jura ships 300-700 only; never request 800 or it gets faux-bolded.
-    // Permanent Marker is a single weight and is only used for the captions
-    // written onto the photo prints.
-    families: { Jura: [400, 500, 600, 700], "Permanent+Marker": [400] },
-    display: "swap",
+  /**
+   * The home page embeds the Telegram feed, so rendering it costs a scrape of
+   * t.me. Serving it stale-while-revalidate from the edge takes that off the
+   * critical path for everyone but the one visitor who triggers a refresh.
+   */
+  routeRules: {
+    // Five minutes rather than longer: if the render that gets cached is one
+    // where Telegram was unreachable, this is how long the page keeps showing
+    // the bundled fallback before it retries.
+    "/": { swr: 300 },
   },
+
+  modules: [],
 });

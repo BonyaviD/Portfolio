@@ -67,8 +67,9 @@
 
   /* ------------------------------------------------------------- typography */
   --font-family-base: "Jura", ui-sans-serif, system-ui, sans-serif;
-  /* Marker handwriting, for captions written onto the instant prints. */
-  --font-family-marker: "Permanent Marker", "Segoe Script", cursive;
+  /* Marker handwriting for the captions written onto the instant prints.
+     Vazirmatn picks up the Persian ones, which Permanent Marker cannot set. */
+  --font-family-marker: "Permanent Marker", "Vazirmatn", "Segoe Script", cursive;
 
   --font-size-xs: 0.75rem;    /* 12 */
   --font-size-sm: 0.875rem;   /* 14 */

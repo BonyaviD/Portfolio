@@ -105,9 +105,30 @@ ISPs block Telegram, so the browser must never be handed a `t.me` or
 The photo id is the upstream URL, so the proxy holds no state; a host allowlist
 is what stops it being used to fetch anything but a Telegram image.
 
+Each post also carries its view count and its reactions, which are written on
+the print under the caption.
+
 Configure with `TELEGRAM_CHANNEL` (default `StreetNote`) and
-`TELEGRAM_MAX_PHOTOS` (default 24). The channel must be **public and have a
+`TELEGRAM_MAX_PHOTOS` (default 20). The channel must be **public and have a
 username** — `https://t.me/s/<name>` has to show a list of posts in a browser.
+
+One preview page holds roughly twenty posts but only about half of them are
+photos, so a `max` of 20 costs two serial round trips to Telegram. That cost
+is paid by one visitor per SWR window, not by everyone: `/` is cached with
+`swr` in `nuxt.config.ts`, and the handler wraps the scrape in a cached
+function so the in-process call SSR makes does not re-fetch either. Locally
+that is a 7.5s cold call against a 27ms warm one.
+
+### Fonts
+
+`assets/fonts` holds the woff2 files and `assets/css/fonts.css` the
+`@font-face` rules, both committed. They were generated from Google Fonts
+once, by hand.
+
+This replaced `@nuxtjs/google-fonts`, which downloads at build time and fails
+soft: one timeout against `fonts.googleapis.com` leaves the build green and
+ships a site with no fonts at all. Nothing about the type should depend on the
+network at deploy time.
 
 Neither route throws. If the channel is unreachable the manifest comes back
 empty and the section falls back to the photos in `data/hobbies.js`.

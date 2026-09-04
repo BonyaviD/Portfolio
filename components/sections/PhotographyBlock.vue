@@ -11,6 +11,17 @@ const { photos } = await usePhotoFeed();
 // of its own; the list below still carries the full text for assistive tech.
 const wallEl = ref(null);
 const { isActive, focus } = usePhotoLine(wallEl, { photos: photos.value });
+
+/** Matches what the WebGL prints write on their bottom border. */
+function footnoteFor(photo) {
+  return [
+    formatPhotoDate(photo.date),
+    photo.views ? `${photo.views.toLocaleString("en-GB")} views` : "",
+    photo.reactions ? `${photo.reactions.toLocaleString("en-GB")} likes` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
 </script>
 
 <template>
@@ -40,7 +51,7 @@ const { isActive, focus } = usePhotoLine(wallEl, { photos: photos.value });
           <img class="grid__image" :src="photo.src" :alt="photo.alt" loading="lazy" />
           <span class="grid__caption">
             <span class="grid__text">{{ photo.description }}</span>
-            <span v-if="photo.date" class="grid__date">{{ formatPhotoDate(photo.date) }}</span>
+            <span v-if="footnoteFor(photo)" class="grid__date">{{ footnoteFor(photo) }}</span>
           </span>
         </button>
       </li>

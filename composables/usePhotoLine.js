@@ -241,20 +241,36 @@ const BULB_SIZES = [54, 62, 70];
 /* ------------------------------------------------------- written captions */
 
 /** Marker handwriting, mirroring --font-family-marker in tokens.css. */
-const MARKER_FONT = '"Permanent Marker", "Segoe Script", cursive';
+const MARKER_FONT = '"Permanent Marker", "Vazirmatn", "Segoe Script", cursive';
+/** Arabic script, so a Persian caption is laid out right to left. */
+const RTL = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
 const INK = "#1b1c20";
 /** Degrees of tilt per print, so no two captions are written the same. */
 const TILT_PATTERN = [-1.7, 1.2, -0.9, 1.9, -1.4, 0.7, -2.1];
 /** Canvas pixels per world unit for the caption texture. */
 const LABEL_SCALE = 2;
 
-/** Telegram captions are whole posts; the paper gets the opening line. */
+/** 1200 -> "1.2K": the counters are a detail, not a figure to read exactly. */
+function compactCount(value) {
+  if (value >= 1e6) return `${(value / 1e6).toFixed(1).replace(/\.0$/, "")}M`;
+  if (value >= 1e3) return `${(value / 1e3).toFixed(1).replace(/\.0$/, "")}K`;
+  return String(value);
+}
+
+/**
+ * Telegram captions are whole posts; the paper gets the opening line.
+ *
+ * Plenty of posts carry no caption at all, and those prints are left blank
+ * rather than captioned with a stand-in: a row of identical placeholders
+ * reads far worse than a print with only its date on it.
+ */
 function captionOf(photo) {
-  const line = (photo.description ?? "")
-    .split("\n")
-    .map((part) => part.trim())
-    .find(Boolean);
-  return line ?? photo.alt ?? "";
+  return (
+    (photo.description ?? "")
+      .split("\n")
+      .map((part) => part.trim())
+      .find(Boolean) ?? ""
+  );
 }
 
 /**
@@ -269,39 +285,73 @@ function drawLabel(photo, width, height, tilt) {
 
   const caption = captionOf(photo);
   const ctx = canvas.getContext("2d");
-  if (!ctx || !caption) return canvas;
+  if (!ctx) return canvas;
 
   const bandTop = canvas.height * (1 - MARGINS.bottom);
   const band = canvas.height - bandTop;
   const maxWidth = canvas.width * 0.82;
-  const stamp = formatPhotoDate(photo.date);
 
-  ctx.translate(canvas.width / 2, bandTop + band * (stamp ? 0.4 : 0.5));
+  // Date and the channel's own counters, written the way you would note them
+  // on the back of a print. Any of them may be missing.
+  const footnote = [
+    formatPhotoDate(photo.date),
+    photo.views ? `${compactCount(photo.views)} views` : "",
+    photo.reactions ? `${compactCount(photo.reactions)} likes` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  if (!caption && !footnote) return canvas;
+
+  // With no caption the footnote takes the middle of the band on its own.
+  const captionY = caption ? (footnote ? 0.4 : 0.5) : 0;
+  ctx.translate(canvas.width / 2, bandTop + band * (caption ? captionY : 0.5));
   ctx.rotate((tilt * Math.PI) / 180);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = INK;
 
-  // Shrink to fit first, and only clip once the type is as small as it should
-  // go - a caption reads better small than truncated.
   let size = Math.round(band * 0.34);
-  const floor = Math.round(band * 0.21);
-  ctx.font = `${size}px ${MARKER_FONT}`;
-  while (size > floor && ctx.measureText(caption).width > maxWidth) {
-    size -= 1;
-    ctx.font = `${size}px ${MARKER_FONT}`;
+
+  if (caption) {
+    // Persian captions have to be laid out right to left, or the trailing
+    // punctuation ends up on the wrong side of the line. They are also set
+    // heavier: Permanent Marker is a very bold face, and Vazirmatn beside it
+    // at a normal weight reads as a different, thinner voice.
+    const persian = RTL.test(caption);
+    ctx.direction = persian ? "rtl" : "ltr";
+    const face = persian ? "600 " : "";
+
+    // Shrink to fit first, and only clip once the type is as small as it
+    // should go - a caption reads better small than truncated.
+    const floor = Math.round(band * 0.21);
+    ctx.font = `${face}${size}px ${MARKER_FONT}`;
+    while (size > floor && ctx.measureText(caption).width > maxWidth) {
+      size -= 1;
+      ctx.font = `${face}${size}px ${MARKER_FONT}`;
+    }
+
+    let text = caption;
+    while (text.length > 1 && ctx.measureText(text).width > maxWidth) {
+      text = `${text.slice(0, -2)}…`;
+    }
+    ctx.fillText(text, 0, 0);
   }
 
-  let text = caption;
-  while (text.length > 1 && ctx.measureText(text).width > maxWidth) {
-    text = `${text.slice(0, -2)}…`;
-  }
-  ctx.fillText(text, 0, 0);
-
-  if (stamp) {
-    ctx.font = `${Math.round(size * 0.6)}px ${MARKER_FONT}`;
-    ctx.globalAlpha = 0.55;
-    ctx.fillText(stamp, 0, band * 0.31);
+  if (footnote) {
+    // The footnote gets whatever room is left: shrink it rather than let it
+    // run past the paper.
+    ctx.direction = "ltr";
+    let noteSize = Math.round(size * (caption ? 0.66 : 0.78));
+    ctx.font = `${noteSize}px ${MARKER_FONT}`;
+    while (noteSize > 8 && ctx.measureText(footnote).width > maxWidth) {
+      noteSize -= 1;
+      ctx.font = `${noteSize}px ${MARKER_FONT}`;
+    }
+    // Held back from the caption, but only just: at 0.55 it was not readable
+    // against the paper at the size these prints are drawn.
+    ctx.globalAlpha = 0.85;
+    ctx.fillText(footnote, 0, caption ? band * 0.31 : 0);
   }
 
   return canvas;
@@ -315,7 +365,12 @@ async function waitForMarkerFont() {
   if (!document.fonts) return;
   try {
     await Promise.race([
-      document.fonts.load(`48px ${MARKER_FONT}`).then(() => document.fonts.ready),
+      Promise.all([
+        // Both, explicitly: the captions are a mix of Latin and Persian and
+        // the two faces cover one script each.
+        document.fonts.load('48px "Permanent Marker"'),
+        document.fonts.load('48px "Vazirmatn"'),
+      ]).then(() => document.fonts.ready),
       new Promise((resolve) => setTimeout(resolve, 2500)),
     ]);
   } catch {
@@ -330,7 +385,7 @@ export function usePhotoLine(containerRef, options = {}) {
   const activeIndex = ref(-1);
   let scene = null;
 
-  function createScene(THREE, container, textures) {
+  function createScene(THREE, container, placeholder) {
     const listeners = new AbortController();
     const { signal } = listeners;
 
@@ -379,10 +434,7 @@ export function usePhotoLine(containerRef, options = {}) {
       });
     }
 
-    textures.forEach((texture, i) => {
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
+    photos.forEach((photo, i) => {
       const scale = SIZE_PATTERN[i % SIZE_PATTERN.length];
       const width = cardBase * scale;
       const height = width * CARD_RATIO;
@@ -400,7 +452,7 @@ export function usePhotoLine(containerRef, options = {}) {
       group.add(shadow);
 
       const labelTexture = new THREE.CanvasTexture(
-        drawLabel(photos[i] ?? {}, width, height, TILT_PATTERN[i % TILT_PATTERN.length])
+        drawLabel(photo, width, height, TILT_PATTERN[i % TILT_PATTERN.length])
       );
       labelTexture.colorSpace = THREE.SRGBColorSpace;
       labelTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -411,9 +463,9 @@ export function usePhotoLine(containerRef, options = {}) {
         transparent: true,
         depthWrite: false,
         uniforms: {
-          uMap: { value: texture },
+          uMap: { value: placeholder },
           uLabel: { value: labelTexture },
-          uImageAspect: { value: texture.image.width / texture.image.height },
+          uImageAspect: { value: 1 },
           uDevelop: { value: 0 },
           uCard: { value: new THREE.Vector2(width, height) },
           uMargins: {
@@ -454,6 +506,7 @@ export function usePhotoLine(containerRef, options = {}) {
         pegMaterial,
         index: i,
         baseX: cursor + width / 2,
+        texture: null,
         develop: 0,
         phase: (i * 1.7) % (Math.PI * 2),
         // Perspective throws anything off the z=0 plane away from the centre
@@ -773,6 +826,20 @@ export function usePhotoLine(containerRef, options = {}) {
 
     return {
       focus,
+      /** Drops a photo into a print that is already hanging on the line. */
+      adopt(index, texture) {
+        const item = items[index];
+        if (!item) return false;
+
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        item.texture?.dispose();
+        item.texture = texture;
+        item.printMaterial.uniforms.uMap.value = texture;
+        item.printMaterial.uniforms.uImageAspect.value =
+          texture.image.width / texture.image.height;
+        return true;
+      },
       destroy() {
         stop();
         listeners.abort();
@@ -783,8 +850,9 @@ export function usePhotoLine(containerRef, options = {}) {
         lineMaterial.dispose();
         bulbGeometry.dispose();
         bulbMaterial.dispose();
+        placeholder.dispose();
         for (const item of items) {
-          item.printMaterial.uniforms.uMap.value.dispose();
+          item.texture?.dispose();
           item.printMaterial.uniforms.uLabel.value.dispose();
           item.printMaterial.dispose();
           item.shadowMaterial.dispose();
@@ -801,19 +869,37 @@ export function usePhotoLine(containerRef, options = {}) {
 
     try {
       const THREE = await loadThree();
-      const loader = new THREE.TextureLoader();
-      const [textures] = await Promise.all([
-        Promise.all(photos.map((photo) => loader.loadAsync(photo.src))),
-        waitForMarkerFont(),
-      ]);
+      await waitForMarkerFont();
+      if (!containerRef.value) return;
 
-      if (!containerRef.value) {
-        for (const texture of textures) texture.dispose();
-        return;
-      }
+      // The line goes up before a single photo has arrived. An undeveloped
+      // print is nearly flat dark anyway, so a placeholder is indistinguishable
+      // from a loaded print that has not been pointed at yet - the wall is
+      // there immediately and the photos land inside it as they come in,
+      // rather than everyone waiting on the slowest of sixteen downloads.
+      const placeholder = new THREE.DataTexture(
+        new Uint8Array([26, 29, 33, 255]),
+        1,
+        1
+      );
+      placeholder.colorSpace = THREE.SRGBColorSpace;
+      placeholder.needsUpdate = true;
 
-      scene = createScene(THREE, containerRef.value, textures);
+      scene = createScene(THREE, containerRef.value, placeholder);
       isActive.value = true;
+
+      const loader = new THREE.TextureLoader();
+      for (const [index, photo] of photos.entries()) {
+        loader
+          .loadAsync(photo.src)
+          .then((texture) => {
+            // Unmounted mid-flight: nothing owns this, so drop it here.
+            if (!scene?.adopt(index, texture)) texture.dispose();
+          })
+          .catch((error) => {
+            console.warn(`Photo ${index} failed to load:`, error.message);
+          });
+      }
     } catch (error) {
       // The DOM grid stays visible as the fallback.
       console.warn("Photo line disabled:", error.message);

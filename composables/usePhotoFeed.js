@@ -33,6 +33,8 @@ export async function usePhotoFeed() {
         src: photo.src,
         description: photo.description || "",
         date: photo.date || null,
+        views: photo.views ?? null,
+        reactions: photo.reactions ?? null,
         // The caption is the only description of the image we have.
         alt: photo.description?.split("\n")[0] || "Photo from my Telegram channel",
       }));
@@ -43,6 +45,8 @@ export async function usePhotoFeed() {
       src: photo.src,
       description: `${photo.title}, ${photo.place}`,
       date: null,
+      views: null,
+      reactions: null,
       alt: photo.alt,
     }));
   });

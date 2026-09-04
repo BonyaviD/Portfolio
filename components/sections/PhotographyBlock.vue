@@ -48,7 +48,17 @@ function footnoteFor(photo) {
     <ul class="grid" :class="{ 'grid--replaced': isActive }" role="list">
       <li v-for="(photo, index) in photos" :key="photo.id" class="grid__item">
         <button type="button" class="grid__button" @click="focus(index)">
-          <img class="grid__image" :src="photo.src" :alt="photo.alt" loading="lazy" />
+          <!-- Dropped once the wall is up. The list stays for assistive tech
+               and keyboard use, but the images would be a second download of
+               everything the WebGL scene has already fetched - and being
+               clipped rather than display:none, they really do load. -->
+          <img
+            v-if="!isActive"
+            class="grid__image"
+            :src="photo.src"
+            :alt="photo.alt"
+            loading="lazy"
+          />
           <span class="grid__caption">
             <span class="grid__text">{{ photo.description }}</span>
             <span v-if="footnoteFor(photo)" class="grid__date">{{ footnoteFor(photo) }}</span>

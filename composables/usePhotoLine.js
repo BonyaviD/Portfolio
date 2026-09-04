@@ -2,12 +2,13 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
 
 /**
- * Photos as instant-camera prints pegged to a washing line.
+ * Photos as instant-camera prints pegged to a washing line, with a string of
+ * warm fairy lights running along the same line.
  *
  * Each print hangs from its own peg and swings a little, and the picture
  * inside starts undeveloped: flat, dark, almost blank. Pointing at a print
- * develops it from the bottom up into a high-contrast image, the way a real
- * instant photo comes in.
+ * develops it from the bottom up into the photo exactly as it was shot - no
+ * contrast push, no grade - the way a real instant photo comes in.
  *
  * The strip wraps, so dragging never runs out of line.
  */
@@ -65,10 +66,9 @@ void main() {
       : vec2(1.0, uImageAspect / boxAspect);
     vec3 image = texture2D(uMap, (puv - 0.5) * fit + 0.5).rgb;
 
-    // Developed: punchy contrast, a touch more saturation.
-    vec3 developed = clamp((image - 0.5) * 1.42 + 0.5, 0.0, 1.0);
-    float luma = dot(developed, vec3(0.2126, 0.7152, 0.0722));
-    developed = clamp(mix(vec3(luma), developed, 1.15), 0.0, 1.0);
+    // Developed: the photo as it was shot. Nothing is graded on top of it,
+    // so a finished print reads as the true image.
+    vec3 developed = image;
 
     // Undeveloped: the milky, near-flat emulsion before it comes in.
     // Not named "flat": that is a reserved word in GLSL.
@@ -85,9 +85,10 @@ void main() {
       * exp(-abs(puv.y - front) * 13.0)
       * (1.0 - smoothstep(0.85, 1.0, uDevelop));
 
-    // Corners sit slightly darker, as prints do.
+    // Corners sit slightly darker, as prints do - but that shading lifts as
+    // the print finishes, so a developed photo is not tinted by anything.
     float vignette = smoothstep(1.15, 0.35, length(puv - 0.5) * 1.35);
-    color = photo * mix(0.88, 1.0, vignette);
+    color = photo * mix(mix(0.88, 1.0, vignette), 1.0, uDevelop);
   }
 
   gl_FragColor = vec4(color, cardAlpha);
@@ -112,6 +113,49 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+/**
+ * One bulb of the fairy lights. Drawn as a point sprite: a wide warm halo
+ * with a hot little filament in the middle, each on its own slow flicker.
+ */
+const BULB_VERTEX = `
+attribute float aPhase;
+attribute float aSize;
+varying float vGlow;
+
+uniform float uTime;
+/** World units to framebuffer pixels, so bulbs keep their size on resize. */
+uniform float uScale;
+
+void main() {
+  vGlow = 0.78 + 0.22 * sin(uTime * 1.5 + aPhase);
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  gl_PointSize = aSize * uScale;
+  gl_Position = projectionMatrix * mv;
+}`;
+
+const BULB_FRAGMENT = `
+varying float vGlow;
+
+uniform vec3 uHalo;
+uniform vec3 uCore;
+
+void main() {
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  if (d > 1.0) discard;
+
+  // Three falloffs stacked: the wide spill on the wall, the warm ball of
+  // light around the glass, and the filament itself.
+  float bloom = pow(1.0 - d, 1.6);
+  float halo = pow(1.0 - d, 4.5);
+  float core = smoothstep(0.15, 0.0, d);
+
+  vec3 color = uHalo * (bloom * 0.85 + halo * 1.6) + uCore * core * 1.8;
+  float alpha = clamp(bloom * 0.62 + halo + core, 0.0, 1.0);
+
+  gl_FragColor = vec4(color * vGlow, alpha * vGlow);
+  #include <colorspace_fragment>
+}`;
+
 /** Print size and depth, cycled so neighbours never match. */
 const SIZE_PATTERN = [1, 0.74, 0.9, 1.1, 0.78, 1.02, 0.84];
 const DEPTH_PATTERN = [30, -120, -40, 80, -150, -10, -85];
@@ -125,6 +169,12 @@ const GAP = 90;
 /** The line the prints hang from, and how far it dips between pegs. */
 const LINE_Y = 250;
 const SAG = 26;
+
+/** Fairy lights: spacing between bulbs, and how finely the cord is drawn. */
+const BULB_GAP = 52;
+const CORD_STEPS = 200;
+/** Sprite sizes in world units, cycled so the string is not uniform. */
+const BULB_SIZES = [62, 74, 86];
 
 export function usePhotoLine(containerRef, options = {}) {
   const { photos = [] } = options;
@@ -252,32 +302,106 @@ export function usePhotoLine(containerRef, options = {}) {
       return LINE_Y - SAG * Math.cos((x / wrapWidth) * Math.PI * 2);
     }
 
-    // ------------------------------------------------------------- the line
+    // ------------------------------------------- the line and its fairy lights
+    // The cord is a dim warm wire rather than a visible rope: what the eye
+    // should read along the line is the row of bulbs threaded onto it.
     const lineMaterial = new THREE.LineBasicMaterial({
-      color: new THREE.Color("#8fa3b8"),
+      color: new THREE.Color("#7d6b56"),
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.5,
     });
     const lineGeometry = new THREE.BufferGeometry();
     const line = new THREE.Line(lineGeometry, lineMaterial);
     threeScene.add(line);
 
+    const bulbMaterial = new THREE.ShaderMaterial({
+      vertexShader: BULB_VERTEX,
+      fragmentShader: BULB_FRAGMENT,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        uTime: { value: 0 },
+        uScale: { value: 1 },
+        uHalo: { value: new THREE.Color("#ffc878") },
+        uCore: { value: new THREE.Color("#fff4d6") },
+      },
+    });
+    const bulbGeometry = new THREE.BufferGeometry();
+    const bulbs = new THREE.Points(bulbGeometry, bulbMaterial);
+    // Frustum culling reads the bounding sphere, which the per-frame position
+    // rewrite never updates; the string spans the view anyway.
+    bulbs.frustumCulled = false;
+    threeScene.add(bulbs);
+
+    let stringHalf = 0;
+    let bulbCount = 0;
+
     function visibleWidth() {
       return 2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.z * camera.aspect;
     }
 
-    function rebuildLine() {
-      const half = visibleWidth() / 2 + 200;
-      const steps = 160;
-      const points = new Float32Array((steps + 1) * 3);
-      for (let i = 0; i <= steps; i++) {
-        const x = -half + (i / steps) * half * 2;
-        points[i * 3] = x;
-        points[i * 3 + 1] = lineY(x - offset);
-        points[i * 3 + 2] = 0;
+    // gl_PointSize is capped by the driver - 64 on some mobile GPUs - and a
+    // sprite past the cap is silently clipped, so the string is scaled to fit.
+    const gl = renderer.getContext();
+    const maxPointSize = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1];
+
+    /** Bulbs are sized in world units, so convert once per resize. */
+    function worldToPixels() {
+      const visibleHeight = 2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.z;
+      const scale = (container.clientHeight / visibleHeight) * renderer.getPixelRatio();
+      return Math.min(scale, maxPointSize / Math.max(...BULB_SIZES));
+    }
+
+    /** Allocates the cord and the bulbs for the current viewport width. */
+    function buildString() {
+      stringHalf = visibleWidth() / 2 + 220;
+
+      lineGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(new Float32Array((CORD_STEPS + 1) * 3), 3)
+      );
+
+      bulbCount = Math.max(2, Math.round((stringHalf * 2) / BULB_GAP));
+      const phase = new Float32Array(bulbCount);
+      const size = new Float32Array(bulbCount);
+      for (let i = 0; i < bulbCount; i++) {
+        // The golden angle keeps neighbouring bulbs out of step with each other.
+        phase[i] = (i * 2.399) % (Math.PI * 2);
+        size[i] = BULB_SIZES[i % BULB_SIZES.length];
       }
-      lineGeometry.setAttribute("position", new THREE.BufferAttribute(points, 3));
-      lineGeometry.attributes.position.needsUpdate = true;
+
+      bulbGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(new Float32Array(bulbCount * 3), 3)
+      );
+      bulbGeometry.setAttribute("aPhase", new THREE.BufferAttribute(phase, 1));
+      bulbGeometry.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
+
+      bulbMaterial.uniforms.uScale.value = worldToPixels();
+      updateString();
+    }
+
+    /** Rides the cord and the bulbs along with the line's current sag. */
+    function updateString() {
+      const cord = lineGeometry.attributes.position;
+      for (let i = 0; i <= CORD_STEPS; i++) {
+        const x = -stringHalf + (i / CORD_STEPS) * stringHalf * 2;
+        cord.array[i * 3] = x;
+        cord.array[i * 3 + 1] = lineY(x - offset);
+        cord.array[i * 3 + 2] = 0;
+      }
+      cord.needsUpdate = true;
+
+      const points = bulbGeometry.attributes.position;
+      for (let i = 0; i < bulbCount; i++) {
+        const x = -stringHalf + (i / (bulbCount - 1)) * stringHalf * 2;
+        points.array[i * 3] = x;
+        // Bulbs hang just under the wire they are clipped to.
+        points.array[i * 3 + 1] = lineY(x - offset) - 5;
+        points.array[i * 3 + 2] = 6;
+      }
+      points.needsUpdate = true;
     }
 
     // ---------------------------------------------------------------- input
@@ -366,11 +490,15 @@ export function usePhotoLine(containerRef, options = {}) {
     function resize() {
       const width = container.clientWidth;
       const height = container.clientHeight;
-      if (!width || !height) return;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-      rebuildLine();
+      if (width && height) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      }
+      // Built even at zero size: the wall is display:none until the scene
+      // reports itself live, so the first layout the container ever has is
+      // the one the ResizeObserver delivers *after* the loop is running.
+      buildString();
     }
 
     const resizeObserver = new ResizeObserver(resize);
@@ -404,7 +532,8 @@ export function usePhotoLine(containerRef, options = {}) {
         item.group.rotation.z =
           Math.sin(time * 0.8 + item.phase) * 0.035 * energy;
       }
-      rebuildLine();
+      updateString();
+      bulbMaterial.uniforms.uTime.value = time;
 
       // Which print is being looked at.
       let wanted = -1;
@@ -479,6 +608,8 @@ export function usePhotoLine(containerRef, options = {}) {
         geometry.dispose();
         lineGeometry.dispose();
         lineMaterial.dispose();
+        bulbGeometry.dispose();
+        bulbMaterial.dispose();
         for (const item of items) {
           item.printMaterial.uniforms.uMap.value.dispose();
           item.printMaterial.dispose();

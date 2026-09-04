@@ -28,6 +28,34 @@ float roundedBox(vec2 p, vec2 b, float r) {
   return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
 }`;
 
+/** Value noise, summed over four octaves: the ragged edge of the burn. */
+const NOISE = `
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float valueNoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+    u.y
+  );
+}
+
+float fbm(vec2 p) {
+  float sum = 0.0;
+  float amp = 0.5;
+  for (int i = 0; i < 4; i++) {
+    sum += valueNoise(p) * amp;
+    p *= 2.03;
+    amp *= 0.5;
+  }
+  return sum;
+}`;
+
 const PRINT_FRAGMENT = `
 varying vec2 vUv;
 
@@ -40,7 +68,10 @@ uniform vec2 uCard;
 /** Photo window insets as fractions of the card: left, right, top, bottom. */
 uniform vec4 uMargins;
 uniform float uRadius;
+/** Per-print offset into the noise, so no two burn the same way. */
+uniform float uSeed;
 ${SDF}
+${NOISE}
 
 void main() {
   vec2 p = (vUv - 0.5) * uCard;
@@ -78,15 +109,29 @@ void main() {
     float rawLuma = dot(image, vec3(0.299, 0.587, 0.114));
     vec3 undeveloped = mix(vec3(0.105, 0.115, 0.125), vec3(rawLuma), 0.16);
 
-    // The developing front sweeps from the bottom edge upwards.
-    float front = uDevelop * 1.4 - 0.2;
-    float reveal = 1.0 - smoothstep(front - 0.25, front, puv.y);
+    // The picture comes in the way paper takes fire: a hole opens in the
+    // middle and eats outwards in rings, its edge chewed up by noise so it
+    // never reads as a circle, with the ember riding that edge.
+    vec2 rel = (puv - 0.5) * vec2(boxAspect, 1.0);
+    float burn = length(rel)
+      - (fbm(puv * 3.6 + uSeed) - 0.5) * 0.42
+      - (fbm(puv * 11.0 + uSeed * 1.7) - 0.5) * 0.11;
+
+    // Runs past the far corner so the last scraps of paper always catch.
+    float front = mix(-0.22, 1.15, uDevelop);
+    float reveal = 1.0 - smoothstep(front - 0.05, front + 0.05, burn);
     vec3 photo = mix(undeveloped, developed, reveal);
 
-    // A faint warm bloom riding the front while it is still moving.
-    photo += vec3(0.10, 0.07, 0.03)
-      * exp(-abs(puv.y - front) * 13.0)
-      * (1.0 - smoothstep(0.85, 1.0, uDevelop));
+    // The ember: a narrow orange line on the edge with a white-hot core,
+    // burning out once the whole print has caught.
+    float ember = exp(-abs(burn - front) * 24.0);
+    float alive = 1.0 - smoothstep(0.82, 1.0, uDevelop);
+    photo += (vec3(1.0, 0.36, 0.06) * ember
+      + vec3(1.0, 0.82, 0.45) * pow(ember, 4.0)) * alive * 0.85;
+
+    // Scorch: the paper just ahead of the ember browns before it goes.
+    float scorch = exp(-max(burn - front, 0.0) * 16.0) * alive;
+    photo = mix(photo, photo * vec3(1.35, 0.72, 0.42), scorch * 0.5);
 
     // Corners sit slightly darker, as prints do - but that shading lifts as
     // the print finishes, so a developed photo is not tinted by anything.
@@ -153,12 +198,12 @@ void main() {
 
   // Three falloffs stacked: the wide spill on the wall, the warm ball of
   // light around the glass, and the filament itself.
-  float bloom = pow(1.0 - d, 1.6);
+  float bloom = pow(1.0 - d, 1.5);
   float halo = pow(1.0 - d, 4.5);
-  float core = smoothstep(0.15, 0.0, d);
+  float core = smoothstep(0.19, 0.03, d);
 
-  vec3 color = uHalo * (bloom * 0.85 + halo * 1.6) + uCore * core * 1.8;
-  float alpha = clamp(bloom * 0.62 + halo + core, 0.0, 1.0);
+  vec3 color = uHalo * (bloom * 0.8 + halo * 1.5) + uCore * core * 1.9;
+  float alpha = clamp(bloom * 0.58 + halo + core, 0.0, 1.0);
 
   gl_FragColor = vec4(color * vGlow, alpha * vGlow);
   #include <colorspace_fragment>
@@ -181,11 +226,17 @@ const GAP = 96;
 /** How far the line dips between pegs. Its height is derived per scene. */
 const SAG = 26;
 
+/** Clothespins, in world units. Fixed, so every print clips on identically. */
+const PEG_WIDTH = 24;
+const PEG_HEIGHT = 46;
+/** Peg centre relative to the line, so it straddles cord and paper. */
+const PEG_Y = 4;
+
 /** Fairy lights: spacing between bulbs, and how finely the cord is drawn. */
-const BULB_GAP = 52;
+const BULB_GAP = 40;
 const CORD_STEPS = 200;
 /** Sprite sizes in world units, cycled so the string is not uniform. */
-const BULB_SIZES = [62, 74, 86];
+const BULB_SIZES = [54, 62, 70];
 
 /* ------------------------------------------------------- written captions */
 
@@ -374,6 +425,7 @@ export function usePhotoLine(containerRef, options = {}) {
             ),
           },
           uRadius: { value: 6 },
+          uSeed: { value: i * 7.31 },
         },
       });
       const print = new THREE.Mesh(geometry, printMaterial);
@@ -382,14 +434,15 @@ export function usePhotoLine(containerRef, options = {}) {
       print.userData.index = i;
       group.add(print);
 
+      // A peg is a real object: one size, whatever it is holding, clipped at
+      // the same height on every print. Sizing it off the card is what made
+      // the small and large prints hang differently.
       const pegMaterial = makePlate("#e6b66c", 1, 1.5);
-      const pegWidth = width * 0.075;
-      const pegHeight = height * 0.075;
-      pegMaterial.uniforms.uCard.value.set(pegWidth, pegHeight);
-      pegMaterial.uniforms.uRadius.value = pegWidth * 0.35;
+      pegMaterial.uniforms.uCard.value.set(PEG_WIDTH, PEG_HEIGHT);
+      pegMaterial.uniforms.uRadius.value = PEG_WIDTH * 0.32;
       const peg = new THREE.Mesh(geometry, pegMaterial);
-      peg.scale.set(pegWidth, pegHeight, 1);
-      peg.position.set(0, pegHeight * 0.15, 4);
+      peg.scale.set(PEG_WIDTH, PEG_HEIGHT, 1);
+      peg.position.set(0, PEG_Y, 4);
       group.add(peg);
 
       threeScene.add(group);
@@ -403,6 +456,13 @@ export function usePhotoLine(containerRef, options = {}) {
         baseX: cursor + width / 2,
         develop: 0,
         phase: (i * 1.7) % (Math.PI * 2),
+        // Perspective throws anything off the z=0 plane away from the centre
+        // of the screen, so near prints hung above the cord and far ones
+        // below it - and since depth and size are cycled together, that read
+        // as the large and small prints clipping on differently. Dividing the
+        // placement by the same factor lands every peg back on the line, and
+        // depth still does its job on the print's size.
+        parallax: (camera.position.z - group.position.z) / camera.position.z,
       });
 
       cursor += width + GAP;
@@ -638,8 +698,8 @@ export function usePhotoLine(containerRef, options = {}) {
         const x =
           ((item.baseX + offset + wrapWidth / 2) % wrapWidth + wrapWidth) % wrapWidth -
           wrapWidth / 2;
-        item.group.position.x = x;
-        item.group.position.y = lineY(x - offset);
+        item.group.position.x = x * item.parallax;
+        item.group.position.y = lineY(x - offset) * item.parallax;
         // A slow swing, faster while the line is actually moving.
         const energy = 1 + Math.min(Math.abs(velocity) * 0.05, 2.5);
         item.group.rotation.z =

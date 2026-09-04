@@ -1,5 +1,6 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
+import { formatPhotoDate } from "@/composables/usePhotoFeed";
 
 /**
  * Photos as instant-camera prints pegged to a washing line, with a string of
@@ -31,6 +32,8 @@ const PRINT_FRAGMENT = `
 varying vec2 vUv;
 
 uniform sampler2D uMap;
+/** Caption written on the paper: transparent everywhere but the ink. */
+uniform sampler2D uLabel;
 uniform float uImageAspect;
 uniform float uDevelop;
 uniform vec2 uCard;
@@ -90,6 +93,11 @@ void main() {
     float vignette = smoothstep(1.15, 0.35, length(puv - 0.5) * 1.35);
     color = photo * mix(mix(0.88, 1.0, vignette), 1.0, uDevelop);
   }
+
+  // The caption is marker on paper, not part of the emulsion, so it is there
+  // before the picture is and never develops with it.
+  vec4 ink = texture2D(uLabel, vUv);
+  color = mix(color, ink.rgb, ink.a);
 
   gl_FragColor = vec4(color, cardAlpha);
   #include <colorspace_fragment>
@@ -157,17 +165,20 @@ void main() {
 }`;
 
 /** Print size and depth, cycled so neighbours never match. */
-const SIZE_PATTERN = [1, 0.74, 0.9, 1.1, 0.78, 1.02, 0.84];
+const SIZE_PATTERN = [1, 0.82, 0.93, 1.08, 0.86, 1.02, 0.9];
 const DEPTH_PATTERN = [30, -120, -40, 80, -150, -10, -85];
 
-const CARD_WIDTH = 300;
+const CARD_WIDTH = 380;
+/** Phones read the same world units on a third of the width, so they get a
+    smaller print - at 380 a single card runs past both edges of the screen. */
+const CARD_WIDTH_NARROW = 300;
+const NARROW_VIEWPORT = 768;
 /** Instant prints are a touch taller than wide, with a heavy bottom border. */
 const CARD_RATIO = 1.19;
 const MARGINS = { left: 0.07, right: 0.07, top: 0.06, bottom: 0.2 };
-const GAP = 90;
+const GAP = 96;
 
-/** The line the prints hang from, and how far it dips between pegs. */
-const LINE_Y = 250;
+/** How far the line dips between pegs. Its height is derived per scene. */
 const SAG = 26;
 
 /** Fairy lights: spacing between bulbs, and how finely the cord is drawn. */
@@ -175,6 +186,91 @@ const BULB_GAP = 52;
 const CORD_STEPS = 200;
 /** Sprite sizes in world units, cycled so the string is not uniform. */
 const BULB_SIZES = [62, 74, 86];
+
+/* ------------------------------------------------------- written captions */
+
+/** Marker handwriting, mirroring --font-family-marker in tokens.css. */
+const MARKER_FONT = '"Permanent Marker", "Segoe Script", cursive';
+const INK = "#1b1c20";
+/** Degrees of tilt per print, so no two captions are written the same. */
+const TILT_PATTERN = [-1.7, 1.2, -0.9, 1.9, -1.4, 0.7, -2.1];
+/** Canvas pixels per world unit for the caption texture. */
+const LABEL_SCALE = 2;
+
+/** Telegram captions are whole posts; the paper gets the opening line. */
+function captionOf(photo) {
+  const line = (photo.description ?? "")
+    .split("\n")
+    .map((part) => part.trim())
+    .find(Boolean);
+  return line ?? photo.alt ?? "";
+}
+
+/**
+ * Writes the caption onto a transparent, card-shaped canvas so the print
+ * shader can composite it as ink. Only the thick bottom border is written on:
+ * everything above it is the photo window and must stay clear.
+ */
+function drawLabel(photo, width, height, tilt) {
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(width * LABEL_SCALE));
+  canvas.height = Math.max(1, Math.round(height * LABEL_SCALE));
+
+  const caption = captionOf(photo);
+  const ctx = canvas.getContext("2d");
+  if (!ctx || !caption) return canvas;
+
+  const bandTop = canvas.height * (1 - MARGINS.bottom);
+  const band = canvas.height - bandTop;
+  const maxWidth = canvas.width * 0.82;
+  const stamp = formatPhotoDate(photo.date);
+
+  ctx.translate(canvas.width / 2, bandTop + band * (stamp ? 0.4 : 0.5));
+  ctx.rotate((tilt * Math.PI) / 180);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = INK;
+
+  // Shrink to fit first, and only clip once the type is as small as it should
+  // go - a caption reads better small than truncated.
+  let size = Math.round(band * 0.34);
+  const floor = Math.round(band * 0.21);
+  ctx.font = `${size}px ${MARKER_FONT}`;
+  while (size > floor && ctx.measureText(caption).width > maxWidth) {
+    size -= 1;
+    ctx.font = `${size}px ${MARKER_FONT}`;
+  }
+
+  let text = caption;
+  while (text.length > 1 && ctx.measureText(text).width > maxWidth) {
+    text = `${text.slice(0, -2)}…`;
+  }
+  ctx.fillText(text, 0, 0);
+
+  if (stamp) {
+    ctx.font = `${Math.round(size * 0.6)}px ${MARKER_FONT}`;
+    ctx.globalAlpha = 0.55;
+    ctx.fillText(stamp, 0, band * 0.31);
+  }
+
+  return canvas;
+}
+
+/**
+ * The caption is drawn into a canvas, so the webfont has to be resident
+ * before anything is measured or the labels are set in the fallback face.
+ */
+async function waitForMarkerFont() {
+  if (!document.fonts) return;
+  try {
+    await Promise.race([
+      document.fonts.load(`48px ${MARKER_FONT}`).then(() => document.fonts.ready),
+      new Promise((resolve) => setTimeout(resolve, 2500)),
+    ]);
+  } catch {
+    // Falls back to the next face in the stack.
+  }
+}
 
 export function usePhotoLine(containerRef, options = {}) {
   const { photos = [] } = options;
@@ -206,6 +302,16 @@ export function usePhotoLine(containerRef, options = {}) {
     const items = [];
     let cursor = 0;
 
+    // The container is display:none until the scene reports itself live, so
+    // its own width is not readable yet; the wall is full-bleed, so the
+    // viewport stands in for it.
+    const cardBase =
+      window.innerWidth < NARROW_VIEWPORT ? CARD_WIDTH_NARROW : CARD_WIDTH;
+
+    // Prints hang below the line, so the line sits half an average card above
+    // centre; otherwise the whole wall rides high with dead space under it.
+    const lineTop = Math.round((cardBase * 0.95 * CARD_RATIO) / 2);
+
     function makePlate(color, opacity, softness) {
       return new THREE.ShaderMaterial({
         vertexShader: VERTEX_SHADER,
@@ -227,7 +333,7 @@ export function usePhotoLine(containerRef, options = {}) {
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
       const scale = SIZE_PATTERN[i % SIZE_PATTERN.length];
-      const width = CARD_WIDTH * scale;
+      const width = cardBase * scale;
       const height = width * CARD_RATIO;
 
       // The group's origin is the peg, so rotating it swings the print.
@@ -242,6 +348,12 @@ export function usePhotoLine(containerRef, options = {}) {
       shadow.position.set(width * 0.02, -height / 2 - height * 0.02, -2);
       group.add(shadow);
 
+      const labelTexture = new THREE.CanvasTexture(
+        drawLabel(photos[i] ?? {}, width, height, TILT_PATTERN[i % TILT_PATTERN.length])
+      );
+      labelTexture.colorSpace = THREE.SRGBColorSpace;
+      labelTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
       const printMaterial = new THREE.ShaderMaterial({
         vertexShader: VERTEX_SHADER,
         fragmentShader: PRINT_FRAGMENT,
@@ -249,6 +361,7 @@ export function usePhotoLine(containerRef, options = {}) {
         depthWrite: false,
         uniforms: {
           uMap: { value: texture },
+          uLabel: { value: labelTexture },
           uImageAspect: { value: texture.image.width / texture.image.height },
           uDevelop: { value: 0 },
           uCard: { value: new THREE.Vector2(width, height) },
@@ -299,7 +412,7 @@ export function usePhotoLine(containerRef, options = {}) {
 
     /** A gentle periodic dip, so the sag stays continuous across the wrap. */
     function lineY(x) {
-      return LINE_Y - SAG * Math.cos((x / wrapWidth) * Math.PI * 2);
+      return lineTop - SAG * Math.cos((x / wrapWidth) * Math.PI * 2);
     }
 
     // ------------------------------------------- the line and its fairy lights
@@ -612,6 +725,7 @@ export function usePhotoLine(containerRef, options = {}) {
         bulbMaterial.dispose();
         for (const item of items) {
           item.printMaterial.uniforms.uMap.value.dispose();
+          item.printMaterial.uniforms.uLabel.value.dispose();
           item.printMaterial.dispose();
           item.shadowMaterial.dispose();
           item.pegMaterial.dispose();
@@ -628,7 +742,10 @@ export function usePhotoLine(containerRef, options = {}) {
     try {
       const THREE = await loadThree();
       const loader = new THREE.TextureLoader();
-      const textures = await Promise.all(photos.map((photo) => loader.loadAsync(photo.src)));
+      const [textures] = await Promise.all([
+        Promise.all(photos.map((photo) => loader.loadAsync(photo.src))),
+        waitForMarkerFont(),
+      ]);
 
       if (!containerRef.value) {
         for (const texture of textures) texture.dispose();

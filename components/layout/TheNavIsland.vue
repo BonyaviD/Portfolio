@@ -211,30 +211,32 @@ onBeforeUnmount(() => {
   .island__item,
   .island--condensed .island__item,
   .island--condensed .island__item.is-active {
-    flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-2) var(--space-3);
+    justify-content: center;
+    gap: 0;
+    padding: var(--space-3);
   }
 
   .island__icon {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.375rem;
+    height: 1.375rem;
   }
 
-  /* Labels always show on mobile: the icons alone are too ambiguous. */
+  /* Icons only. The labels pushed the bar to the full width of the screen,
+     which cost it the capsule shape; they stay in the DOM, unstyled by the
+     transitions above, so the buttons keep their accessible names. */
   .island__label,
   .island--condensed .island__item .island__label,
   .island--condensed .island__item.is-active .island__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
     max-width: none;
-    margin-left: 0;
+    margin: -1px;
     opacity: 1;
-    font-size: var(--font-size-xs);
-  }
-}
-
-@media (max-width: 22rem) {
-  .island__label {
-    display: none;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    transition: none;
   }
 }
 </style>

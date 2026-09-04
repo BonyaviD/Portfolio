@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import { usePhotoLine } from "@/composables/usePhotoLine";
 import { formatPhotoDate, usePhotoFeed } from "@/composables/usePhotoFeed";
@@ -7,10 +7,10 @@ import { socialUrlById } from "@/data/site";
 
 const { photos } = await usePhotoFeed();
 
+// The caption is written onto the print itself, so the wall needs no chrome
+// of its own; the list below still carries the full text for assistive tech.
 const wallEl = ref(null);
-const { isActive, activeIndex, focus } = usePhotoLine(wallEl, { photos: photos.value });
-
-const hovered = computed(() => photos.value[activeIndex.value] ?? null);
+const { isActive, focus } = usePhotoLine(wallEl, { photos: photos.value });
 </script>
 
 <template>
@@ -30,18 +30,6 @@ const hovered = computed(() => photos.value[activeIndex.value] ?? null);
          plain list below, which is what assistive tech and no-WebGL get. -->
     <div class="wall" :class="{ 'wall--live': isActive }">
       <div ref="wallEl" class="wall__stage" aria-hidden="true"></div>
-
-      <transition name="caption">
-        <div v-if="isActive && hovered" class="wall__caption">
-          <p v-if="hovered.description" class="wall__caption-text">
-            {{ hovered.description }}
-          </p>
-          <p v-if="hovered.date" class="wall__caption-date">
-            <Icon name="lucide:calendar" aria-hidden="true" />
-            {{ formatPhotoDate(hovered.date) }}
-          </p>
-        </div>
-      </transition>
 
       <p v-if="isActive" class="wall__hint" aria-hidden="true">Drag the line</p>
     </div>
@@ -98,7 +86,7 @@ const hovered = computed(() => photos.value[activeIndex.value] ?? null);
 .wall {
   position: relative;
   display: none;
-  height: clamp(26rem, 64vh, 40rem);
+  height: clamp(29rem, 72vh, 46rem);
   /* Full-bleed: the wall reads better edge to edge than inside the container. */
   width: 100vw;
   margin-left: 50%;
@@ -115,44 +103,6 @@ const hovered = computed(() => photos.value[activeIndex.value] ?? null);
   inset: 0;
 }
 
-.wall__caption {
-  position: absolute;
-  bottom: var(--space-4);
-  left: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  max-width: min(90vw, 34rem);
-  padding: var(--space-3) var(--space-5);
-  border: var(--border-width-hairline) solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  background: var(--glass-bg-strong);
-  backdrop-filter: var(--glass-blur);
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-
-/* Captions come from the channel and can run long; two lines is the budget. */
-.wall__caption-text {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  font-weight: var(--font-weight-semibold);
-  text-align: center;
-  white-space: pre-line;
-}
-
-.wall__caption-date {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-}
-
 .wall__hint {
   position: absolute;
   top: var(--space-4);
@@ -162,19 +112,6 @@ const hovered = computed(() => photos.value[activeIndex.value] ?? null);
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
   pointer-events: none;
-}
-
-.caption-enter-active,
-.caption-leave-active {
-  transition:
-    opacity var(--duration-base) var(--ease-standard),
-    transform var(--duration-base) var(--ease-spring);
-}
-
-.caption-enter-from,
-.caption-leave-to {
-  opacity: 0;
-  transform: translate(-50%, var(--space-2));
 }
 
 /* --------------------------------------------------------- fallback grid

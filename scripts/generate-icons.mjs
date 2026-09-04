@@ -38,7 +38,6 @@ const ICONS = [
   // Interface
   "lucide:arrow-up-right",
   "lucide:briefcase",
-  "lucide:calendar",
   "lucide:camera",
   "lucide:ellipsis",
   "lucide:gamepad-2",

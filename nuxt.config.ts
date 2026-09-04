@@ -45,7 +45,9 @@ export default defineNuxtConfig({
 
   googleFonts: {
     // Jura ships 300-700 only; never request 800 or it gets faux-bolded.
-    families: { Jura: [400, 500, 600, 700] },
+    // Permanent Marker is a single weight and is only used for the captions
+    // written onto the photo prints.
+    families: { Jura: [400, 500, 600, 700], "Permanent+Marker": [400] },
     display: "swap",
   },
 });

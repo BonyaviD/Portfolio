@@ -67,6 +67,8 @@
 
   /* ------------------------------------------------------------- typography */
   --font-family-base: "Jura", ui-sans-serif, system-ui, sans-serif;
+  /* Marker handwriting, for captions written onto the instant prints. */
+  --font-family-marker: "Permanent Marker", "Segoe Script", cursive;
 
   --font-size-xs: 0.75rem;    /* 12 */
   --font-size-sm: 0.875rem;   /* 14 */

@@ -37,9 +37,14 @@ export default defineEventHandler(async (event) => {
   setHeader(event, "cdn-cache-control", cacheControl);
 
   try {
-    const { photos, diagnostics } = await readChannel(channel, max);
+    const { photos, profile, diagnostics } = await readChannel(channel, max);
     return {
       channel,
+      profile: profile && {
+        ...profile,
+        avatar: profile.avatar ? `/api/photos/${profile.avatar}` : null,
+        url: `https://t.me/${profile.username || channel}`,
+      },
       fetchedAt: new Date().toISOString(),
       diagnostics,
       photos: photos.map((photo) => ({
@@ -58,6 +63,12 @@ export default defineEventHandler(async (event) => {
     const retry = "public, max-age=0, s-maxage=60";
     setHeader(event, "cache-control", retry);
     setHeader(event, "cdn-cache-control", retry);
-    return { channel, fetchedAt: new Date().toISOString(), photos: [], error: error.message };
+    return {
+      channel,
+      profile: null,
+      fetchedAt: new Date().toISOString(),
+      photos: [],
+      error: error.message,
+    };
   }
 });

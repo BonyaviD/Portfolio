@@ -141,6 +141,45 @@ export function parsePost(chunk) {
   return images.map((url) => ({ url, description, date, views, reactions }));
 }
 
+/**
+ * The channel's own card: what the preview page shows above the posts.
+ *
+ * The avatar is handed back as a proxy id like any photo - it lives on the
+ * same blocked CDN, so it cannot be linked directly either.
+ */
+export function parseChannel(html) {
+  const start = html.indexOf("tgme_channel_info");
+  if (start === -1) return null;
+
+  const head = html.slice(start, start + 6000);
+  // The closing quote is required: the wrapper around this element is called
+  // `..._title_wrap`, and without it that matches first and captures nothing.
+  const title = head.match(
+    /tgme_channel_info_header_title"[^>]*>\s*(?:<span[^>]*>)?([\s\S]*?)</
+  );
+  const username = head.match(/tgme_channel_info_header_username[\s\S]{0,200}?>@([A-Za-z0-9_]+)</);
+  const description = head.match(
+    /tgme_channel_info_description[^>]*>([\s\S]*?)<\/div>/
+  );
+  const avatar = head.match(/tgme_page_photo_image[^>]*>\s*<img src="([^"]+)"/);
+
+  const counters = {};
+  for (const match of head.matchAll(
+    /counter_value">([^<]+)<\/span>\s*<span class="counter_type">([^<]+)</g
+  )) {
+    const value = parseCount(match[1]);
+    if (value !== null) counters[match[2].trim().toLowerCase()] = value;
+  }
+
+  return {
+    title: title ? decodeEntities(title[1]).trim() : "",
+    username: username ? username[1] : "",
+    description: description ? toPlainText(description[1]) : "",
+    avatar: avatar ? encodeId(decodeEntities(avatar[1])) : null,
+    counters,
+  };
+}
+
 /** The id is the upstream URL itself, so the proxy needs no shared state. */
 export function encodeId(url) {
   return Buffer.from(url, "utf8").toString("base64url");
@@ -163,7 +202,7 @@ async function fetchPage(url) {
  * Newest photos first. The preview page only carries about twenty posts, so
  * older ones are paged in with ?before=<post id> until there are enough.
  *
- * @returns {Promise<{ photos: Array<object>, diagnostics: object }>}
+ * @returns {Promise<{ photos: Array<object>, profile: object|null, diagnostics: object }>}
  */
 export async function fetchChannelPhotos(channel, max = 16) {
   const base = `https://t.me/s/${encodeURIComponent(channel)}`;
@@ -175,11 +214,16 @@ export async function fetchChannelPhotos(channel, max = 16) {
   // the filter, so the result carries enough to tell "the channel has no
   // reactions" apart from "the parser missed them".
   const diagnostics = { posts: 0, withReactionMarkup: 0, reactionsParsed: 0 };
+  let profile = null;
 
   // Each page is a serial round trip that a page render is waiting on, so
   // the ceiling is low on purpose: ask for a `max` that fits in one page.
   for (let page = 0; page < 2 && photos.length < max; page++) {
     const html = await fetchPage(before ? `${base}?before=${before}` : base);
+    // Only the first page is read for the channel's own card; the paged
+    // requests carry the same header and there is no point re-parsing it.
+    if (!profile) profile = parseChannel(html);
+
     const posts = splitPosts(html);
     if (!posts.length) break;
 
@@ -216,5 +260,5 @@ export async function fetchChannelPhotos(channel, max = 16) {
     );
   }
 
-  return { photos, diagnostics };
+  return { photos, profile, diagnostics };
 }

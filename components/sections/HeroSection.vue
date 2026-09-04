@@ -1,9 +1,12 @@
 <script setup>
 import BaseButton from "@/components/base/BaseButton.vue";
-import HeroDock from "@/components/sections/HeroDock.vue";
+import HeroScrollCue from "@/components/sections/HeroScrollCue.vue";
 import WaterRippleImage from "@/components/effects/WaterRippleImage.vue";
+import { useActiveSection } from "@/composables/useActiveSection";
 import { heroPhoto } from "@/data/hobbies";
-import { site, socialUrlById } from "@/data/site";
+import { sectionIds, site, socialUrlById } from "@/data/site";
+
+const { scrollTo } = useActiveSection(sectionIds);
 </script>
 
 <template>
@@ -28,9 +31,9 @@ import { site, socialUrlById } from "@/data/site";
 
       <div class="hero__actions">
         <BaseButton
-          to="/about"
-          label="About me"
-          icon="lucide:user"
+          to="#contact"
+          label="Contact me"
+          icon="lucide:mail"
           variant="solid"
           size="lg"
         />
@@ -45,7 +48,7 @@ import { site, socialUrlById } from "@/data/site";
       </div>
     </div>
 
-    <HeroDock class="hero__dock" />
+    <HeroScrollCue class="hero__cue" target="about" @go="scrollTo" />
   </section>
 </template>
 
@@ -133,9 +136,9 @@ import { site, socialUrlById } from "@/data/site";
   pointer-events: auto;
 }
 
-.hero__dock {
+.hero__cue {
   position: absolute;
-  bottom: var(--space-10);
+  bottom: var(--space-8);
   left: 50%;
   z-index: var(--z-raised);
   transform: translateX(-50%);
@@ -146,7 +149,7 @@ import { site, socialUrlById } from "@/data/site";
     padding-block: var(--space-20) var(--space-32);
   }
 
-  .hero__dock {
+  .hero__cue {
     /* Clears the bottom navigation island. */
     bottom: calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
   }

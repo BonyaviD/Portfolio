@@ -1,12 +1,19 @@
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import PhotoLightbox from "@/components/sections/PhotoLightbox.vue";
 import { usePhotoLine } from "@/composables/usePhotoLine";
 import { formatPhotoDate, usePhotoFeed } from "@/composables/usePhotoFeed";
 import { socialUrlById } from "@/data/site";
 
-const { photos } = await usePhotoFeed();
+const { photos, profile } = await usePhotoFeed();
+
+/** Only the counters Telegram actually reported, in a sensible order. */
+const counters = computed(() =>
+  ["subscribers", "photos", "videos", "links", "files"]
+    .map((type) => ({ type, value: profile.value?.counters?.[type] }))
+    .filter((counter) => typeof counter.value === "number")
+);
 
 // The caption is written onto the print itself, so the wall needs no chrome
 // of its own; the list below still carries the full text for assistive tech.
@@ -62,6 +69,47 @@ function footnoteFor(photo) {
       </p>
     </div>
 
+    <!-- The channel these prints come from, as Telegram itself describes it.
+         Absent when the feed fell back to the bundled photos, which do not
+         come from a channel at all. -->
+    <article v-if="profile" class="channel">
+      <img
+        v-if="profile.avatar"
+        class="channel__avatar"
+        :src="profile.avatar"
+        :alt="`${profile.title} channel photo`"
+        width="72"
+        height="72"
+      />
+
+      <div class="channel__body">
+        <h4 class="channel__title">
+          {{ profile.title }}
+          <span v-if="profile.username" class="channel__handle">@{{ profile.username }}</span>
+        </h4>
+
+        <p v-if="profile.description" class="channel__description">
+          {{ profile.description }}
+        </p>
+
+        <ul v-if="counters.length" class="channel__counters" role="list">
+          <li v-for="counter in counters" :key="counter.type" class="channel__counter">
+            <strong>{{ counter.value.toLocaleString("en-GB") }}</strong>
+            {{ counter.type }}
+          </li>
+        </ul>
+      </div>
+
+      <BaseButton
+        class="channel__cta"
+        :to="profile.url"
+        label="More photos"
+        icon="simple-icons:telegram"
+        trailing-icon="lucide:arrow-up-right"
+        variant="soft"
+      />
+    </article>
+
     <!-- The wall is decorative chrome around content that also exists as a
          plain list below, which is what assistive tech and no-WebGL get. -->
     <div class="wall" :class="{ 'wall--live': isActive }">
@@ -110,7 +158,8 @@ function footnoteFor(photo) {
       </li>
     </ul>
 
-    <div class="photography__cta">
+    <!-- Only when the channel card is not there to carry it. -->
+    <div v-if="!profile" class="photography__cta">
       <BaseButton
         :to="socialUrlById.telegram"
         label="More photos"
@@ -241,6 +290,98 @@ function footnoteFor(photo) {
 
 .photography__cta {
   margin-top: var(--space-8);
+}
+
+/* ------------------------------------------------------------- channel card */
+.channel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+  padding: var(--space-5);
+  border: var(--border-width-hairline) solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
+
+.channel__avatar {
+  flex-shrink: 0;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: var(--border-width-hairline) solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  object-fit: cover;
+}
+
+.channel__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.channel__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.channel__handle {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.channel__description {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.channel__counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+  list-style: none;
+}
+
+.channel__counter {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.channel__counter strong {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.channel__cta {
+  flex-shrink: 0;
+}
+
+@media (max-width: 48rem) {
+  .channel {
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .channel__avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  /* The button drops to its own row rather than squeezing the description. */
+  .channel__cta {
+    flex-basis: 100%;
+  }
 }
 
 @media (max-width: 48rem) {

@@ -53,6 +53,8 @@ export async function usePhotoFeed() {
 
   return {
     photos,
+    /** The channel's own card, or null when the feed fell back. */
+    profile: computed(() => (remote.value.length ? (feed.value?.profile ?? null) : null)),
     source: computed(() => (remote.value.length ? "telegram" : "bundled")),
   };
 }

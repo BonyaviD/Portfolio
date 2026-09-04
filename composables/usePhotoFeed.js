@@ -4,19 +4,21 @@ import { photos as bundledPhotos } from "@/data/hobbies";
 /**
  * The photography feed, normalised to one shape.
  *
- * Preferred source is `public/telegram/feed.json`, written at build time by
- * scripts/fetch-telegram-photos.mjs. That file only exists when the build
- * machine could reach Telegram, so the photos bundled in the repo are the
- * fallback and the section always has something to show.
+ * The source is /api/photos, which reads the Telegram channel on the server
+ * and hands back image URLs that point at this site's own proxy. Both halves
+ * matter: Iranian ISPs block Telegram, so neither the post list nor a single
+ * image byte may be fetched by the visitor's browser from t.me or its CDN.
+ * Everything the page loads comes from this origin.
  *
- * Everything here is served from this site's own origin: a visitor's browser
- * never contacts Telegram, which is what makes the section work from Iran.
+ * The route never throws - an unreachable channel returns an empty list - so
+ * the photos bundled in the repo are the fallback and the section always has
+ * something to show.
  *
  * @returns {{ photos: import("vue").ComputedRef<Array>, source: import("vue").ComputedRef<string> }}
  */
 export async function usePhotoFeed() {
   const { data: feed } = await useAsyncData("telegram-feed", () =>
-    $fetch("/telegram/feed.json").catch(() => null)
+    $fetch("/api/photos").catch(() => null)
   );
 
   const remote = computed(() => {

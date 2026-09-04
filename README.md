@@ -62,10 +62,10 @@ and documented at the top of `tokens.css`:
 - **Background** — the page has exactly one background: `PageBackdrop` renders a
   fixed, full-viewport aurora behind everything. Sections must stay transparent
   and use the `--glass-*` tokens for any raised surface.
-- **Icons** — `@nuxt/icon` with locally installed `simple-icons` (brand logos)
-  and `lucide` (interface) collections, so the deployed site never calls the
-  Iconify API. Icon names that come from `data/` are dynamic and must be listed
-  in `icon.clientBundle.icons` in `nuxt.config.ts` or they will not be bundled.
+- **Icons** — `components/base/Icon.vue` renders from `data/icons.js`, which is
+  generated from the installed `simple-icons` and `lucide` collections. Add the
+  name to `ICONS` in `scripts/generate-icons.mjs` and run `npm run icons`; an
+  icon that is not in that list renders nothing.
 - **Imports** — components are imported explicitly. `nuxt.config.ts` also
   registers the component directories with `pathPrefix: false` so auto-import
   names stay flat.
@@ -88,8 +88,29 @@ folder at build time.
 
 `npm run check:art` lists which games are still missing one.
 
-### Pinned versions
+### Photography feed
 
-`@nuxt/icon` is held at `1.x`. Version 2 requires Nuxt 4 and is silently
-disabled on Nuxt 3, which makes every `<Icon>` render nothing while the build
-still reports success. Upgrade it only together with Nuxt.
+The prints on the washing line are the photo posts of a public Telegram
+channel, read at request time by the server:
+
+```
+server/utils/telegram.js       parses the t.me/s/<channel> preview page
+server/api/photos.get.js       the manifest, cached 30 min at the edge
+server/api/photos/[id].get.js  proxies one image, cached a year
+```
+
+**Every byte the page loads is served from this site's own origin.** Iranian
+ISPs block Telegram, so the browser must never be handed a `t.me` or
+`cdn-telegram.org` URL — that is why the images are proxied rather than linked.
+The photo id is the upstream URL, so the proxy holds no state; a host allowlist
+is what stops it being used to fetch anything but a Telegram image.
+
+Configure with `TELEGRAM_CHANNEL` (default `StreetNote`) and
+`TELEGRAM_MAX_PHOTOS` (default 24). The channel must be **public and have a
+username** — `https://t.me/s/<name>` has to show a list of posts in a browser.
+
+Neither route throws. If the channel is unreachable the manifest comes back
+empty and the section falls back to the photos in `data/hobbies.js`.
+
+Note that Telegram is unreachable from Iran, so running this locally always
+falls back; the deployed site is where the feed actually works.

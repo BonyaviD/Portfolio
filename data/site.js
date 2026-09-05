@@ -4,7 +4,7 @@
  */
 
 export const site = {
-  url: "https://bonyadi.netlify.app",
+  url: "https://navidbonyadi.ir",
   name: "Navid Bonyadi",
   role: "Frontend Developer",
   tagline:

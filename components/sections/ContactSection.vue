@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref } from "vue";
 import BaseSection from "@/components/base/BaseSection.vue";
+import ParticleField from "@/components/effects/ParticleField.vue";
 import { site, socialLinks } from "@/data/site";
 
 /**
@@ -52,9 +53,17 @@ async function submit() {
     state.value = "sent";
   } catch (thrown) {
     state.value = "error";
+
+    // $fetch puts the server's error body on `data`, not on the error itself.
+    // Only the validation complaints are worth repeating to a visitor: the
+    // rest describe the server's own state and mean nothing to them.
+    const status = thrown?.statusCode ?? thrown?.data?.statusCode;
+    const detail = thrown?.data?.statusMessage ?? thrown?.statusMessage;
+
     error.value =
-      thrown?.statusMessage ||
-      "That did not go through. Telegram below always works.";
+      status === 422 && detail
+        ? detail
+        : "That did not go through. The links on the left always work.";
   }
 }
 
@@ -69,6 +78,12 @@ function reset() {
 
 <template>
   <BaseSection id="contact" title="Contact Me">
+    <!-- The one place particles appear. This is the section the page is
+         asking for, so it gets the loudest treatment on the site. -->
+    <template #backdrop>
+      <ParticleField :particle-count="34000" :opacity="0.9" :particle-size="3.4" />
+    </template>
+
     <div class="contact">
       <div class="contact__intro">
         <p class="contact__lede">

@@ -1,17 +1,11 @@
 <script setup>
 import BaseSection from "@/components/base/BaseSection.vue";
-import ParticleField from "@/components/effects/ParticleField.vue";
 import ProjectCard from "@/components/base/ProjectCard.vue";
 import { projects } from "@/data/experience";
 </script>
 
 <template>
   <BaseSection id="experience" title="Experience">
-    <!-- The one place particles appear; they sit over the page backdrop. -->
-    <template #backdrop>
-      <ParticleField :particle-count="20000" :opacity="0.8" />
-    </template>
-
     <ul class="projects" role="list">
       <ProjectCard
         v-for="(project, index) in projects"

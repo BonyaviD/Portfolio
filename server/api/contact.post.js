@@ -56,10 +56,18 @@ export default defineEventHandler(async (event) => {
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
   if (!token || !chatId) {
-    console.error("[contact] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not set");
+    // Names, never values: this is the first thing anyone looks at when the
+    // form answers 503 on a fresh deploy, and guessing which of the two is
+    // missing wastes a redeploy each time.
+    const missing = [
+      !token && "TELEGRAM_BOT_TOKEN",
+      !chatId && "TELEGRAM_CHAT_ID",
+    ].filter(Boolean);
+
+    console.error(`[contact] not configured - missing ${missing.join(" and ")}`);
     throw createError({
       statusCode: 503,
-      statusMessage: "The form is not connected yet",
+      statusMessage: `The form is not connected yet (missing ${missing.join(" and ")})`,
     });
   }
 

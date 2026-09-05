@@ -26,7 +26,7 @@ function budgetedCount(requested) {
  * shape rather than leaving a hole; sqrt spreads the points evenly by area
  * instead of bunching them in the middle.
  */
-function heartPoint(scale) {
+function heartPoint() {
   const t = Math.random() * Math.PI * 2;
   const reach = Math.sqrt(Math.random());
 
@@ -35,12 +35,39 @@ function heartPoint(scale) {
     13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
 
   return [
-    x * reach * scale,
+    x * reach,
     // The curve sits low around the origin; lift it back to centre.
-    (y * reach + 2.5) * scale,
-    (Math.random() - 0.5) * scale * 3,
+    y * reach + 2.5,
+    (Math.random() - 0.5) * 3,
   ];
 }
+
+/** Height of the unit heart above, measured from the point cloud it makes. */
+const HEART_UNIT_HEIGHT = 28.9;
+
+/**
+ * How tall a heart stands on screen, in CSS pixels. Small on purpose: the
+ * shape only reads as a heart when the whole of it is in one glance.
+ */
+const HEART_HEIGHT_PX = 62;
+
+/**
+ * Where the hearts sit and how big each one is: x and y as fractions of the
+ * half-viewport, then a size multiplier. Spreading the field over several
+ * small hearts is what keeps them legible - all of it poured into one would
+ * pack thousands of sprites per pixel and read as a solid blob.
+ */
+const HEART_LAYOUT = [
+  [0.0, 0.08, 1.35],
+  [-0.56, -0.32, 0.85],
+  [0.54, -0.24, 0.95],
+  [-0.31, 0.54, 0.75],
+  [0.36, 0.57, 0.8],
+  [-0.74, 0.2, 0.62],
+  [0.76, 0.31, 0.68],
+  [-0.16, -0.62, 0.7],
+  [0.2, -0.66, 0.6],
+];
 
 /** Soft radial sprite used for both the core points and their glow. */
 function createSpriteTexture(THREE) {
@@ -122,11 +149,15 @@ export function useParticleField(containerRef, options = {}) {
 
     // Where every particle goes when a message is sent, and the colour it
     // turns. Built once, up front, so the celebration costs nothing to start.
+    // Held at unit scale; the on-screen size is worked out per resize, so a
+    // heart is the same number of pixels tall whatever the viewport.
     const heart = new Float32Array(count * 3);
+    const heartOf = new Uint8Array(count);
+    const heartCentres = new Float32Array(HEART_LAYOUT.length * 2);
+    const heartScales = new Float32Array(HEART_LAYOUT.length);
     const restColors = new Float32Array(count * 3);
     const heartColor = new THREE.Color("#ff2f55");
     const heartGlow = new THREE.Color("#ff9bb0");
-    const HEART_SCALE = 26;
 
     for (let i = 0; i < count; i++) {
       const offset = i * 3;
@@ -147,10 +178,12 @@ export function useParticleField(containerRef, options = {}) {
       colors[offset + 1] = restColors[offset + 1] = color.g;
       colors[offset + 2] = restColors[offset + 2] = color.b;
 
-      const [hx, hy, hz] = heartPoint(HEART_SCALE);
+      const [hx, hy, hz] = heartPoint();
       heart[offset] = hx;
       heart[offset + 1] = hy;
       heart[offset + 2] = hz;
+      // Round-robin rather than random, so every heart gets the same share.
+      heartOf[i] = i % HEART_LAYOUT.length;
     }
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -210,6 +243,19 @@ export function useParticleField(containerRef, options = {}) {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
+
+      // Lay the hearts out for this viewport. Their size is set in CSS pixels
+      // and converted here, so they never grow with the canvas.
+      const visibleHeight =
+        2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.z;
+      const pixelsPerUnit = height / visibleHeight;
+      const base = HEART_HEIGHT_PX / pixelsPerUnit / HEART_UNIT_HEIGHT;
+
+      HEART_LAYOUT.forEach(([fx, fy, size], i) => {
+        heartCentres[i * 2] = fx * ((visibleHeight * camera.aspect) / 2);
+        heartCentres[i * 2 + 1] = fy * (visibleHeight / 2);
+        heartScales[i] = base * size;
+      });
     }
 
     const resizeObserver = new ResizeObserver(resize);
@@ -248,6 +294,11 @@ export function useParticleField(containerRef, options = {}) {
           color[ix + 2] = restColors[ix + 2] + (target.b - restColors[ix + 2]) * morph;
         }
         geometry.attributes.color.needsUpdate = true;
+
+        // Sprites shrink as the hearts close up. At full size, thousands of
+        // them inside a 60-pixel shape overlap into a solid disc and the
+        // notch and point are lost.
+        material.size = particleSize * (1 - morph * 0.62);
       }
 
       raycaster.setFromCamera(pointer, camera);
@@ -263,9 +314,15 @@ export function useParticleField(containerRef, options = {}) {
         // Drift, then ease back toward the particle's home position - which
         // is its place in the heart while a message is being celebrated. The
         // pull tightens as the shape forms, or the drift would blur it.
-        const targetX = home[ix] + (heart[ix] - home[ix]) * morph;
-        const targetY = home[iy] + (heart[iy] - home[iy]) * morph;
-        const targetZ = home[iz] + (heart[iz] - home[iz]) * morph;
+        const h = heartOf[i];
+        const scale = heartScales[h];
+        const heartX = heartCentres[h * 2] + heart[ix] * scale;
+        const heartY = heartCentres[h * 2 + 1] + heart[iy] * scale;
+        const heartZ = heart[iz] * scale;
+
+        const targetX = home[ix] + (heartX - home[ix]) * morph;
+        const targetY = home[iy] + (heartY - home[iy]) * morph;
+        const targetZ = home[iz] + (heartZ - home[iz]) * morph;
         const pull = 0.008 + morph * 0.09;
         const drift = 1 - morph * 0.85;
 

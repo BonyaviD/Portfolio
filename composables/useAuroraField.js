@@ -184,12 +184,47 @@ export function useAuroraField(containerRef, options = {}) {
 
     window.addEventListener("pointermove", onPointerMove, { passive: true, signal });
 
+    let lastWidth = 0;
+    let lastHeight = 0;
+    let settleTimer = 0;
+
+    function applySize(width, height) {
+      if (!width || !height) return;
+      renderer.setSize(width, height);
+      uniforms.uResolution.value.set(width, height);
+      lastWidth = width;
+      lastHeight = height;
+    }
+
+    /**
+     * Phone browsers collapse and expand their chrome as the page scrolls,
+     * which changes the height of a fixed element and fires this observer on
+     * almost every frame of a scroll. Reallocating the drawing buffer that
+     * often is what makes the gradient stutter and jump.
+     *
+     * A width change is a real layout change and is honoured at once. A
+     * height-only change waits until it has stopped moving; until then the
+     * canvas is simply stretched by CSS, which nothing can see on a soft
+     * gradient.
+     */
     function resize() {
       const width = container.clientWidth;
       const height = container.clientHeight;
       if (!width || !height) return;
-      renderer.setSize(width, height);
-      uniforms.uResolution.value.set(width, height);
+
+      if (width !== lastWidth || !lastHeight) {
+        clearTimeout(settleTimer);
+        applySize(width, height);
+        return;
+      }
+
+      if (height === lastHeight) return;
+
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(
+        () => applySize(container.clientWidth, container.clientHeight),
+        250
+      );
     }
 
     const resizeObserver = new ResizeObserver(resize);
@@ -198,13 +233,24 @@ export function useAuroraField(containerRef, options = {}) {
 
     let scrollTarget = 0;
     if (followScroll) {
+      // Held steady for the same reason: innerHeight changes with the URL
+      // bar, and dividing by a moving number made the field lurch mid-scroll.
+      let scrollUnit = Math.max(window.innerHeight, 1);
       const readScroll = () => {
         // Normalised against viewport height, then damped: a full page of
         // scrolling should nudge the field, not race through it.
-        scrollTarget = (window.scrollY / Math.max(window.innerHeight, 1)) * 0.18;
+        scrollTarget = (window.scrollY / scrollUnit) * 0.18;
       };
       readScroll();
       window.addEventListener("scroll", readScroll, { passive: true, signal });
+      window.addEventListener(
+        "orientationchange",
+        () => {
+          scrollUnit = Math.max(window.innerHeight, 1);
+          readScroll();
+        },
+        { passive: true, signal }
+      );
     }
 
     const clock = new THREE.Clock();

@@ -100,10 +100,26 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!response.ok) {
-    // Telegram explains itself in the body; the visitor gets none of it.
     const detail = await response.text().catch(() => "");
     console.error(`[contact] Telegram HTTP ${response.status}: ${detail.slice(0, 300)}`);
-    throw createError({ statusCode: 502, statusMessage: "Telegram rejected the message" });
+
+    // Telegram's own words, which say which of the two settings is wrong:
+    // "Unauthorized" is the token, "chat not found" is the id. Carrying it
+    // through is what turns a redeploy-and-guess loop into one fix. It names
+    // no secret - the token never appears in an error body.
+    let description = "";
+    try {
+      description = JSON.parse(detail)?.description ?? "";
+    } catch {
+      // Not JSON; the status alone will have to do.
+    }
+
+    throw createError({
+      statusCode: 502,
+      statusMessage: description
+        ? `Telegram rejected the message: ${description.slice(0, 120)}`
+        : `Telegram rejected the message (HTTP ${response.status})`,
+    });
   }
 
   return { ok: true };

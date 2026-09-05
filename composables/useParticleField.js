@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
 
 /**
@@ -15,6 +15,31 @@ function budgetedCount(requested) {
   if (window.innerWidth < 768) return Math.min(requested, 2500);
   if (window.innerWidth < 1200) return Math.min(requested, 5000);
   return requested;
+}
+
+/**
+ * Fills a heart with points.
+ *
+ * The classic parametric heart draws only the outline, so each point is put
+ * at a random fraction of the way out along its own spoke. The curve is
+ * star-shaped about the origin, which is what makes that fill the whole
+ * shape rather than leaving a hole; sqrt spreads the points evenly by area
+ * instead of bunching them in the middle.
+ */
+function heartPoint(scale) {
+  const t = Math.random() * Math.PI * 2;
+  const reach = Math.sqrt(Math.random());
+
+  const x = 16 * Math.sin(t) ** 3;
+  const y =
+    13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+
+  return [
+    x * reach * scale,
+    // The curve sits low around the origin; lift it back to centre.
+    (y * reach + 2.5) * scale,
+    (Math.random() - 0.5) * scale * 3,
+  ];
 }
 
 /** Soft radial sprite used for both the core points and their glow. */
@@ -95,6 +120,14 @@ export function useParticleField(containerRef, options = {}) {
     const colorB = new THREE.Color(secondaryColor);
     const range = { x: 1600, y: 1000, z: 700 };
 
+    // Where every particle goes when a message is sent, and the colour it
+    // turns. Built once, up front, so the celebration costs nothing to start.
+    const heart = new Float32Array(count * 3);
+    const restColors = new Float32Array(count * 3);
+    const heartColor = new THREE.Color("#ff2f55");
+    const heartGlow = new THREE.Color("#ff9bb0");
+    const HEART_SCALE = 26;
+
     for (let i = 0; i < count; i++) {
       const offset = i * 3;
       const x = (Math.random() - 0.5) * range.x;
@@ -110,9 +143,14 @@ export function useParticleField(containerRef, options = {}) {
       velocities[offset + 2] = (Math.random() - 0.5) * 0.2;
 
       const color = Math.random() > 0.35 ? colorA : colorB;
-      colors[offset] = color.r;
-      colors[offset + 1] = color.g;
-      colors[offset + 2] = color.b;
+      colors[offset] = restColors[offset] = color.r;
+      colors[offset + 1] = restColors[offset + 1] = color.g;
+      colors[offset + 2] = restColors[offset + 2] = color.b;
+
+      const [hx, hy, hz] = heartPoint(HEART_SCALE);
+      heart[offset] = hx;
+      heart[offset + 1] = hy;
+      heart[offset + 2] = hz;
     }
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -182,11 +220,35 @@ export function useParticleField(containerRef, options = {}) {
     let rafId = 0;
     let running = false;
 
+    /** 0 = drifting field, 1 = fully gathered into the heart. */
+    let morph = 0;
+    let morphTarget = 0;
+
     function animate() {
       rafId = requestAnimationFrame(animate);
 
       // Clamp dt so a backgrounded tab does not resume with a huge jump.
       const dt = Math.min(clock.getDelta(), 0.05) * 60;
+
+      // Gathers faster than it lets go: the shape should snap into being and
+      // then dissolve gently.
+      const wasMoving = Math.abs(morphTarget - morph) > 0.0005;
+      if (wasMoving) {
+        morph += (morphTarget - morph) * (morphTarget > morph ? 0.035 : 0.02) * dt;
+        morph = Math.min(Math.max(morph, 0), 1);
+
+        const color = geometry.attributes.color.array;
+        for (let i = 0; i < count; i++) {
+          const ix = i * 3;
+          // Two reds, split the same way the two rest colours are, so the
+          // heart keeps some depth instead of reading as one flat shape.
+          const target = restColors[ix] === colorA.r ? heartColor : heartGlow;
+          color[ix] = restColors[ix] + (target.r - restColors[ix]) * morph;
+          color[ix + 1] = restColors[ix + 1] + (target.g - restColors[ix + 1]) * morph;
+          color[ix + 2] = restColors[ix + 2] + (target.b - restColors[ix + 2]) * morph;
+        }
+        geometry.attributes.color.needsUpdate = true;
+      }
 
       raycaster.setFromCamera(pointer, camera);
       raycaster.ray.intersectPlane(plane, pointerWorld);
@@ -198,19 +260,30 @@ export function useParticleField(containerRef, options = {}) {
         const iy = ix + 1;
         const iz = ix + 2;
 
-        // Drift, then ease back toward the particle's home position.
-        position[ix] += velocities[ix] * dt + (home[ix] - position[ix]) * 0.008 * dt;
-        position[iy] += velocities[iy] * dt + (home[iy] - position[iy]) * 0.008 * dt;
-        position[iz] += velocities[iz] * dt + (home[iz] - position[iz]) * 0.008 * dt;
+        // Drift, then ease back toward the particle's home position - which
+        // is its place in the heart while a message is being celebrated. The
+        // pull tightens as the shape forms, or the drift would blur it.
+        const targetX = home[ix] + (heart[ix] - home[ix]) * morph;
+        const targetY = home[iy] + (heart[iy] - home[iy]) * morph;
+        const targetZ = home[iz] + (heart[iz] - home[iz]) * morph;
+        const pull = 0.008 + morph * 0.09;
+        const drift = 1 - morph * 0.85;
+
+        position[ix] += velocities[ix] * drift * dt + (targetX - position[ix]) * pull * dt;
+        position[iy] += velocities[iy] * drift * dt + (targetY - position[iy]) * pull * dt;
+        position[iz] += velocities[iz] * drift * dt + (targetZ - position[iz]) * pull * dt;
 
         const dx = position[ix] - pointerWorld.x;
         const dy = position[iy] - pointerWorld.y;
         const dz = position[iz] - pointerWorld.z;
         const distanceSquared = dx * dx + dy * dy + dz * dz;
 
-        if (distanceSquared < radiusSquared && distanceSquared > 0.01) {
+        // The pointer stops pushing once the heart is formed, or it would
+        // punch a hole straight through it.
+        if (morph < 0.98 && distanceSquared < radiusSquared && distanceSquared > 0.01) {
           const distance = Math.sqrt(distanceSquared);
-          const force = (1 - distance / pointerRadius) * forceStrength * 6 * dt * sign;
+          const force =
+            (1 - distance / pointerRadius) * forceStrength * 6 * dt * sign * (1 - morph);
           direction.set(dx / distance, dy / distance, dz / distance);
           position[ix] += direction.x * force;
           position[iy] += direction.y * force;
@@ -219,7 +292,15 @@ export function useParticleField(containerRef, options = {}) {
       }
 
       geometry.attributes.position.needsUpdate = true;
-      points.rotation.y += 0.0003;
+
+      // The slow turn is what keeps the field alive, but the heart lies in
+      // the XY plane: left turning, it is seen edge on and collapses to a
+      // line. It unwinds to face the camera while the shape is held.
+      points.rotation.y += 0.0003 * (1 - morph);
+      if (morph > 0.001) {
+        points.rotation.y -= points.rotation.y * Math.min(0.08 * morph * dt, 1);
+      }
+
       renderer.render(threeScene, camera);
     }
 
@@ -256,6 +337,12 @@ export function useParticleField(containerRef, options = {}) {
     resize();
 
     return {
+      /** Gather into the heart, or let it fall back to a drifting field. */
+      celebrate(on) {
+        morphTarget = on ? 1 : 0;
+        // A held tab has no frames to animate with; make sure there are some.
+        start();
+      },
       destroy() {
         stop();
         listeners.abort();
@@ -271,6 +358,13 @@ export function useParticleField(containerRef, options = {}) {
     };
   }
 
+  // `options` stays reactive here on purpose: everything else is read once at
+  // setup, but this one has to follow the component's prop.
+  watch(
+    () => options.celebrate,
+    (on) => scene?.celebrate(Boolean(on))
+  );
+
   onMounted(async () => {
     if (prefersReducedMotion()) return;
 
@@ -279,6 +373,8 @@ export function useParticleField(containerRef, options = {}) {
       // The component may have unmounted while the chunk was in flight.
       if (!containerRef.value) return;
       scene = createScene(THREE, containerRef.value);
+      // Mounted mid-celebration: honour whatever the prop already says.
+      if (options.celebrate) scene.celebrate(true);
       isActive.value = true;
     } catch (error) {
       // Decorative only: failing to start is never fatal for the page.

@@ -21,6 +21,8 @@ const props = defineProps({
   forceStrength: { type: Number, default: 1.5 },
   particleSize: { type: Number, default: 3 },
   opacity: { type: Number, default: 0.75 },
+  /** Gather the field into a red heart. */
+  celebrate: { type: Boolean, default: false },
 });
 
 const containerEl = ref(null);

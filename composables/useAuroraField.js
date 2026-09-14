@@ -1,5 +1,6 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
+import { whenIdle } from "@/utils/defer";
 
 /**
  * A full-bleed animated gradient, in the spirit of an iOS dynamic wallpaper:
@@ -335,9 +336,12 @@ export function useAuroraField(containerRef, options = {}) {
     };
   }
 
-  onMounted(async () => {
+  let cancelDefer = () => {};
+
+  async function start() {
     try {
       const THREE = await loadThree();
+      // The component may have unmounted while the chunk was in flight.
       if (!containerRef.value) return;
 
       scene = createScene(THREE, containerRef.value, !prefersReducedMotion());
@@ -347,9 +351,17 @@ export function useAuroraField(containerRef, options = {}) {
       console.warn("Aurora field disabled:", error.message);
       isActive.value = false;
     }
+  }
+
+  onMounted(() => {
+    // This one is on screen from the first paint, but the CSS gradient
+    // underneath is a close enough match that nobody sees the swap. Waiting
+    // for idle keeps the Three.js chunk out of the way of LCP.
+    cancelDefer = whenIdle(start);
   });
 
   onBeforeUnmount(() => {
+    cancelDefer();
     scene?.destroy();
     scene = null;
     isActive.value = false;

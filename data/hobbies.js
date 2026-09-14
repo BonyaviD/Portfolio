@@ -1,25 +1,25 @@
-import TehranPeople from "~/assets/img/photography/tehran-people.jpg";
-import Flower from "~/assets/img/photography/flower.jpg";
-import Street from "~/assets/img/photography/street.jpg";
-import MiladTower from "~/assets/img/photography/tehran-milad.jpg";
-import AstaraSnow from "~/assets/img/photography/astara-snow.jpg";
-import Airplane from "~/assets/img/photography/airplane.jpg";
+﻿import TehranPeople from "~/assets/img/photography/tehran-people.webp";
+import Flower from "~/assets/img/photography/flower.webp";
+import Street from "~/assets/img/photography/street.webp";
+import MiladTower from "~/assets/img/photography/tehran-milad.webp";
+import AstaraSnow from "~/assets/img/photography/astara-snow.webp";
+import Airplane from "~/assets/img/photography/airplane.webp";
 import Hormuz from "~/assets/img/photography/hormoz.jpg";
 
-import TheLastOfUs from "~/assets/img/gaming/the-last-of-us.jpg";
+import TheLastOfUs from "~/assets/img/gaming/the-last-of-us.webp";
 import PrinceOfPersia from "~/assets/img/gaming/prince-of-persia.jpg";
-import BeyondTwoSouls from "~/assets/img/gaming/beyond-two-souls.jpg";
-import Kena from "~/assets/img/gaming/kena.jpg";
-import Hellblade from "~/assets/img/gaming/hellblade.jpg";
-import Detroit from "~/assets/img/gaming/detroit.jpg";
-import Plague from "~/assets/img/gaming/plague.jpg";
-import Control from "~/assets/img/gaming/control.jpg";
-import FinalFantasy from "~/assets/img/gaming/final-fantasy.jpg";
-import Cyberpunk from "~/assets/img/gaming/cyberpunk.jpg";
-import GhostOfTsushima from "~/assets/img/gaming/ghost-of-tsushima.jpg";
-import ItTakesTwo from "~/assets/img/gaming/it-takes-two.jpg";
-import NierAutomata from "~/assets/img/gaming/nier-automata.jpg";
-import ResidentEvil from "~/assets/img/gaming/resident-evil.jpg";
+import BeyondTwoSouls from "~/assets/img/gaming/beyond-two-souls.webp";
+import Kena from "~/assets/img/gaming/kena.webp";
+import Hellblade from "~/assets/img/gaming/hellblade.webp";
+import Detroit from "~/assets/img/gaming/detroit.webp";
+import Plague from "~/assets/img/gaming/plague.webp";
+import Control from "~/assets/img/gaming/control.webp";
+import FinalFantasy from "~/assets/img/gaming/final-fantasy.webp";
+import Cyberpunk from "~/assets/img/gaming/cyberpunk.webp";
+import GhostOfTsushima from "~/assets/img/gaming/ghost-of-tsushima.webp";
+import ItTakesTwo from "~/assets/img/gaming/it-takes-two.webp";
+import NierAutomata from "~/assets/img/gaming/nier-automata.webp";
+import ResidentEvil from "~/assets/img/gaming/resident-evil.webp";
 
 /**
  * Photography mosaic. `id` doubles as the CSS class that places the tile on

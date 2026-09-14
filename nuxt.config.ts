@@ -54,5 +54,22 @@ export default defineNuxtConfig({
     "/": { swr: 300 },
   },
 
+  hooks: {
+    /**
+     * Nuxt turns every imported asset into a <link rel="prefetch"> in the
+     * head, which for this page meant all 25 images - game art, project shots,
+     * the fallback photos - downloading on first load whether or not anyone
+     * scrolls to them. The <img> tags already load them when they are needed.
+     */
+    "build:manifest": (manifest) => {
+      for (const chunk of Object.values(manifest)) {
+        if (!chunk.assets) continue;
+        chunk.assets = chunk.assets.filter(
+          (asset) => !/\.(avif|gif|jpe?g|png|svg|webp)$/i.test(asset)
+        );
+      }
+    },
+  },
+
   modules: [],
 });

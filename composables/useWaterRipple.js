@@ -1,4 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
+import { whenIdle } from "@/utils/defer";
 
 /** Size of the shader's ripple uniform array. Must match the GLSL loop bound. */
 const MAX_RIPPLES = 32;
@@ -263,7 +264,9 @@ export function useWaterRipple(canvasRef, options) {
     };
   }
 
-  onMounted(() => {
+  let cancelDefer = () => {};
+
+  function start() {
     if (!canvasRef.value) return;
     try {
       scene = createScene(canvasRef.value);
@@ -273,9 +276,16 @@ export function useWaterRipple(canvasRef, options) {
       console.warn("Water ripple effect disabled:", error.message);
       isActive.value = false;
     }
+  }
+
+  onMounted(() => {
+    // The plain photo underneath is what paints first and what LCP measures;
+    // compiling the shader can wait until the browser has nothing better to do.
+    cancelDefer = whenIdle(start);
   });
 
   onBeforeUnmount(() => {
+    cancelDefer();
     scene?.destroy();
     scene = null;
     isActive.value = false;

@@ -29,7 +29,8 @@ const { isActive, addRippleFromEvent } = useWaterRipple(canvasEl, {
 
 <template>
   <div class="ripple" @pointerdown="addRippleFromEvent">
-    <img class="ripple__image" :src="src" :alt="alt" />
+    <!-- The hero photo is the page's largest paint, so it jumps the queue. -->
+    <img class="ripple__image" :src="src" :alt="alt" fetchpriority="high" />
     <canvas
       v-show="isActive"
       ref="canvasEl"

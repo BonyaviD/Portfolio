@@ -1,7 +1,7 @@
-import ArianSalamatImage from "~/assets/img/experience/ariansalamat.png";
-import SpyImage from "~/assets/img/experience/spy.png";
-import DontSayHiImage from "~/assets/img/experience/dsh.png";
-import AsaRoseImage from "~/assets/img/experience/asarose.png";
+﻿import ArianSalamatImage from "~/assets/img/experience/ariansalamat.webp";
+import SpyImage from "~/assets/img/experience/spy.webp";
+import DontSayHiImage from "~/assets/img/experience/dsh.webp";
+import AsaRoseImage from "~/assets/img/experience/asarose.webp";
 
 /**
  * Shipped projects: one entry per project, carrying its own write-up, shot and

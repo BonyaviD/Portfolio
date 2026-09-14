@@ -1,5 +1,5 @@
-<script setup>
-import ProfileImage from "@/assets/img/me.jpg";
+﻿<script setup>
+import ProfileImage from "@/assets/img/me.webp";
 
 /**
  * The portrait used by the home About section and the About page.

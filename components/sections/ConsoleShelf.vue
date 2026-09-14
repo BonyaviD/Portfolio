@@ -1,8 +1,8 @@
-<script setup>
+﻿<script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useArtworkAccents } from "@/composables/useArtworkAccents";
 import { gamesWithArt as games } from "@/data/hobbies";
-import ProfileImage from "@/assets/img/me.jpg";
+import ProfileImage from "@/assets/img/me.webp";
 
 /**
  * A console home screen, laid out after a PS5 dashboard: tabs and status along
@@ -159,6 +159,7 @@ onBeforeUnmount(() => {
           :class="{ 'ps__art--wide': current.wide }"
           :src="current.wide || current.src"
           alt=""
+          loading="lazy"
         />
       </transition>
       <span class="ps__scrim"></span>
@@ -175,7 +176,7 @@ onBeforeUnmount(() => {
         <Icon name="lucide:search" class="bar__icon" />
         <Icon name="lucide:settings" class="bar__icon" />
         <span class="bar__avatar">
-          <img :src="ProfileImage" alt="" />
+          <img :src="ProfileImage" alt="" loading="lazy" />
           <i class="bar__online"></i>
         </span>
         <span class="bar__clock">{{ clock }}</span>
@@ -232,7 +233,7 @@ onBeforeUnmount(() => {
 
           <div class="cards">
             <div class="cards__art">
-              <img :src="current.src" :alt="`${current.title} cover art`" />
+              <img :src="current.src" :alt="`${current.title} cover art`" loading="lazy" />
               <span class="cards__badge">{{ current.genre }}</span>
               <span class="cards__year">{{ current.year || "Series" }}</span>
             </div>

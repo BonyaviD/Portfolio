@@ -1,6 +1,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
 import { formatPhotoDate } from "@/composables/usePhotoFeed";
+import { whenNearViewport } from "@/utils/defer";
 
 /**
  * Photos as instant-camera prints pegged to a washing line, with a string of
@@ -964,9 +965,9 @@ export function usePhotoLine(containerRef, options = {}) {
     };
   }
 
-  onMounted(async () => {
-    if (prefersReducedMotion() || !photos.length) return;
+  let cancelDefer = () => {};
 
+  async function start() {
     try {
       const THREE = await loadThree();
       await waitForMarkerFont();
@@ -1005,9 +1006,19 @@ export function usePhotoLine(containerRef, options = {}) {
       console.warn("Photo line disabled:", error.message);
       isActive.value = false;
     }
+  }
+
+  onMounted(() => {
+    if (prefersReducedMotion() || !photos.length || !containerRef.value) return;
+
+    // The gallery sits well below the fold, and the scene is expensive to
+    // build: Three.js, the marker font and sixteen textures. None of it needs
+    // to exist until the visitor is on their way to it.
+    cancelDefer = whenNearViewport(containerRef.value, start);
   });
 
   onBeforeUnmount(() => {
+    cancelDefer();
     scene?.destroy();
     scene = null;
     isActive.value = false;

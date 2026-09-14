@@ -1,5 +1,6 @@
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
+import { whenNearViewport } from "@/utils/defer";
 
 /**
  * A drifting 3D particle field that reacts to the pointer.
@@ -422,9 +423,18 @@ export function useParticleField(containerRef, options = {}) {
     (on) => scene?.celebrate(Boolean(on))
   );
 
-  onMounted(async () => {
-    if (prefersReducedMotion()) return;
+  let cancelDefer = () => {};
 
+  onMounted(() => {
+    if (prefersReducedMotion() || !containerRef.value) return;
+
+    // Nothing here is content, and the section is a long way down the page:
+    // building the scene on mount put the whole Three.js chunk on the
+    // critical path for a decoration nobody has scrolled to yet.
+    cancelDefer = whenNearViewport(containerRef.value, start);
+  });
+
+  async function start() {
     try {
       const THREE = await loadThree();
       // The component may have unmounted while the chunk was in flight.
@@ -438,9 +448,10 @@ export function useParticleField(containerRef, options = {}) {
       console.warn("Particle field disabled:", error.message);
       isActive.value = false;
     }
-  });
+  }
 
   onBeforeUnmount(() => {
+    cancelDefer();
     scene?.destroy();
     scene = null;
     isActive.value = false;

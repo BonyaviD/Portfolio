@@ -21,12 +21,15 @@ defineProps({
   width: clamp(13rem, 22vw, 25rem);
 }
 
+/* A fixed frame, so the portrait keeps its shape whatever the photo's own
+   proportions are - swapping in a landscape shot crops rather than squashes. */
 .portrait__image {
   width: 100%;
   height: auto;
+  aspect-ratio: 4 / 5;
   border-radius: var(--radius-2xl);
   object-fit: cover;
-  object-position: bottom;
+  object-position: 50% 30%;
 }
 
 @media (max-width: 60rem) {

@@ -12,7 +12,8 @@ const title = "Portfolio of Navid Bonyadi";
 useSeoMeta({
   title: "Home",
   description: `${site.tagline} | سایت پورتفولیو نوید بنیادی`,
-  keywords: "Frontend Developer, Vue, Nuxt, Portfolio, Navid Bonyadi, نوید بنیادی",
+  keywords:
+    "Senior Frontend Developer, Next.js, Nuxt, Three.js, Vue, React, Portfolio, Navid Bonyadi, نوید بنیادی",
   author: site.name,
   ogTitle: title,
   ogDescription: site.tagline,

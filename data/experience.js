@@ -1,4 +1,5 @@
-﻿import ArianSalamatImage from "~/assets/img/experience/ariansalamat.webp";
+﻿import PipochartImage from "~/assets/img/experience/pipochart.webp";
+import ArianSalamatImage from "~/assets/img/experience/ariansalamat.webp";
 import SpyImage from "~/assets/img/experience/spy.webp";
 import DontSayHiImage from "~/assets/img/experience/dsh.webp";
 import AsaRoseImage from "~/assets/img/experience/asarose.webp";
@@ -9,6 +10,15 @@ import AsaRoseImage from "~/assets/img/experience/asarose.webp";
  * browser bar is derived from `url`, so it can never drift.
  */
 export const projects = [
+  {
+    id: "pipochart",
+    name: "Pipochart",
+    url: "https://pipochart.com",
+    image: PipochartImage,
+    tech: ["Next.js", "React"],
+    description:
+      "Pipochart is an AI trading-analytics platform. It reads a trader's MT5 account read-only, turns their behaviour into four scores and a Survival Gate, and builds a real-time AI coach, a self-writing journal and a broker dashboard on top. I designed and built the site with Next.js.",
+  },
   {
     id: "arian-salamat",
     name: "Arian Salamat",

@@ -7,17 +7,17 @@ import BulletText from "@/components/base/BulletText.vue";
 import ProfilePortrait from "@/components/base/ProfilePortrait.vue";
 import SkillTile from "@/components/base/SkillTile.vue";
 import SocialActions from "@/components/base/SocialActions.vue";
-import { aboutStory, quickFacts } from "@/data/about";
+import { aboutIntro, aboutStory, quickFacts } from "@/data/about";
 import { coreStack } from "@/data/skills";
 import { profileImageUrl, site, socialUrlById } from "@/data/site";
 
-const description = `More about ${site.name}, a self-taught frontend developer based in ${site.location.city}, specialized in Vue and Nuxt.`;
+const description = `More about ${site.name}, a senior frontend developer based in ${site.location.city}, specialized in Next.js, Nuxt and Three.js.`;
 
 useSeoMeta({
   title: "About",
   description,
   ogTitle: `About ${site.name}`,
-  ogDescription: "Self-taught frontend developer specialized in Vue, Nuxt and responsive interfaces.",
+  ogDescription: site.tagline,
   ogImage: profileImageUrl,
   ogUrl: `${site.url}/about`,
 });
@@ -32,12 +32,9 @@ useSeoMeta({
 
         <div class="intro__content">
           <h1 id="intro-heading" class="intro__name">{{ site.name }}</h1>
-          <p class="intro__role">Front-End Developer</p>
+          <p class="intro__role">{{ site.role }}</p>
 
-          <BulletText>
-            Front-end developer with strong teamwork skills and expertise in building
-            responsive, user-friendly websites.
-          </BulletText>
+          <BulletText>{{ aboutIntro }}</BulletText>
 
           <dl class="facts">
             <BaseCard v-for="fact in quickFacts" :key="fact.label" class="facts__item">

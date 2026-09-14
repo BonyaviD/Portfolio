@@ -25,8 +25,8 @@ const { scrollTo } = useActiveSection(sectionIds);
       <h1 id="hero-heading" class="hero__name">{{ site.name }}</h1>
 
       <p class="hero__tagline">
-        I build responsive, accessible interfaces with Vue and Nuxt &mdash; and
-        care about the small motions that make them feel alive.
+        I build fast, accessible products with Next.js, Nuxt and Three.js &mdash;
+        and care about the small motions that make them feel alive.
       </p>
 
       <div class="hero__actions">

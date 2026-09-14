@@ -6,9 +6,9 @@
 export const site = {
   url: "https://navidbonyadi.ir",
   name: "Navid Bonyadi",
-  role: "Frontend Developer",
+  role: "Senior Frontend Developer",
   tagline:
-    "Self-taught frontend developer with expertise in Vue, Nuxt, and modern web technologies.",
+    "Senior frontend developer building fast, accessible web apps with Next.js, Nuxt and Three.js.",
   location: { city: "Tehran", country: "IR" },
   employer: "Web One",
   birthDate: "1992-05-24",

@@ -166,7 +166,9 @@
   --z-modal: 200;
 
   /* ---------------------------------------------------------------- layout */
-  --container-max-width: 120rem;
+  /* 1280px. At 120rem the content ran to 1920px on a wide screen, and lines
+     of text and rows of cards stretched far past a comfortable reading width. */
+  --container-max-width: 80rem;
   --container-gutter: 5%;
   --section-padding-block: clamp(var(--space-12), 8vw, var(--space-24));
   --blur-backdrop: 0.5rem;

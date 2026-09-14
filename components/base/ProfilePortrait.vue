@@ -1,5 +1,5 @@
 <script setup>
-import ProfileImage from "@/assets/img/me.webp";
+import ProfileImage from "@/assets/img/portrait.webp";
 
 /**
  * The portrait used by the home About section and the About page.
@@ -20,8 +20,8 @@ defineProps({
       class="portrait__image"
       :src="ProfileImage"
       :alt="alt"
-      width="853"
-      height="1280"
+      width="1280"
+      height="960"
       loading="lazy"
       decoding="async"
     />
@@ -43,7 +43,9 @@ defineProps({
   aspect-ratio: 4 / 5;
   border-radius: var(--radius-2xl);
   object-fit: cover;
-  object-position: 50% 30%;
+  /* The photo is landscape with the face just above the middle: narrow frames
+     crop the empty sides, wide ones trim a little ceiling, never the head. */
+  object-position: 50% 35%;
 }
 
 .portrait--fill {

@@ -6,7 +6,7 @@ import { fetchChannelPhotos } from "../utils/telegram";
  * would otherwise re-scrape Telegram on every render.
  */
 const readChannel = defineCachedFunction(fetchChannelPhotos, {
-  name: "telegram",
+  name: "telegram-stable-v2",
   getKey: (channel, max) => `${channel}-${max}`,
   maxAge: 1800,
   staleMaxAge: 86400,
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       channel,
       profile: profile && {
         ...profile,
-        avatar: profile.avatar ? `/api/photos/${profile.avatar}` : null,
+        avatar: profile.avatar ? `/api/photos/avatar-${channel}` : null,
         url: `https://t.me/${profile.username || channel}`,
       },
       fetchedAt: new Date().toISOString(),

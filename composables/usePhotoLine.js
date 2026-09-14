@@ -990,10 +990,21 @@ export function usePhotoLine(containerRef, options = {}) {
       isActive.value = true;
 
       const loader = new THREE.TextureLoader();
+      async function loadPhoto(src) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (!scene) return null;
+          try {
+            return await loader.loadAsync(src);
+          } catch (error) {
+            if (attempt === 2) throw error;
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+          }
+        }
+      }
       for (const [index, photo] of photos.entries()) {
-        loader
-          .loadAsync(photo.src)
+        loadPhoto(photo.src)
           .then((texture) => {
+            if (!texture) return;
             // Unmounted mid-flight: nothing owns this, so drop it here.
             if (!scene?.adopt(index, texture)) texture.dispose();
           })

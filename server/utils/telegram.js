@@ -232,12 +232,12 @@ export async function fetchChannelPhotos(channel, max = 16) {
       diagnostics.posts++;
       if (post.html.includes(REACTIONS_MARKER)) diagnostics.withReactionMarkup++;
 
-      for (const photo of parsePost(post)) {
+      for (const [imageIndex, photo] of parsePost(post).entries()) {
         if (seen.has(photo.url)) continue;
         seen.add(photo.url);
         if (photo.reactions !== null) diagnostics.reactionsParsed++;
         photos.push({
-          id: encodeId(photo.url),
+          id: `post-${channel}-${post.id}-${imageIndex}`,
           description: photo.description,
           date: photo.date,
           views: photo.views,
@@ -261,4 +261,25 @@ export async function fetchChannelPhotos(channel, max = 16) {
   }
 
   return { photos, profile, diagnostics };
+}
+
+/** Resolve stable public post references against fresh Telegram markup. */
+export async function resolvePhoto(id) {
+  const post = /^post-([A-Za-z0-9_]{3,32})-(\d+)-(\d+)$/.exec(id);
+  if (post) {
+    const [, channel, postId, index] = post;
+    const html = await fetchPage(`https://t.me/s/${channel}/${postId}`);
+    const chunk = splitPosts(html).find((item) => item.id === Number(postId));
+    const photo = chunk && parsePost(chunk)[Number(index)];
+    if (!photo) throw new Error("Photo is no longer available");
+    return photo.url;
+  }
+  const avatar = /^avatar-([A-Za-z0-9_]{3,32})$/.exec(id);
+  if (avatar) {
+    const profile = parseChannel(await fetchPage(`https://t.me/s/${avatar[1]}`));
+    if (!profile?.avatar) throw new Error("Channel avatar is unavailable");
+    return decodeId(profile.avatar);
+  }
+  // Older pages may still carry URL-based ids while their edge cache expires.
+  return decodeId(id);
 }

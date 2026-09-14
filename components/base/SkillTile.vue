@@ -277,6 +277,17 @@ function resetTilt() {
   }
 }
 
+/* Touch screens get no blur at all. What sits behind these tiles is a WebGL
+   canvas that changes every frame, so every blurred tile had to be re-blurred
+   every frame as well - a grid of them is what made this section stutter
+   while scrolling on phones. A darker fill keeps the text just as legible. */
+@media (hover: none) {
+  .skill-tile__surface {
+    background-color: rgb(13 27 42 / 55%);
+    backdrop-filter: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skill-tile,
   .skill-tile:not(.is-revealed) {

@@ -54,6 +54,15 @@ export default defineNuxtConfig({
     "/": { swr: 300 },
   },
 
+  /**
+   * All CSS goes into the HTML instead of four render-blocking stylesheet
+   * requests. On a phone those round trips were most of the wait before the
+   * first paint; the page's CSS is small enough to ride along with it.
+   */
+  features: {
+    inlineStyles: true,
+  },
+
   hooks: {
     /**
      * Nuxt turns every imported asset into a <link rel="prefetch"> in the

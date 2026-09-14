@@ -12,17 +12,30 @@
  * because a browser is old or an observer is throttled.
  */
 
-/** After the browser is done with what matters for first paint. */
-export function whenIdle(callback, timeout = 2000) {
+const INTERACTIONS = ["pointerdown", "pointermove", "keydown", "scroll", "wheel", "touchstart"];
+
+/**
+ * On the visitor's first scroll, touch, key press or mouse movement.
+ *
+ * Idle was not late enough: a phone is idle a second after load, and the
+ * Three.js parse and shader compile then landed right in the middle of the
+ * page becoming interactive. Nobody is looking at a drifting backdrop before
+ * they have moved, and a real visitor moves almost at once.
+ */
+export function whenInteracted(callback) {
   if (typeof window === "undefined") return () => {};
 
-  if (typeof window.requestIdleCallback !== "function") {
-    const id = setTimeout(callback, 200);
-    return () => clearTimeout(id);
+  const listeners = new AbortController();
+  const fire = () => {
+    listeners.abort();
+    callback();
+  };
+
+  for (const type of INTERACTIONS) {
+    window.addEventListener(type, fire, { passive: true, signal: listeners.signal });
   }
 
-  const id = window.requestIdleCallback(callback, { timeout });
-  return () => window.cancelIdleCallback(id);
+  return () => listeners.abort();
 }
 
 /**

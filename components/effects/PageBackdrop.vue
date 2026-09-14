@@ -31,7 +31,14 @@ useAuroraField(containerEl, {
 <style scoped>
 .page-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* The tallest the viewport ever gets, rather than whatever it is right now.
+     A phone's URL bar slides away as the page scrolls; with `inset: 0` that
+     resized this element mid-scroll, and the gradient jumped when it did. */
+  height: 100vh;
+  height: 100lvh;
   z-index: var(--z-behind);
   background:
     radial-gradient(70% 55% at 22% 18%, rgb(18 58 92 / 45%) 0%, transparent 62%),

@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { whenIdle } from "@/utils/defer";
+import { whenInteracted } from "@/utils/defer";
 
 /** Size of the shader's ripple uniform array. Must match the GLSL loop bound. */
 const MAX_RIPPLES = 32;
@@ -111,6 +111,7 @@ export function useWaterRipple(canvasRef, options) {
     let width = 0;
     let height = 0;
     let imageAspect = 1;
+    let onScreen = true;
 
     function now() {
       return performance.now() * 0.001;
@@ -229,7 +230,7 @@ export function useWaterRipple(canvasRef, options) {
       gl.uniform1f(uniforms.aspect, canvas.height ? canvas.width / canvas.height : 1);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      rafId = requestAnimationFrame(draw);
+      if (onScreen) rafId = requestAnimationFrame(draw);
     }
 
     const image = new Image();
@@ -244,15 +245,28 @@ export function useWaterRipple(canvasRef, options) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       imageAspect = image.width / image.height;
       resize();
-      rafId = requestAnimationFrame(draw);
+      cancelAnimationFrame(rafId);
+      if (onScreen) rafId = requestAnimationFrame(draw);
     };
     image.src = imageSrc;
 
     window.addEventListener("resize", resize);
 
+    // Scrolled past the hero, this was still filling a full-screen canvas on
+    // every frame, on top of whatever the section in view was drawing.
+    const visibility = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      cancelAnimationFrame(rafId);
+      if (onScreen && image.complete && image.naturalWidth) {
+        rafId = requestAnimationFrame(draw);
+      }
+    });
+    visibility.observe(canvas);
+
     return {
       addRippleFromEvent,
       destroy() {
+        visibility.disconnect();
         cancelAnimationFrame(rafId);
         window.removeEventListener("resize", resize);
         image.onload = null;
@@ -279,9 +293,9 @@ export function useWaterRipple(canvasRef, options) {
   }
 
   onMounted(() => {
-    // The plain photo underneath is what paints first and what LCP measures;
-    // compiling the shader can wait until the browser has nothing better to do.
-    cancelDefer = whenIdle(start);
+    // The plain photo underneath is what paints first; compiling the shader
+    // can wait until someone is there to press the water.
+    cancelDefer = whenInteracted(start);
   });
 
   onBeforeUnmount(() => {

@@ -14,7 +14,7 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
     <div class="about">
       <figure class="about__portrait">
         <span class="about__halo" aria-hidden="true"></span>
-        <ProfilePortrait class="about__photo" />
+        <ProfilePortrait class="about__photo" fill />
 
         <figcaption class="about__badge">
           <strong class="about__badge-value">{{ experienceYears }}+</strong>
@@ -22,7 +22,7 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
         </figcaption>
       </figure>
 
-      <div class="about__content">
+      <div class="about__intro">
         <p class="about__eyebrow">{{ site.role }}</p>
         <p class="about__name">{{ site.name }}</p>
         <p class="about__lede">{{ aboutIntro }}</p>
@@ -33,18 +33,6 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
             <dd class="about__fact-value">{{ fact.value }}</dd>
           </div>
         </dl>
-
-        <ul class="about__highlights" role="list">
-          <li v-for="item in aboutHighlights" :key="item.title" class="about__highlight">
-            <span class="about__icon" aria-hidden="true">
-              <Icon :name="item.icon" />
-            </span>
-            <span class="about__highlight-body">
-              <strong class="about__highlight-title">{{ item.title }}</strong>
-              <span class="about__highlight-text">{{ item.text }}</span>
-            </span>
-          </li>
-        </ul>
 
         <div class="about__actions">
           <BaseButton to="#contact" label="Work with me" icon="lucide:mail" variant="solid" />
@@ -57,28 +45,66 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
           />
         </div>
       </div>
+
+      <ul class="about__highlights" role="list">
+        <li v-for="item in aboutHighlights" :key="item.title" class="about__highlight">
+          <span class="about__icon" aria-hidden="true">
+            <Icon :name="item.icon" />
+          </span>
+          <strong class="about__highlight-title">{{ item.title }}</strong>
+          <span class="about__highlight-text">{{ item.text }}</span>
+        </li>
+      </ul>
     </div>
   </BaseSection>
 </template>
 
 <style scoped>
+/*
+ * Two rows. The top pairs the photo with the introduction; the highlight cards
+ * get a row of their own underneath.
+ *
+ * The cards used to live in the text column, which made that column several
+ * times taller than the photo on anything narrower than a wide desktop. Out
+ * of it, the introduction is short enough to sit level with the photo - and
+ * the photo is sized by the introduction, never the other way round, so the
+ * two always end on the same line however the copy wraps.
+ */
 .about {
   display: grid;
-  grid-template-columns: minmax(15rem, 24rem) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-16) clamp(var(--space-12), 7vw, var(--space-24));
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-areas:
+    "portrait intro"
+    "highlights highlights";
+  column-gap: clamp(var(--space-10), 6vw, var(--space-20));
+  row-gap: var(--space-14);
 }
 
 /* --------------------------------------------------------------- portrait */
 .about__portrait {
   position: relative;
+  grid-area: portrait;
+  /* A floor for when the copy is short; otherwise the row height decides. */
+  min-height: 26rem;
   margin: 0;
 }
 
-/* Warm light pooling behind the photo, so it sits in the page rather than on it. */
+/* Taken out of flow so the photo covers the row instead of stretching it. */
+.about__photo {
+  position: absolute;
+  inset: 0;
+}
+
+.about__photo :deep(.portrait__image) {
+  border: var(--border-width-hairline) solid var(--glass-border);
+  box-shadow: var(--glass-shadow), 0 30px 60px -30px rgb(0 0 0 / 90%);
+}
+
+/* Warm light pooling behind the photo, so it sits in the page rather than on
+   it. Kept inside the gutter: a wider box would scroll the page sideways. */
 .about__halo {
   position: absolute;
-  inset: -12% -14%;
+  inset: -8% -6%;
   z-index: -1;
   background:
     radial-gradient(55% 50% at 30% 30%, rgb(230 182 108 / 26%) 0%, transparent 70%),
@@ -100,16 +126,6 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
   border-top-left-radius: var(--radius-2xl);
   opacity: 0.7;
   pointer-events: none;
-}
-
-.about__photo {
-  position: relative;
-  width: 100%;
-}
-
-.about__photo :deep(.portrait__image) {
-  border: var(--border-width-hairline) solid var(--glass-border);
-  box-shadow: var(--glass-shadow), 0 30px 60px -30px rgb(0 0 0 / 90%);
 }
 
 .about__badge {
@@ -142,7 +158,15 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
   text-transform: uppercase;
 }
 
-/* ---------------------------------------------------------------- content */
+/* ------------------------------------------------------------------ intro */
+.about__intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  grid-area: intro;
+  padding-block: var(--space-4);
+}
+
 .about__eyebrow {
   display: flex;
   align-items: center;
@@ -157,6 +181,7 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
 
 .about__eyebrow::before {
   content: "";
+  flex-shrink: 0;
   width: var(--space-8);
   height: var(--border-width-thick);
   border-radius: var(--radius-pill);
@@ -200,19 +225,29 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
   font-weight: var(--font-weight-semibold);
 }
 
+.about__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* ------------------------------------------------------------- highlights */
+
 /* No backdrop blur on purpose: these sit over the animated page backdrop,
    and a blurred card has to be re-blurred on every frame it moves. */
 .about__highlights {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  grid-area: highlights;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
   list-style: none;
 }
 
 .about__highlight {
   display: flex;
-  gap: var(--space-4);
-  padding: var(--space-5);
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
   border: var(--border-width-hairline) solid var(--glass-border);
   border-radius: var(--radius-xl);
   background: linear-gradient(155deg, rgb(255 255 255 / 7%) 0%, rgb(255 255 255 / 2%) 100%);
@@ -228,22 +263,16 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
 
 .about__icon {
   display: flex;
-  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
+  margin-bottom: var(--space-2);
   border: var(--border-width-hairline) solid rgb(230 182 108 / 28%);
   border-radius: var(--radius-lg);
   background: rgb(230 182 108 / 12%);
   color: var(--color-primary);
   font-size: 1.3rem;
-}
-
-.about__highlight-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
 }
 
 .about__highlight-title {
@@ -257,38 +286,81 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
   line-height: var(--line-height-base);
 }
 
-.about__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-10);
+/* ------------------------------------------------------------- responsive */
+
+/* Four cards across stops leaving room for the text inside them. */
+@media (max-width: 75rem) {
+  .about__highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-/* ------------------------------------------------------------- responsive */
-@media (max-width: 60rem) {
+/* Tablet landscape: an even split, so the copy column wraps less and the
+   row - which the photo matches - stays short. */
+@media (max-width: 68rem) {
   .about {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .about__portrait {
-    width: min(78%, 20rem);
-    margin-inline: auto;
-  }
-
-  .about__badge {
-    right: calc(var(--space-8) * -1);
-    bottom: var(--space-5);
+    min-height: 24rem;
   }
 }
 
-@media (max-width: 30rem) {
+/*
+ * Tablet portrait and phones. Side by side, the copy would get a column too
+ * narrow to read and the photo would turn into a sliver, so they stack: a wide
+ * photo first, then the introduction at full width.
+ */
+@media (max-width: 56rem) {
+  .about {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "portrait"
+      "intro"
+      "highlights";
+    row-gap: var(--space-10);
+  }
+
+  .about__portrait {
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  .about__halo {
+    inset: -4% 0;
+  }
+
   .about__badge {
-    right: calc(var(--space-4) * -1);
+    right: var(--space-4);
+    bottom: var(--space-4);
+  }
+
+  .about__intro {
+    padding-block: 0;
+  }
+}
+
+@media (max-width: 36rem) {
+  .about__portrait {
+    aspect-ratio: 4 / 3;
+  }
+
+  .about__portrait::before {
+    top: calc(var(--space-3) * -1);
+    left: calc(var(--space-3) * -1);
+  }
+
+  .about__badge {
     padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3);
   }
 
   .about__badge-value {
     font-size: var(--font-size-2xl);
+  }
+
+  .about__highlights {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -12,7 +12,20 @@
  * because a browser is old or an observer is throttled.
  */
 
-const INTERACTIONS = ["pointerdown", "pointermove", "keydown", "scroll", "wheel", "touchstart"];
+/** Once the browser has nothing more pressing to do. */
+export function whenIdle(callback, timeout = 3000) {
+  if (typeof window === "undefined") return () => {};
+
+  if (typeof window.requestIdleCallback !== "function") {
+    const id = setTimeout(callback, 300);
+    return () => clearTimeout(id);
+  }
+
+  const id = window.requestIdleCallback(callback, { timeout });
+  return () => window.cancelIdleCallback(id);
+}
+
+const INTERACTIONS =["pointerdown", "pointermove", "keydown", "scroll", "wheel", "touchstart"];
 
 /**
  * On the visitor's first scroll, touch, key press or mouse movement.

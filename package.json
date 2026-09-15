@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "accents": "node scripts/generate-art-accents.mjs",
     "check:art": "node scripts/check-art.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "build": "nuxt build",

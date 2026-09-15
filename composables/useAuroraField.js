@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
+import { prefersReducedMotion } from "@/utils/loadThree";
 import { whenInteracted } from "@/utils/defer";
 
 /**
@@ -7,25 +7,34 @@ import { whenInteracted } from "@/utils/defer";
  * slow drifting light through layered noise, warmed by a glow that follows the
  * pointer and shifted gently by page scroll.
  *
- * It is a single full-screen quad, so the cost is one fragment pass regardless
- * of how large the surface is.
+ * Plain WebGL, one full-screen triangle. It used to go through Three.js, which
+ * meant a 700 KB download and parse arriving in the middle of the visitor's
+ * first scroll - the page stalled for most of a second right as the halos
+ * appeared. Nothing here needs a scene graph.
  */
 
 const VERTEX_SHADER = `
+attribute vec2 aPosition;
 varying vec2 vUv;
 void main() {
-  vUv = uv;
-  gl_Position = vec4(position.xy, 0.0, 1.0);
+  vUv = aPosition * 0.5 + 0.5;
+  gl_Position = vec4(aPosition, 0.0, 1.0);
 }`;
 
 /**
  * 2D simplex noise (Ashima / Stefan Gustavson), layered into fbm. Two fields
  * drift against each other so the light never visibly loops.
  *
- * Colour maths runs in linear space (Three.js converts the sRGB hex uniforms
- * on the way in); `colorspace_fragment` converts back on the way out.
+ * Colour maths runs in linear space (the colours are converted on the way in)
+ * and is encoded back to sRGB on the way out.
  */
 const FRAGMENT_SHADER = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+
 varying vec2 vUv;
 
 uniform float uTime;
@@ -77,6 +86,12 @@ float fbm(vec2 p) {
   return value;
 }
 
+vec3 linearToSrgb(vec3 c) {
+  vec3 low = c * 12.92;
+  vec3 high = pow(c, vec3(1.0 / 2.4)) * 1.055 - 0.055;
+  return mix(high, low, step(c, vec3(0.0031308)));
+}
+
 void main() {
   float aspect = uResolution.x / max(uResolution.y, 1.0);
   vec2 p = (vUv - 0.5) * vec2(aspect, 1.0);
@@ -105,9 +120,33 @@ void main() {
   float grain = fract(sin(dot(vUv * uResolution, vec2(12.9898, 78.233))) * 43758.5453);
   color += (grain - 0.5) * 0.007;
 
-  gl_FragColor = vec4(color, 1.0);
-  #include <colorspace_fragment>
+  gl_FragColor = vec4(linearToSrgb(clamp(color, 0.0, 1.0)), 1.0);
 }`;
+
+/**
+ * The drawing buffer is half the canvas's CSS size, stretched back up by the
+ * browser. The field has no detail finer than a few hundred pixels, so nobody
+ * can see the difference - but the GPU shades a quarter of the pixels, which
+ * is what keeps frames steady on a phone while the page scrolls over it.
+ */
+const RENDER_SCALE = 0.5;
+const MAX_BUFFER_SIDE = 960;
+
+/** sRGB hex to linear RGB, the space the shader mixes in. */
+function hexToLinear(hex) {
+  const value = Number.parseInt(hex.replace("#", ""), 16);
+  return [16, 8, 0].map((shift) => {
+    const channel = ((value >> shift) & 255) / 255;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+}
+
+function compileShader(gl, type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  return shader;
+}
 
 /**
  * @param {object} containerRef Vue ref holding the host element.
@@ -131,95 +170,126 @@ export function useAuroraField(containerRef, options = {}) {
   const isActive = ref(false);
   let scene = null;
 
-  function createScene(THREE, container, animated) {
+  function createScene(container, animated) {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl", {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: "low-power",
+    });
+    if (!gl) throw new Error("WebGL unavailable");
+
     const listeners = new AbortController();
     const { signal } = listeners;
+    let destroyed = false;
+    let rafId = 0;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
-    // A low-frequency gradient needs no more than this, and it keeps the
-    // fragment cost sane on high-DPI phones.
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setClearColor(baseColor, 1);
-    container.appendChild(renderer.domElement);
+    const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
+    const fragment = compileShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
 
-    const threeScene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    // Where supported, the link finishes on a background thread. Asking for
+    // its status too early would force it back onto this one.
+    const parallelCompile = gl.getExtension("KHR_parallel_shader_compile");
 
-    const uniforms = {
-      uTime: { value: 0 },
-      uScroll: { value: 0 },
-      uResolution: { value: new THREE.Vector2(1, 1) },
-      uPointer: { value: new THREE.Vector2(0, 0) },
-      uPointerStrength: { value: 0 },
-      uColorBase: { value: new THREE.Color(baseColor) },
-      uColorMid: { value: new THREE.Color(midColor) },
-      uColorHot: { value: new THREE.Color(hotColor) },
-      uIntensity: { value: intensity },
-    };
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
 
-    const geometry = new THREE.PlaneGeometry(2, 2);
-    const material = new THREE.ShaderMaterial({
-      vertexShader: VERTEX_SHADER,
-      fragmentShader: FRAGMENT_SHADER,
-      uniforms,
-      depthTest: false,
-      depthWrite: false,
-    });
-    threeScene.add(new THREE.Mesh(geometry, material));
+    container.appendChild(canvas);
 
-    // Pointer is tracked on the window so the canvas can stay pointer-events:
-    // none and never steal clicks from the content sitting on top of it.
+    let uniforms = null;
+
+    function prepareProgram() {
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error(
+          gl.getShaderInfoLog(fragment) || gl.getProgramInfoLog(program) || "shader link failed"
+        );
+      }
+
+      gl.useProgram(program);
+      const position = gl.getAttribLocation(program, "aPosition");
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+      const locate = (name) => gl.getUniformLocation(program, name);
+      uniforms = {
+        time: locate("uTime"),
+        scroll: locate("uScroll"),
+        resolution: locate("uResolution"),
+        pointer: locate("uPointer"),
+        pointerStrength: locate("uPointerStrength"),
+      };
+
+      gl.uniform3fv(locate("uColorBase"), hexToLinear(baseColor));
+      gl.uniform3fv(locate("uColorMid"), hexToLinear(midColor));
+      gl.uniform3fv(locate("uColorHot"), hexToLinear(hotColor));
+      gl.uniform1f(locate("uIntensity"), intensity);
+    }
+
+    // ------------------------------------------------------------- pointer
+    // Tracked on the window so the canvas can stay pointer-events: none and
+    // never steal clicks from the content sitting on top of it.
     const target = { x: 0, y: 0, strength: 0 };
     const current = { x: 0, y: 0, strength: 0 };
 
-    function onPointerMove(event) {
-      const rect = container.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
+    window.addEventListener(
+      "pointermove",
+      (event) => {
+        if (event.pointerType !== "mouse") return;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        if (!width || !height) return;
 
-      const aspect = rect.width / rect.height;
-      target.x = ((event.clientX - rect.left) / rect.width - 0.5) * aspect;
-      target.y = 0.5 - (event.clientY - rect.top) / rect.height;
-      target.strength = 0.55;
-    }
+        target.x = (event.clientX / width - 0.5) * (width / height);
+        target.y = 0.5 - event.clientY / height;
+        target.strength = 0.55;
+      },
+      { passive: true, signal }
+    );
 
-    window.addEventListener("pointermove", onPointerMove, { passive: true, signal });
-
-    let lastWidth = 0;
-    let lastHeight = 0;
+    // ---------------------------------------------------------------- size
+    let cssWidth = 0;
+    let cssHeight = 0;
     let settleTimer = 0;
 
     function applySize(width, height) {
       if (!width || !height) return;
-      renderer.setSize(width, height);
-      uniforms.uResolution.value.set(width, height);
-      lastWidth = width;
-      lastHeight = height;
+      const scale = Math.min(
+        RENDER_SCALE * Math.min(window.devicePixelRatio || 1, 2),
+        MAX_BUFFER_SIDE / Math.max(width, height)
+      );
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      cssWidth = width;
+      cssHeight = height;
+      // Resizing clears the buffer; a paused or static field must repaint.
+      if (uniforms && !running) draw(0);
     }
 
     /**
-     * Phone browsers collapse and expand their chrome as the page scrolls,
-     * which changes the height of a fixed element and fires this observer on
-     * almost every frame of a scroll. Reallocating the drawing buffer that
-     * often is what makes the gradient stutter and jump.
-     *
      * A width change is a real layout change and is honoured at once. A
-     * height-only change waits until it has stopped moving; until then the
-     * canvas is simply stretched by CSS, which nothing can see on a soft
-     * gradient.
+     * height-only change - a phone's URL bar sliding - waits until it has
+     * stopped moving; until then CSS stretches the canvas, which nothing can
+     * see on a soft gradient.
      */
     function resize() {
       const width = container.clientWidth;
       const height = container.clientHeight;
       if (!width || !height) return;
 
-      if (width !== lastWidth || !lastHeight) {
+      if (width !== cssWidth || !cssHeight) {
         clearTimeout(settleTimer);
         applySize(width, height);
         return;
       }
-
-      if (height === lastHeight) return;
+      if (height === cssHeight) return;
 
       clearTimeout(settleTimer);
       settleTimer = setTimeout(
@@ -230,108 +300,159 @@ export function useAuroraField(containerRef, options = {}) {
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
-    resize();
 
+    // -------------------------------------------------------------- scroll
+    // Touch screens keep the field still. There the page scrolls on the
+    // compositor at the display's full rate while this redraws at 30, and a
+    // backdrop moving at a different pace from the content is exactly what
+    // reads as the halos lagging behind the finger.
+    const coarsePointer = window.matchMedia?.("(pointer: coarse)").matches === true;
+    const scrollFollows = followScroll && animated && !coarsePointer;
     let scrollTarget = 0;
-    if (followScroll) {
-      // Held steady for the same reason: innerHeight changes with the URL
-      // bar, and dividing by a moving number made the field lurch mid-scroll.
-      let scrollUnit = Math.max(window.innerHeight, 1);
+    let scrollValue = 0;
+
+    if (scrollFollows) {
+      const scrollUnit = Math.max(window.innerHeight, 1);
       const readScroll = () => {
         // Normalised against viewport height, then damped: a full page of
         // scrolling should nudge the field, not race through it.
         scrollTarget = (window.scrollY / scrollUnit) * 0.18;
       };
       readScroll();
+      scrollValue = scrollTarget;
       window.addEventListener("scroll", readScroll, { passive: true, signal });
-      window.addEventListener(
-        "orientationchange",
-        () => {
-          scrollUnit = Math.max(window.innerHeight, 1);
-          readScroll();
-        },
-        { passive: true, signal }
-      );
     }
 
-    const clock = new THREE.Clock();
-    let rafId = 0;
-    let running = false;
+    // ---------------------------------------------------------------- draw
+    let elapsed = 0;
+    let shown = false;
 
-    function renderFrame() {
-      const idle = clock.elapsedTime * 0.12;
+    /**
+     * Easing is time-based, not per-frame. A per-frame factor moves further
+     * when frames arrive fast and stalls when they drop, so a busy moment made
+     * the glow and the scroll offset lurch; this covers the same ground per
+     * second at any frame rate.
+     */
+    function draw(dt) {
+      const ease = (rate) => 1 - Math.exp(-rate * dt);
+
+      current.strength += (target.strength - current.strength) * ease(3.1);
+      current.x += (target.x - current.x) * ease(2.8);
+      current.y += (target.y - current.y) * ease(2.8);
+      scrollValue += (scrollTarget - scrollValue) * ease(5);
+
+      const idle = elapsed * 0.12;
       const idleX = Math.cos(idle) * 0.32;
       const idleY = Math.sin(idle * 0.8) * 0.22;
-
-      current.strength += (target.strength - current.strength) * 0.05;
-      current.x += (target.x - current.x) * 0.045;
-      current.y += (target.y - current.y) * 0.045;
-
       const blend = current.strength / 0.55;
-      uniforms.uPointer.value.set(
+
+      gl.uniform1f(uniforms.time, elapsed);
+      gl.uniform1f(uniforms.scroll, scrollValue);
+      gl.uniform2f(uniforms.resolution, cssWidth, cssHeight);
+      gl.uniform2f(
+        uniforms.pointer,
         idleX + (current.x - idleX) * blend,
         idleY + (current.y - idleY) * blend
       );
-      uniforms.uPointerStrength.value = 0.35 + current.strength;
-      uniforms.uScroll.value += (scrollTarget - uniforms.uScroll.value) * 0.08;
-      uniforms.uTime.value = clock.getElapsedTime();
+      gl.uniform1f(uniforms.pointerStrength, 0.35 + current.strength);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-      renderer.render(threeScene, camera);
+      if (!shown) {
+        shown = true;
+        // Fades in over the CSS gradient rather than popping in on top of it.
+        canvas.classList.add("is-ready");
+      }
     }
 
-    function animate() {
-      rafId = requestAnimationFrame(animate);
-      renderFrame();
+    // Phones get 30 frames a second: the drift is slow enough that nobody can
+    // tell, and it halves what the GPU does while the page is being scrolled.
+    const frameInterval = coarsePointer ? 1000 / 30 : 0;
+    let running = false;
+    let lastFrame = 0;
+
+    function frame(now) {
+      rafId = requestAnimationFrame(frame);
+      if (lastFrame && frameInterval && now - lastFrame < frameInterval - 4) return;
+
+      // Clamped so a long stall (a background tab, a busy main thread) moves
+      // the field on by a moment, not by however long the stall lasted.
+      const dt = lastFrame ? Math.min((now - lastFrame) / 1000, 0.1) : 0;
+      lastFrame = now;
+      elapsed += dt;
+      draw(dt);
     }
 
-    function start() {
-      if (running) return;
+    function run() {
+      if (running || destroyed) return;
       running = true;
-      clock.start();
-      animate();
+      lastFrame = 0;
+      rafId = requestAnimationFrame(frame);
     }
 
-    function stop() {
-      if (!running) return;
+    function pause() {
       running = false;
       cancelAnimationFrame(rafId);
-      clock.stop();
     }
 
-    // Only burn frames while the surface is actually on screen. Skipped
-    // entirely under reduced motion, where a single static frame is painted.
-    let visibility = null;
+    canvas.addEventListener(
+      "webglcontextlost",
+      (event) => {
+        // The CSS gradient underneath takes over.
+        event.preventDefault();
+        pause();
+        canvas.classList.remove("is-ready");
+      },
+      { signal }
+    );
 
-    if (animated) {
-      visibility = new IntersectionObserver(
-        ([entry]) => (entry.isIntersecting ? start() : stop()),
-        { threshold: 0 }
-      );
-      visibility.observe(container);
-      start();
+    const ready = new Promise((resolve, reject) => {
+      const whenLinked = () => {
+        if (destroyed) return resolve();
+        if (parallelCompile && !gl.getProgramParameter(program, parallelCompile.COMPLETION_STATUS_KHR)) {
+          rafId = requestAnimationFrame(whenLinked);
+          return;
+        }
 
-      document.addEventListener(
-        "visibilitychange",
-        () => (document.hidden ? stop() : start()),
-        { signal }
-      );
-    } else {
-      uniforms.uTime.value = 12;
-      uniforms.uPointer.value.set(0.2, 0.1);
-      uniforms.uPointerStrength.value = 0.4;
-      renderer.render(threeScene, camera);
-    }
+        try {
+          prepareProgram();
+        } catch (error) {
+          reject(error);
+          return;
+        }
+
+        resize();
+
+        if (animated) {
+          run();
+          document.addEventListener("visibilitychange", () => (document.hidden ? pause() : run()), {
+            signal,
+          });
+        } else {
+          // Reduced motion: one still frame, repainted only on resize.
+          elapsed = 12;
+          target.x = current.x = 0.2;
+          target.y = current.y = 0.1;
+          draw(0);
+        }
+        resolve();
+      };
+      whenLinked();
+    });
 
     return {
+      ready,
       destroy() {
-        stop();
+        destroyed = true;
+        pause();
+        clearTimeout(settleTimer);
         listeners.abort();
-        visibility?.disconnect();
         resizeObserver.disconnect();
-        geometry.dispose();
-        material.dispose();
-        renderer.dispose();
-        renderer.domElement.remove();
+        gl.deleteBuffer(buffer);
+        gl.deleteProgram(program);
+        gl.deleteShader(vertex);
+        gl.deleteShader(fragment);
+        gl.getExtension("WEBGL_lose_context")?.loseContext();
+        canvas.remove();
       },
     };
   }
@@ -339,24 +460,26 @@ export function useAuroraField(containerRef, options = {}) {
   let cancelDefer = () => {};
 
   async function start() {
-    try {
-      const THREE = await loadThree();
-      // The component may have unmounted while the chunk was in flight.
-      if (!containerRef.value) return;
+    const container = containerRef.value;
+    if (!container) return;
 
-      scene = createScene(THREE, containerRef.value, !prefersReducedMotion());
-      isActive.value = true;
+    try {
+      scene = createScene(container, !prefersReducedMotion());
+      await scene.ready;
+      if (scene) isActive.value = true;
     } catch (error) {
       // Decorative: the CSS gradient fallback stays visible.
+      scene?.destroy();
+      scene = null;
       console.warn("Aurora field disabled:", error.message);
       isActive.value = false;
     }
   }
 
   onMounted(() => {
-    // This one is on screen from the first paint, but the CSS gradient
-    // underneath is a close enough match that nobody sees the swap. Waiting
-    // for the first interaction keeps the Three.js chunk off the load path.
+    // On screen from the first paint, but the CSS gradient underneath is a
+    // close match and the canvas fades in over it. Waiting for the first
+    // interaction keeps the shader compile off the load path.
     cancelDefer = whenInteracted(start);
   });
 

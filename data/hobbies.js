@@ -57,7 +57,8 @@ const wideArt = Object.fromEntries(
 /**
  * Favourite games. `studio`, `year` and `genre` are public facts about each
  * title; `blurb` describes the game, not my opinion of it. The slide's accent
- * colour is sampled from the artwork at runtime, so it is never hand-guessed.
+ * colour is sampled from the cover by `npm run accents`, so it is never
+ * hand-guessed.
  */
 export const games = [
   {

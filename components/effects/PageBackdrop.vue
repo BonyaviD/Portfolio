@@ -47,9 +47,23 @@ useAuroraField(containerEl, {
   pointer-events: none;
 }
 
+/* The canvas fades in over the CSS gradient once its first frame is drawn;
+   swapping one for the other in a single frame read as the halos jumping. */
 .page-backdrop :deep(canvas) {
   display: block;
   width: 100%;
   height: 100%;
+  opacity: 0;
+  transition: opacity 1.4s var(--ease-standard);
+}
+
+.page-backdrop :deep(canvas.is-ready) {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-backdrop :deep(canvas) {
+    transition: none;
+  }
 }
 </style>

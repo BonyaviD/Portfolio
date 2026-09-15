@@ -1,7 +1,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
 import { formatPhotoDate } from "@/composables/usePhotoFeed";
-import { whenNearViewport } from "@/utils/defer";
+import { whenIdle, whenNearViewport } from "@/utils/defer";
 
 /**
  * Photos as instant-camera prints pegged to a washing line, with a string of
@@ -966,6 +966,7 @@ export function usePhotoLine(containerRef, options = {}) {
   }
 
   let cancelDefer = () => {};
+  let cancelWarmup = () => {};
 
   async function start() {
     try {
@@ -1026,10 +1027,22 @@ export function usePhotoLine(containerRef, options = {}) {
     // build: Three.js, the marker font and sixteen textures. None of it needs
     // to exist until the visitor is on their way to it.
     cancelDefer = whenNearViewport(containerRef.value, start);
+
+    // Fetch and parse Three.js in idle time a couple of screens early, so
+    // arriving at the gallery costs building the scene, not a 700 KB chunk
+    // landing mid-scroll.
+    cancelWarmup = whenNearViewport(
+      containerRef.value,
+      () => {
+        cancelWarmup = whenIdle(() => loadThree().catch(() => {}));
+      },
+      "2000px"
+    );
   });
 
   onBeforeUnmount(() => {
     cancelDefer();
+    cancelWarmup();
     scene?.destroy();
     scene = null;
     isActive.value = false;

@@ -1,6 +1,6 @@
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { loadThree, prefersReducedMotion } from "@/utils/loadThree";
-import { whenNearViewport } from "@/utils/defer";
+import { whenIdle, whenNearViewport } from "@/utils/defer";
 
 /**
  * A drifting 3D particle field that reacts to the pointer.
@@ -424,6 +424,7 @@ export function useParticleField(containerRef, options = {}) {
   );
 
   let cancelDefer = () => {};
+  let cancelWarmup = () => {};
 
   onMounted(() => {
     if (prefersReducedMotion() || !containerRef.value) return;
@@ -432,6 +433,17 @@ export function useParticleField(containerRef, options = {}) {
     // building the scene on mount put the whole Three.js chunk on the
     // critical path for a decoration nobody has scrolled to yet.
     cancelDefer = whenNearViewport(containerRef.value, start);
+
+    // Starting the download only at 400px meant the chunk arrived and parsed
+    // while the visitor was scrolling into the section - a stall of half a
+    // second on a phone. A couple of screens out, fetch it in idle time.
+    cancelWarmup = whenNearViewport(
+      containerRef.value,
+      () => {
+        cancelWarmup = whenIdle(() => loadThree().catch(() => {}));
+      },
+      "2000px"
+    );
   });
 
   async function start() {
@@ -452,6 +464,7 @@ export function useParticleField(containerRef, options = {}) {
 
   onBeforeUnmount(() => {
     cancelDefer();
+    cancelWarmup();
     scene?.destroy();
     scene = null;
     isActive.value = false;

@@ -1,6 +1,6 @@
 ﻿<script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { useArtworkAccents } from "@/composables/useArtworkAccents";
+import { artAccents } from "@/data/art-accents";
 import { gamesWithArt as games } from "@/data/hobbies";
 import ProfileImage from "@/assets/img/me.webp";
 
@@ -17,11 +17,10 @@ import ProfileImage from "@/assets/img/me.webp";
  * Rendered with CSS rather than WebGL: it is a crossfade and a scaling tile,
  * so it stays sharp, costs little, and needs no GPU path.
  */
-const { accents } = useArtworkAccents(games.map((game) => game.src));
-
 const index = ref(0);
 const current = computed(() => games[index.value]);
-const accent = computed(() => accents.value[index.value]?.css ?? "rgb(230 182 108)");
+// Sampled from each cover at build time by scripts/generate-art-accents.mjs.
+const accent = computed(() => artAccents[current.value.id] ?? "rgb(230 182 108)");
 const position = computed(() => `${index.value + 1} / ${games.length}`);
 
 const railEl = ref(null);

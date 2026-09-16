@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { artAccents } from "@/data/art-accents";
 import { gamesWithArt as games } from "@/data/hobbies";
-import ProfileImage from "@/assets/img/me.webp";
+import ProfileImage from "@/assets/img/avatar.webp";
 
 /**
  * A console home screen, laid out after a PS5 dashboard: tabs and status along

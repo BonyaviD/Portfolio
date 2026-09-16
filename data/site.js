@@ -15,7 +15,10 @@ export const site = {
   copyrightYear: 2024,
 };
 
-export const profileImageUrl = `${site.url}/images/me.jpg`;
+/** A plain photo, for the structured data that describes the person. */
+export const profileImageUrl = `${site.url}/images/navid-bonyadi.jpg`;
+/** The 1200x630 link-preview card built by `npm run brand`. */
+export const ogImageUrl = `${site.url}/images/og.jpg`;
 
 /** Social links. `icon` is resolved to an asset by the consuming component. */
 export const socialLinks = [

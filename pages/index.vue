@@ -5,7 +5,7 @@ import SkillsSection from "@/components/sections/SkillsSection.vue";
 import ExperienceSection from "@/components/sections/ExperienceSection.vue";
 import ContactSection from "@/components/sections/ContactSection.vue";
 import HobbiesSection from "@/components/sections/HobbiesSection.vue";
-import { personSchema, profileImageUrl, site } from "@/data/site";
+import { ogImageUrl, personSchema, site } from "@/data/site";
 
 const title = "Portfolio of Navid Bonyadi";
 
@@ -17,13 +17,15 @@ useSeoMeta({
   author: site.name,
   ogTitle: title,
   ogDescription: site.tagline,
-  ogImage: profileImageUrl,
+  ogImage: ogImageUrl,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
   ogUrl: site.url,
   ogType: "website",
   twitterCard: "summary_large_image",
   twitterTitle: title,
   twitterDescription: site.tagline,
-  twitterImage: profileImageUrl,
+  twitterImage: ogImageUrl,
 });
 
 useHead({

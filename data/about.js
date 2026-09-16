@@ -28,13 +28,28 @@ export const aboutHighlights = [
   },
 ];
 
-/** Longer-form copy for the dedicated About page. */
+/** The dedicated About page, told in short chapters. */
 export const aboutStory = [
-  "I'm Navid, a self-taught front-end developer who fell in love with the web while customizing tiny HTML pages - and never stopped building since.",
-  `Over the last ${experienceYears} years I've gone from storefront themes to building the front end of complete products, shipping production apps in Next.js and Nuxt from the first commit to launch.`,
-  "My toolkit is Next.js, Nuxt, React and Vue on TypeScript, with Three.js and WebGL when an interface needs depth - and strong fundamentals in semantic HTML and modern CSS underneath all of it.",
-  "I care about the parts people feel but never see: rendering strategy, performance budgets, accessibility and a component architecture a team can build on.",
-  "Beyond coding, I enjoy photography walks, story-driven video games and sharing what I learn with the developer community.",
+  {
+    title: "Where it started",
+    text: "I'm Navid, a self-taught front-end developer who fell in love with the web while customizing tiny HTML pages - and never stopped building since.",
+  },
+  {
+    title: `${experienceYears} years in`,
+    text: "I've gone from storefront themes to building the front end of complete products, shipping production apps in Next.js and Nuxt from the first commit to launch.",
+  },
+  {
+    title: "The toolkit",
+    text: "Next.js, Nuxt, React and Vue on TypeScript, with Three.js and WebGL when an interface needs depth - and strong fundamentals in semantic HTML and modern CSS underneath all of it.",
+  },
+  {
+    title: "What I care about",
+    text: "The parts people feel but never see: rendering strategy, performance budgets, accessibility and a component architecture a team can build on.",
+  },
+  {
+    title: "Off the keyboard",
+    text: "Photography walks, story-driven video games and sharing what I learn with the developer community.",
+  },
 ];
 
 export const quickFacts = [

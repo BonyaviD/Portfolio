@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useActiveSection } from "@/composables/useActiveSection";
 import { sectionIds, sections, site } from "@/data/site";
-import LogoImage from "~/assets/img/Logo.svg";
+import LogoImage from "~/assets/img/brand/mark.svg";
 
 /**
  * A floating glass capsule in the spirit of the Dynamic Island: it sits over
@@ -54,7 +54,7 @@ onBeforeUnmount(() => {
 <template>
   <nav class="island" :class="{ 'island--condensed': condensed }" aria-label="Sections">
     <NuxtLink to="/" class="island__brand" :aria-label="`${site.name} - home`">
-      <img :src="LogoImage" alt="" width="28" height="27" />
+      <img :src="LogoImage" alt="" width="31" height="28" />
     </NuxtLink>
 
     <ul class="island__list" role="list">

@@ -5,12 +5,17 @@ import ProfilePortrait from "@/components/base/ProfilePortrait.vue";
 import { aboutHighlights, aboutIntro, experienceYears, quickFacts } from "@/data/about";
 import { site, socialUrlById } from "@/data/site";
 
+defineProps({
+  /** h1 on the dedicated About page, where this section opens the page. */
+  headingLevel: { type: String, default: "h2" },
+});
+
 /** The years already sit on the portrait badge; the row carries the rest. */
 const facts = quickFacts.filter((fact) => fact.id !== "experience");
 </script>
 
 <template>
-  <BaseSection id="about" title="About Me">
+  <BaseSection id="about" title="About Me" :heading-level="headingLevel">
     <div class="about">
       <figure class="about__portrait">
         <span class="about__halo" aria-hidden="true"></span>

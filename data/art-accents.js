@@ -14,7 +14,7 @@ export const artAccents = {
   "kena": "rgb(65 85 90)",
   "nier-automata": "rgb(103 111 123)",
   "plague": "rgb(111 115 119)",
-  "prince-of-persia": "rgb(142 118 111)",
+  "prince-of-persia": "rgb(142 118 110)",
   "resident-evil": "rgb(32 32 36)",
   "the-last-of-us": "rgb(64 59 58)"
 };

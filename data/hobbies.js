@@ -4,10 +4,10 @@ import Street from "~/assets/img/photography/street.webp";
 import MiladTower from "~/assets/img/photography/tehran-milad.webp";
 import AstaraSnow from "~/assets/img/photography/astara-snow.webp";
 import Airplane from "~/assets/img/photography/airplane.webp";
-import Hormuz from "~/assets/img/photography/hormoz.jpg";
+import Hormuz from "~/assets/img/photography/hormoz.webp";
 
 import TheLastOfUs from "~/assets/img/gaming/the-last-of-us.webp";
-import PrinceOfPersia from "~/assets/img/gaming/prince-of-persia.jpg";
+import PrinceOfPersia from "~/assets/img/gaming/prince-of-persia.webp";
 import BeyondTwoSouls from "~/assets/img/gaming/beyond-two-souls.webp";
 import Kena from "~/assets/img/gaming/kena.webp";
 import Hellblade from "~/assets/img/gaming/hellblade.webp";

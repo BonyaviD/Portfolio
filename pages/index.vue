@@ -1,11 +1,26 @@
 <script setup>
 import HeroSection from "@/components/sections/HeroSection.vue";
 import AboutSection from "@/components/sections/AboutSection.vue";
-import SkillsSection from "@/components/sections/SkillsSection.vue";
-import ExperienceSection from "@/components/sections/ExperienceSection.vue";
-import ContactSection from "@/components/sections/ContactSection.vue";
-import HobbiesSection from "@/components/sections/HobbiesSection.vue";
+import { defineAsyncComponent, hydrateOnVisible } from "vue";
 import { ogImageUrl, personSchema, site } from "@/data/site";
+
+// Keep every section in SSR HTML, but attach its behavior only near the viewport.
+const SkillsSection = defineAsyncComponent({
+  loader: () => import("@/components/sections/SkillsSection.vue"),
+  hydrate: hydrateOnVisible({ rootMargin: "500px" }),
+});
+const ExperienceSection = defineAsyncComponent({
+  loader: () => import("@/components/sections/ExperienceSection.vue"),
+  hydrate: hydrateOnVisible({ rootMargin: "500px" }),
+});
+const ContactSection = defineAsyncComponent({
+  loader: () => import("@/components/sections/ContactSection.vue"),
+  hydrate: hydrateOnVisible({ rootMargin: "500px" }),
+});
+const HobbiesSection = defineAsyncComponent({
+  loader: () => import("@/components/sections/HobbiesSection.vue"),
+  hydrate: hydrateOnVisible({ rootMargin: "1000px" }),
+});
 
 const title = "Portfolio of Navid Bonyadi";
 

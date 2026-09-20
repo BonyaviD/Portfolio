@@ -16,7 +16,7 @@ const emit = defineEmits(["go"]);
 </script>
 
 <template>
-  <button type="button" class="cue" aria-label="See what is below" @click="emit('go', target)">
+  <button type="button" class="cue" aria-label="See Magic — scroll to About" @click="emit('go', target)">
     <svg class="cue__art" viewBox="0 0 240 116" aria-hidden="true" focusable="false">
       <defs>
         <!-- Fades out at both ends so the arc reads as a stroke of light

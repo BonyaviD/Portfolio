@@ -35,7 +35,6 @@ const domain = computed(() => {
       target="_blank"
       rel="noopener noreferrer"
       class="project__link"
-      :aria-label="`${name} - opens in a new tab`"
     >
       <span class="project__frame">
         <span class="project__chrome" aria-hidden="true">
@@ -64,6 +63,7 @@ const domain = computed(() => {
           <span v-for="item in tech" :key="item" class="project__chip">{{ item }}</span>
         </span>
       </span>
+      <span class="visually-hidden">Opens in a new tab</span>
     </NuxtLink>
   </li>
 </template>

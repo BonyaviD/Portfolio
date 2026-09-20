@@ -80,6 +80,8 @@ function footnoteFor(photo) {
         :alt="`${profile.title} channel photo`"
         width="72"
         height="72"
+        loading="lazy"
+        decoding="async"
       />
 
       <div class="channel__body">
@@ -351,7 +353,7 @@ function footnoteFor(photo) {
 }
 
 .channel__counter {
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   font-size: var(--font-size-xs);
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;

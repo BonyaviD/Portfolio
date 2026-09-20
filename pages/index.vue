@@ -2,23 +2,28 @@
 import HeroSection from "@/components/sections/HeroSection.vue";
 import AboutSection from "@/components/sections/AboutSection.vue";
 import { defineAsyncComponent, hydrateOnVisible } from "vue";
+import SkillsContent from "@/components/sections/SkillsSection.vue";
+import ExperienceContent from "@/components/sections/ExperienceSection.vue";
+import ContactContent from "@/components/sections/ContactSection.vue";
+import HobbiesContent from "@/components/sections/HobbiesSection.vue";
 import { ogImageUrl, personSchema, site } from "@/data/site";
 
-// Keep every section in SSR HTML, but attach its behavior only near the viewport.
+// Keep SSR content and styles together; only defer attaching behavior. Dynamic
+// imports here split the initial CSS into nine requests and delayed rendering.
 const SkillsSection = defineAsyncComponent({
-  loader: () => import("@/components/sections/SkillsSection.vue"),
+  loader: () => Promise.resolve(SkillsContent),
   hydrate: hydrateOnVisible({ rootMargin: "500px" }),
 });
 const ExperienceSection = defineAsyncComponent({
-  loader: () => import("@/components/sections/ExperienceSection.vue"),
+  loader: () => Promise.resolve(ExperienceContent),
   hydrate: hydrateOnVisible({ rootMargin: "500px" }),
 });
 const ContactSection = defineAsyncComponent({
-  loader: () => import("@/components/sections/ContactSection.vue"),
+  loader: () => Promise.resolve(ContactContent),
   hydrate: hydrateOnVisible({ rootMargin: "500px" }),
 });
 const HobbiesSection = defineAsyncComponent({
-  loader: () => import("@/components/sections/HobbiesSection.vue"),
+  loader: () => Promise.resolve(HobbiesContent),
   hydrate: hydrateOnVisible({ rootMargin: "1000px" }),
 });
 

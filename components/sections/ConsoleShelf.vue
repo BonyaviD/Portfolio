@@ -257,6 +257,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .ps {
   --inset: clamp(0.75rem, 2.5vw, 2.5rem);
+  /* So it stops growing on a very large display. */
+  --frame-max-width: 100rem;
 
   position: relative;
   display: grid;
@@ -265,12 +267,26 @@ onBeforeUnmount(() => {
      stage past the card's right edge and the overflow clipped it. */
   grid-template-columns: minmax(0, 1fr);
   /**
-   * Height follows the content, with the viewport as a floor rather than a
-   * ceiling. A fixed 16:9 box got clamped on short viewports and, with the
-   * overflow hidden, clipped the buttons off the bottom row.
+   * A television, so it keeps a television's shape: 16:9, the ratio the key
+   * art is drawn at. Left to span the full viewport it stayed 46rem tall
+   * however wide the screen got - a 3.4:1 letterbox slot on a wide monitor,
+   * with the art cropped to a band and the middle of the screen empty.
+   *
+   * The width is therefore whichever is smallest: the viewport, the width a
+   * 16:9 box can be without growing past the viewport's height, or a ceiling
+   * so it stops scaling up on very large displays.
+   *
+   * `min-height` still wins where the content needs the room - phones, and
+   * short laptop viewports - which is why the height is not set outright. A
+   * fixed height there clipped the buttons off the bottom row.
    */
+  width: min(
+    calc(100vw - 2 * var(--inset)),
+    calc((100svh - 2 * var(--inset)) * 16 / 9),
+    var(--frame-max-width)
+  );
+  aspect-ratio: 16 / 9;
   min-height: min(calc(100svh - 2 * var(--inset)), 46rem);
-  width: calc(100vw - 2 * var(--inset));
   margin-left: 50%;
   margin-block: var(--inset);
   overflow: hidden;

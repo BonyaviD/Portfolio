@@ -1,0 +1,136 @@
+{
+  "downloadedAt": "2026-09-21",
+  "delivery": {
+    "format": "webp",
+    "maxWidth": 1920,
+    "quality": 88
+  },
+  "images": [
+    {
+      "id": "beyond-two-souls",
+      "file": "beyond-two-souls.webp",
+      "sourcePage": "https://store.steampowered.com/app/960990/",
+      "sourceImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/960990/library_hero.jpg",
+      "sourceWidth": 1920,
+      "sourceHeight": 620,
+      "bytes": 231308
+    },
+    {
+      "id": "control",
+      "file": "control.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/control/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/control-huge-hero-desktop-tablet-01-ps4-en-29mar19?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 988,
+      "bytes": 98190
+    },
+    {
+      "id": "cyberpunk",
+      "file": "cyberpunk.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/cyberpunk-2077/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/cyberpunk-2077-hero-banner-desktop-01-en-ps4-ps5-28jan22?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 897,
+      "bytes": 106520
+    },
+    {
+      "id": "detroit",
+      "file": "detroit.webp",
+      "sourcePage": "https://store.steampowered.com/app/1222140/",
+      "sourceImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1222140/library_hero.jpg",
+      "sourceWidth": 1920,
+      "sourceHeight": 620,
+      "bytes": 154306
+    },
+    {
+      "id": "final-fantasy",
+      "file": "final-fantasy.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/final-fantasy-vii-remake/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/final-fantasy-vii-remake-hero-desktop-01-ps4-en-13oct20?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 988,
+      "bytes": 239976
+    },
+    {
+      "id": "ghost-of-tsushima",
+      "file": "ghost-of-tsushima.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/ghost-of-tsushima/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/ghost-of-tsushima-directors-cut-hero-banner-desktop-01-en-15jun21?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 897,
+      "bytes": 306212
+    },
+    {
+      "id": "hellblade",
+      "file": "hellblade.webp",
+      "sourcePage": "https://store.steampowered.com/app/414340/",
+      "sourceImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/414340/library_hero.jpg",
+      "sourceWidth": 1920,
+      "sourceHeight": 620,
+      "bytes": 96420
+    },
+    {
+      "id": "it-takes-two",
+      "file": "it-takes-two.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/it-takes-two/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/it-takes-two-hero-banner-desktop-01-en-29jan21?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 897,
+      "bytes": 189652
+    },
+    {
+      "id": "kena",
+      "file": "kena.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/kena-bridge-of-spirits/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/kena-bridge-of-spirits-hero-01-ps5-ps4-en-26aug29?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 988,
+      "bytes": 153318
+    },
+    {
+      "id": "nier-automata",
+      "file": "nier-automata.webp",
+      "sourcePage": "https://store.steampowered.com/app/524220/",
+      "sourceImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/524220/library_hero.jpg",
+      "sourceWidth": 1920,
+      "sourceHeight": 620,
+      "bytes": 222168
+    },
+    {
+      "id": "plague",
+      "file": "plague.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/a-plague-tale-innocence/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/APTI-hero-02-en-18jun21.png?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 1350,
+      "bytes": 153898
+    },
+    {
+      "id": "prince-of-persia",
+      "file": "prince-of-persia.webp",
+      "sourcePage": "https://www.gog.com/en/game/prince_of_persia_warrior_within",
+      "sourceImage": "https://images.gog-statics.com/c8a30e730b11089b146a10a2df8757c67ca5552e1f8b7e9c4c8dde062ac4715f.jpg",
+      "sourceWidth": 2560,
+      "sourceHeight": 670,
+      "bytes": 61432
+    },
+    {
+      "id": "resident-evil",
+      "file": "resident-evil.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/resident-evil-village/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/resident-evil-village-hero-banner-desktop-01-en-19oct21?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 897,
+      "bytes": 170286
+    },
+    {
+      "id": "the-last-of-us",
+      "file": "the-last-of-us.webp",
+      "sourcePage": "https://www.playstation.com/en-us/games/the-last-of-us-part-i/",
+      "sourceImage": "https://gmedia.playstation.com/is/image/SIEPDC/the-last-of-us-part-i-hero-banner-desktop-01-en-18may22?$2400px$",
+      "sourceWidth": 2400,
+      "sourceHeight": 897,
+      "bytes": 150056
+    }
+  ]
+}

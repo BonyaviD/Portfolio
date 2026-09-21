@@ -144,11 +144,12 @@ export const games = [
   {
     id: "final-fantasy",
     src: FinalFantasy,
-    title: "Final Fantasy",
+    title: "Final Fantasy VII Remake",
     studio: "Square Enix",
+    year: 2020,
     genre: "Role-playing",
     blurb:
-      "Square Enix's long-running RPG series, built on party combat, summons and scores that outlive the consoles they shipped on.",
+      "Cloud joins Avalanche in Midgar, where a fight against Shinra grows into something far larger. A reimagining of the original game's opening chapter.",
   },
   {
     id: "cyberpunk",
@@ -206,7 +207,26 @@ export const games = [
  * Games with their key art resolved. `wide` is the landscape image where one
  * exists, otherwise null, so a caller can decide whether to fall back.
  */
+// Keep the main character in frame when the landscape art fills a phone screen.
+const mobileArtPositions = {
+  "the-last-of-us": "74% center",
+  "prince-of-persia": "70% center",
+  "beyond-two-souls": "64% center",
+  kena: "68% center",
+  hellblade: "12% center",
+  detroit: "75% center",
+  plague: "65% center",
+  control: "68% center",
+  "final-fantasy": "52% center",
+  cyberpunk: "70% center",
+  "it-takes-two": "50% center",
+  "nier-automata": "53% center",
+  "resident-evil": "60% center",
+  "ghost-of-tsushima": "65% center",
+};
+
 export const gamesWithArt = games.map((game) => ({
   ...game,
   wide: wideArt[game.id] ?? null,
+  mobileArtPosition: mobileArtPositions[game.id] ?? "center",
 }));

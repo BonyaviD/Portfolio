@@ -23,8 +23,8 @@ const missing = ids.filter((id) => !present.has(id));
 
 console.log(`wide key art: ${ids.length - missing.length}/${ids.length} present`);
 if (missing.length) {
-  console.log("\nstill using the portrait cover - drop a 16:9 image in");
+  console.log("\nstill using the portrait cover - drop landscape key art in");
   console.log("assets/img/gaming/wide/ named:\n");
   for (const id of missing) console.log(`  ${id}.jpg`);
-  console.log("\n1920x1080 is ideal; anything 16:9 and >=1280 wide looks right.");
+  console.log("\nUse publisher artwork at least 1280 pixels wide; preserve its original proportions.");
 }

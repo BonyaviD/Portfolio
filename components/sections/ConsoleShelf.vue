@@ -139,7 +139,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     class="ps"
-    :style="{ '--accent': accent }"
+    :style="{ '--accent': accent, '--art-position-mobile': current.mobileArtPosition }"
     role="group"
     aria-roledescription="carousel"
     aria-label="Games, console shelf view"
@@ -155,7 +155,6 @@ onBeforeUnmount(() => {
         <img
           :key="current.id"
           class="ps__art"
-          :class="{ 'ps__art--wide': current.wide }"
           :src="current.wide || current.src"
           alt=""
           loading="lazy"
@@ -294,8 +293,8 @@ onBeforeUnmount(() => {
 }
 
 /**
- * A portrait cover has to be blown up and blurred to work as a backdrop.
- * Real landscape key art needs none of that, so it is shown nearly sharp.
+ * Publisher key art stays sharp. A missing landscape file may fall back to
+ * the cover, but never applies blur or artificial zoom to either image.
  */
 .ps__art {
   position: absolute;
@@ -303,22 +302,21 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.3);
-  filter: blur(26px) saturate(125%);
-}
-
-/* Real key art is shown as-is: the console does not blur it. */
-.ps__art--wide {
-  transform: none;
-  filter: none;
+  object-position: 60% center;
 }
 
 .ps__scrim {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgb(4 10 18 / 88%) 0%, rgb(4 10 18 / 45%) 45%, rgb(4 10 18 / 70%) 100%),
-    linear-gradient(180deg, rgb(4 10 18 / 85%) 0%, transparent 32%, rgb(4 10 18 / 55%) 100%);
+    linear-gradient(90deg, rgb(4 10 18 / 86%) 0%, rgb(4 10 18 / 42%) 38%, rgb(4 10 18 / 8%) 68%, rgb(4 10 18 / 16%) 100%),
+    linear-gradient(180deg, rgb(4 10 18 / 64%) 0%, transparent 30%, transparent 62%, rgb(4 10 18 / 58%) 100%);
+}
+
+@media (max-width: 40rem) {
+  .ps__art {
+    object-position: var(--art-position-mobile, center);
+  }
 }
 
 .scene-enter-active,

@@ -1,4 +1,4 @@
-﻿import TehranPeople from "~/assets/img/photography/tehran-people.webp";
+import TehranPeople from "~/assets/img/photography/tehran-people.webp";
 import Flower from "~/assets/img/photography/flower.webp";
 import Street from "~/assets/img/photography/street.webp";
 import MiladTower from "~/assets/img/photography/tehran-milad.webp";

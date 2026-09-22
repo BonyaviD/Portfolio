@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useLocale } from "@/composables/useLocale";
 import { artAccents } from "@/data/art-accents";

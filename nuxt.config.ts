@@ -6,8 +6,6 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      titleTemplate: "%s | Navid Bonyadi",
-      htmlAttrs: { lang: "en", dir: "ltr" },
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -56,6 +54,7 @@ export default defineNuxtConfig({
     // where Telegram was unreachable, this is how long the page keeps showing
     // the bundled fallback before it retries.
     "/": { swr: 300 },
+    "/fa": { swr: 300 },
   },
 
   /**
@@ -68,6 +67,22 @@ export default defineNuxtConfig({
   },
 
   hooks: {
+    /**
+     * Every page also exists in Persian, under /fa: /about is /fa/about.
+     *
+     * A second route per page rather than an optional [[lang]] segment, which
+     * would also have matched /about as the home page in a language called
+     * "about". The language is then read from the path - see utils/i18n.js.
+     */
+    "pages:extend": (pages) => {
+      const persian = pages.map((page) => ({
+        ...page,
+        name: page.name ? `${page.name}-fa` : undefined,
+        path: page.path === "/" ? "/fa" : `/fa${page.path}`,
+      }));
+      pages.push(...persian);
+    },
+
     /**
      * Nuxt turns every imported asset into a <link rel="prefetch"> in the
      * head, which for this page meant all 25 images - game art, project shots,

@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref } from "vue";
+import { useLocale } from "@/composables/useLocale";
 import { SKILL_LEVELS } from "@/data/skills";
+import { ui } from "@/data/ui";
 
 /**
  * A frosted glass skill tile, styled after an iOS home-screen icon: squircle
@@ -23,6 +25,8 @@ const props = defineProps({
   /** Parent-controlled: flips on when the grid scrolls into view. */
   revealed: { type: Boolean, default: true },
 });
+
+const { t } = useLocale();
 
 const MAX_TILT_DEG = 9;
 
@@ -82,7 +86,7 @@ function resetTilt() {
       <span class="skill-tile__name">{{ name }}</span>
 
       <span v-if="level" class="skill-tile__meta">
-        <span class="skill-tile__level">{{ level }}</span>
+        <span class="skill-tile__level">{{ t(ui.skills.levels[level]) }}</span>
         <span class="skill-tile__meter" aria-hidden="true">
           <span
             v-for="segment in SKILL_LEVELS.length"

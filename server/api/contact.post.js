@@ -73,11 +73,15 @@ export default defineEventHandler(async (event) => {
 
   // Sent as plain text with no parse_mode: nothing a visitor types can then
   // be read as markup.
+  // Which version of the site it came from, so the reply is in that language.
+  const language = body?.locale === "fa" ? "Persian (/fa)" : "English";
+
   const text = [
     "New message from the portfolio",
     "",
     `From: ${fields.name}`,
     `Reply to: ${fields.contact}`,
+    `Site language: ${language}`,
     "",
     fields.message,
   ].join("\n");

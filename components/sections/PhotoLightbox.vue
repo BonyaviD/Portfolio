@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
-import { formatPhotoDate } from "@/composables/usePhotoFeed";
+import { useLocale } from "@/composables/useLocale";
+import { ui } from "@/data/ui";
 
 /**
  * The picked print, brought forward.
@@ -16,7 +17,11 @@ const props = defineProps({
   index: { type: Number, default: null },
   /** Viewport rect of the print that was picked, for the FLIP. */
   origin: { type: Object, default: null },
+  /** Formats a photo's date and counters, so the list and the print agree. */
+  footnote: { type: Function, required: true },
 });
+
+const { isRtl: pageIsRtl, t } = useLocale();
 
 const emit = defineEmits(["close", "navigate"]);
 
@@ -36,16 +41,7 @@ const caption = computed(() => {
   return line ?? "";
 });
 
-const footnote = computed(() => {
-  if (!photo.value) return "";
-  return [
-    formatPhotoDate(photo.value.date),
-    photo.value.views ? `${photo.value.views.toLocaleString("en-GB")} views` : "",
-    photo.value.reactions ? `${photo.value.reactions.toLocaleString("en-GB")} likes` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-});
+const footnoteText = computed(() => (photo.value ? props.footnote(photo.value) : ""));
 
 const isRtl = computed(() => /[؀-ۿݐ-ݿ]/.test(caption.value));
 
@@ -89,12 +85,12 @@ function onKeydown(event) {
   if (event.key === "Escape") {
     event.preventDefault();
     emit("close");
-  } else if (event.key === "ArrowRight") {
+  } else if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+    // "Next" is the way the page reads: rightwards in English, leftwards in
+    // Persian - the same side the next-photo button sits on.
     event.preventDefault();
-    emit("navigate", 1);
-  } else if (event.key === "ArrowLeft") {
-    event.preventDefault();
-    emit("navigate", -1);
+    const forward = event.key === (pageIsRtl.value ? "ArrowLeft" : "ArrowRight");
+    emit("navigate", forward ? 1 : -1);
   }
 }
 
@@ -137,14 +133,14 @@ onBeforeUnmount(() => {
         class="lightbox"
         role="dialog"
         aria-modal="true"
-        :aria-label="caption || 'Photo'"
+        :aria-label="caption || t(ui.lightbox.photo)"
         @click.self="emit('close')"
       >
         <button
           ref="closeEl"
           type="button"
           class="lightbox__close"
-          aria-label="Close"
+          :aria-label="t(ui.lightbox.close)"
           @click="emit('close')"
         >
           <Icon name="lucide:x" aria-hidden="true" />
@@ -154,7 +150,7 @@ onBeforeUnmount(() => {
           v-if="photos.length > 1"
           type="button"
           class="lightbox__step lightbox__step--prev"
-          aria-label="Previous photo"
+          :aria-label="t(ui.lightbox.previous)"
           @click="emit('navigate', -1)"
         >
           <Icon name="lucide:chevron-left" aria-hidden="true" />
@@ -168,7 +164,7 @@ onBeforeUnmount(() => {
             <p v-if="caption" class="print__caption" :dir="isRtl ? 'rtl' : 'ltr'">
               {{ caption }}
             </p>
-            <p v-if="footnote" class="print__footnote">{{ footnote }}</p>
+            <p v-if="footnoteText" class="print__footnote" dir="auto">{{ footnoteText }}</p>
           </figcaption>
         </figure>
 
@@ -176,7 +172,7 @@ onBeforeUnmount(() => {
           v-if="photos.length > 1"
           type="button"
           class="lightbox__step lightbox__step--next"
-          aria-label="Next photo"
+          :aria-label="t(ui.lightbox.next)"
           @click="emit('navigate', 1)"
         >
           <Icon name="lucide:chevron-right" aria-hidden="true" />
@@ -290,7 +286,7 @@ onBeforeUnmount(() => {
 .lightbox__close {
   position: absolute;
   top: var(--space-5);
-  right: var(--space-5);
+  inset-inline-end: var(--space-5);
 }
 
 /* ------------------------------------------------------------ entrance */
@@ -317,11 +313,11 @@ onBeforeUnmount(() => {
   }
 
   .lightbox__step--prev {
-    left: var(--space-6);
+    inset-inline-start: var(--space-6);
   }
 
   .lightbox__step--next {
-    right: var(--space-6);
+    inset-inline-end: var(--space-6);
   }
 
   .print {

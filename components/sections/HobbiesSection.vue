@@ -2,10 +2,14 @@
 import BaseSection from "@/components/base/BaseSection.vue";
 import PhotographyBlock from "@/components/sections/PhotographyBlock.vue";
 import ConsoleShelf from "@/components/sections/ConsoleShelf.vue";
+import { useLocale } from "@/composables/useLocale";
+import { ui } from "@/data/ui";
+
+const { t } = useLocale();
 </script>
 
 <template>
-  <BaseSection id="hobbies" title="Hobbies">
+  <BaseSection id="hobbies" :title="t(ui.sections.hobbies)">
     <div class="hobbies">
       <PhotographyBlock />
 
@@ -13,11 +17,11 @@ import ConsoleShelf from "@/components/sections/ConsoleShelf.vue";
         <div class="gaming__head">
           <h3 class="gaming__title">
             <Icon name="lucide:gamepad-2" aria-hidden="true" />
-            Gaming
+            {{ t(ui.gaming.title) }}
           </h3>
           <p class="gaming__platform">
             <Icon name="simple-icons:playstation" aria-hidden="true" />
-            Mostly PlayStation
+            {{ t(ui.gaming.platform) }}
           </p>
         </div>
 

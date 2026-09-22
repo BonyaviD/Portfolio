@@ -1,7 +1,10 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import LanguageSwitch from "@/components/layout/LanguageSwitch.vue";
 import { useActiveSection } from "@/composables/useActiveSection";
+import { useLocale } from "@/composables/useLocale";
 import { sectionIds, sections, site } from "@/data/site";
+import { ui } from "@/data/ui";
 import LogoImage from "~/assets/img/brand/mark.svg";
 
 /**
@@ -12,13 +15,13 @@ import LogoImage from "~/assets/img/brand/mark.svg";
  * On narrow screens it drops to the bottom of the viewport and becomes a
  * thumb-reachable icon bar, which is where a phone wants its navigation.
  */
-const route = useRoute();
 const router = useRouter();
 
 const { activeId, scrollTo } = useActiveSection(sectionIds);
+const { basePath, path, t } = useLocale();
 
-/** The tracked sections only exist on the home page. */
-const isHome = computed(() => route.path === "/");
+/** The tracked sections only exist on the home page, in either language. */
+const isHome = computed(() => basePath.value === "/");
 
 /**
  * Scroll when the target is on this page, otherwise route home to the hash
@@ -29,7 +32,7 @@ async function go(id) {
     scrollTo(id);
     return;
   }
-  await router.push({ path: "/", hash: `#${id}` });
+  await router.push({ path: path("/"), hash: `#${id}` });
 }
 
 const condensed = ref(false);
@@ -52,8 +55,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <nav class="island" :class="{ 'island--condensed': condensed }" aria-label="Sections">
-    <NuxtLink to="/" class="island__brand" :aria-label="`${site.name} - home`">
+  <nav class="island" :class="{ 'island--condensed': condensed }" :aria-label="t(ui.nav.label)">
+    <NuxtLink
+      :to="path('/')"
+      class="island__brand"
+      :aria-label="t(ui.nav.home, { name: t(site.displayName) })"
+    >
       <img :src="LogoImage" alt="" width="31" height="28" />
     </NuxtLink>
 
@@ -67,10 +74,13 @@ onBeforeUnmount(() => {
           @click="go(section.id)"
         >
           <Icon :name="section.icon" class="island__icon" aria-hidden="true" />
-          <span class="island__label">{{ section.label }}</span>
+          <span class="island__label">{{ t(section.label) }}</span>
         </button>
       </li>
     </ul>
+
+    <!-- Phones get this at the top of the page instead: the bar is full. -->
+    <LanguageSwitch variant="island" class="island__lang" />
   </nav>
 </template>
 
@@ -100,7 +110,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-left: var(--space-2);
+  padding-inline-start: var(--space-2);
   opacity: 0.9;
   transition: opacity var(--duration-base) var(--ease-standard);
 }
@@ -169,7 +179,7 @@ onBeforeUnmount(() => {
 
 .island--condensed .island__item .island__label {
   max-width: 0;
-  margin-left: calc(var(--space-2) * -1);
+  margin-inline-start: calc(var(--space-2) * -1);
   opacity: 0;
 }
 
@@ -179,7 +189,7 @@ onBeforeUnmount(() => {
 
 .island--condensed .island__item.is-active .island__label {
   max-width: 8rem;
-  margin-left: 0;
+  margin-inline-start: 0;
   opacity: 1;
 }
 
@@ -204,7 +214,8 @@ onBeforeUnmount(() => {
     max-width: calc(100vw - var(--space-8));
   }
 
-  .island__brand {
+  .island .island__brand,
+  .island .island__lang {
     display: none;
   }
 

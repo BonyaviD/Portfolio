@@ -1,7 +1,10 @@
 <script setup>
 import { computed } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
+import { useLocale } from "@/composables/useLocale";
 import { socialLinks } from "@/data/site";
+
+const { t } = useLocale();
 
 /**
  * The social link row. URLs and icons live in data/site.js, so the navigation,
@@ -34,7 +37,7 @@ const links = computed(() => {
     <li v-for="link in links" :key="link.id">
       <BaseButton
         :to="link.url"
-        :label="link.label"
+        :label="t(link.label)"
         :icon="link.icon"
         :variant="variant"
         :size="size"

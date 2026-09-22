@@ -3,36 +3,36 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import HeroScrollCue from "@/components/sections/HeroScrollCue.vue";
 import WaterRippleImage from "@/components/effects/WaterRippleImage.vue";
 import { useActiveSection } from "@/composables/useActiveSection";
+import { useLocale } from "@/composables/useLocale";
 import { heroPhoto } from "@/data/hobbies";
 import { sectionIds, site, socialUrlById } from "@/data/site";
+import { ui } from "@/data/ui";
 
 const { scrollTo } = useActiveSection(sectionIds);
+const { t } = useLocale();
 </script>
 
 <template>
   <section id="hero" class="hero" aria-labelledby="hero-heading">
     <div class="hero__media">
-      <WaterRippleImage :src="heroPhoto.src" :alt="heroPhoto.alt" />
+      <WaterRippleImage :src="heroPhoto.src" :alt="t(heroPhoto.alt)" />
       <span class="hero__scrim" aria-hidden="true"></span>
     </div>
 
     <div class="hero__content container">
       <p class="hero__eyebrow">
         <Icon name="lucide:map-pin" aria-hidden="true" />
-        {{ site.location.city }} &middot; {{ site.role }}
+        {{ t(site.location.city) }} &middot; {{ t(site.role) }}
       </p>
 
-      <h1 id="hero-heading" class="hero__name">{{ site.name }}</h1>
+      <h1 id="hero-heading" class="hero__name">{{ t(site.displayName) }}</h1>
 
-      <p class="hero__tagline">
-        I build fast, accessible products with Next.js, Nuxt and Three.js &mdash;
-        and care about the small motions that make them feel alive.
-      </p>
+      <p class="hero__tagline">{{ t(ui.hero.tagline) }}</p>
 
       <div class="hero__actions">
         <BaseButton
           to="#contact"
-          label="Contact me"
+          :label="t(ui.hero.contact)"
           icon="lucide:mail"
           variant="solid"
           size="lg"
@@ -206,6 +206,17 @@ const { scrollTo } = useActiveSection(sectionIds);
 
   .hero__cue {
     display: none;
+  }
+}
+
+/*
+ * A portrait phone carries the language switch in the top corner, over the
+ * hero. The short-screen rules above pull the copy up towards it, so here it
+ * is held below: the eyebrow is centred and wide enough to reach the corner.
+ */
+@media (max-width: 30rem) and (max-height: 46rem) {
+  .hero {
+    padding-top: var(--space-16);
   }
 }
 </style>

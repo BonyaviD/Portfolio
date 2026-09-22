@@ -33,3 +33,29 @@ body {
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
+
+/* ============================================================================
+   Persian
+   ========================================================================== */
+
+/*
+ * Persian pages are set in Vazirmatn, Latin included, so a tech name in the
+ * middle of a Persian sentence matches the words around it instead of
+ * switching to Jura's narrower shapes. Arabic script also wants more room
+ * between lines than Latin does: its marks sit above and below the letters.
+ */
+html[lang="fa"] {
+  --font-family-base: "Vazirmatn", "Jura", ui-sans-serif, system-ui, sans-serif;
+  --line-height-tight: 1.35;
+  --line-height-base: 1.65;
+  --line-height-relaxed: 1.9;
+}
+
+/*
+ * Letter-spacing pulls joined Persian letters apart, which breaks the script
+ * rather than styling it. The site tracks its eyebrows and labels in several
+ * places; here all of that is switched off at once instead of in each one.
+ */
+html[lang="fa"] body * {
+  letter-spacing: normal !important;
+}

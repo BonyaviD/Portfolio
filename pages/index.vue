@@ -6,7 +6,10 @@ import SkillsContent from "@/components/sections/SkillsSection.vue";
 import ExperienceContent from "@/components/sections/ExperienceSection.vue";
 import ContactContent from "@/components/sections/ContactSection.vue";
 import HobbiesContent from "@/components/sections/HobbiesSection.vue";
+import { useLocale } from "@/composables/useLocale";
 import { ogImageUrl, personSchema, site } from "@/data/site";
+import { ui } from "@/data/ui";
+import { localizePath } from "@/utils/i18n";
 
 // Keep SSR content and styles together; only defer attaching behavior. Dynamic
 // imports here split the initial CSS into nine requests and delayed rendering.
@@ -27,29 +30,32 @@ const HobbiesSection = defineAsyncComponent({
   hydrate: hydrateOnVisible({ rootMargin: "1000px" }),
 });
 
-const title = "Portfolio of Navid Bonyadi";
+const { code, t } = useLocale();
+const title = t(ui.meta.homeOgTitle);
+const description = t(site.tagline);
 
 useSeoMeta({
-  title: "Home",
-  description: `${site.tagline} | سایت پورتفولیو نوید بنیادی`,
-  keywords:
-    "Senior Frontend Developer, Next.js, Nuxt, Three.js, Vue, React, Portfolio, Navid Bonyadi, نوید بنیادی",
+  title: t(ui.meta.homeTitle),
+  description,
+  keywords: t(ui.meta.homeKeywords),
   author: site.name,
   ogTitle: title,
-  ogDescription: site.tagline,
+  ogDescription: description,
   ogImage: ogImageUrl,
   ogImageWidth: 1200,
   ogImageHeight: 630,
-  ogUrl: site.url,
+  ogUrl: `${site.url}${localizePath("/", code.value)}`,
   ogType: "website",
   twitterCard: "summary_large_image",
   twitterTitle: title,
-  twitterDescription: site.tagline,
+  twitterDescription: description,
   twitterImage: ogImageUrl,
 });
 
 useHead({
-  script: [{ type: "application/ld+json", innerHTML: JSON.stringify(personSchema) }],
+  script: [
+    { type: "application/ld+json", innerHTML: JSON.stringify(personSchema(code.value)) },
+  ],
 });
 </script>
 

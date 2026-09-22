@@ -1,6 +1,11 @@
 <script setup>
 import SocialActions from "@/components/base/SocialActions.vue";
+import LanguageSwitch from "@/components/layout/LanguageSwitch.vue";
+import { useLocale } from "@/composables/useLocale";
 import { site } from "@/data/site";
+import { ui } from "@/data/ui";
+
+const { t, number } = useLocale();
 </script>
 
 <template>
@@ -9,9 +14,11 @@ import { site } from "@/data/site";
       <SocialActions align="center" variant="soft" icon-only />
 
       <p class="footer__note">
-        &copy; {{ site.copyrightYear }}
-        <span class="footer__name">{{ site.name }}</span> &middot; built with Nuxt
+        &copy; {{ number(site.copyrightYear, { useGrouping: false }) }}
+        <span class="footer__name">{{ t(site.displayName) }}</span> &middot;
+        {{ t(ui.footer.builtWith) }}
       </p>
+      <LanguageSwitch variant="text" />
     </div>
   </footer>
 </template>

@@ -2,8 +2,12 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import BaseSection from "@/components/base/BaseSection.vue";
 import SkillTile from "@/components/base/SkillTile.vue";
+import { useLocale } from "@/composables/useLocale";
 import { skills, skillsIntro } from "@/data/skills";
+import { ui } from "@/data/ui";
 import { prefersReducedMotion } from "@/utils/loadThree";
+
+const { t } = useLocale();
 
 const gridEl = ref(null);
 
@@ -60,14 +64,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <BaseSection id="skills" title="Skills" class="skills">
-    <p class="skills__lede">{{ skillsIntro }}</p>
+  <BaseSection id="skills" :title="t(ui.sections.skills)" class="skills">
+    <p class="skills__lede">{{ t(skillsIntro) }}</p>
 
     <ul ref="gridEl" class="skills__grid" role="list">
       <SkillTile
         v-for="(skill, index) in skills"
-        :key="skill.name"
-        :name="skill.name"
+        :key="skill.icon"
+        :name="t(skill.name)"
         :icon="skill.icon"
         :level="skill.level"
         :index="index"

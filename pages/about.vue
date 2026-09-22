@@ -3,25 +3,28 @@ import AboutSection from "@/components/sections/AboutSection.vue";
 import BaseSection from "@/components/base/BaseSection.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import SkillTile from "@/components/base/SkillTile.vue";
+import { useLocale } from "@/composables/useLocale";
 import { aboutStory } from "@/data/about";
 import { coreStack } from "@/data/skills";
 import { ogImageUrl, site, socialUrlById } from "@/data/site";
+import { ui } from "@/data/ui";
+import { localizePath } from "@/utils/i18n";
 
-const description = `More about ${site.name}, a senior frontend developer based in ${site.location.city}, specialized in Next.js, Nuxt and Three.js.`;
+const { code, t, number } = useLocale();
 
 useSeoMeta({
-  title: "About",
-  description,
-  ogTitle: `About ${site.name}`,
-  ogDescription: site.tagline,
+  title: t(ui.meta.aboutTitle),
+  description: t(ui.meta.aboutDescription),
+  ogTitle: t(ui.meta.aboutOgTitle),
+  ogDescription: t(site.tagline),
   ogImage: ogImageUrl,
   ogImageWidth: 1200,
   ogImageHeight: 630,
-  ogUrl: `${site.url}/about`,
+  ogUrl: `${site.url}${localizePath("/about", code.value)}`,
 });
 
-/** "01", "02"... for the chapter markers. */
-const chapterNumber = (index) => String(index + 1).padStart(2, "0");
+/** "01", "02"... - or "۰۱", "۰۲" - for the chapter markers. */
+const chapterNumber = (index) => number(index + 1, { minimumIntegerDigits: 2 });
 </script>
 
 <template>
@@ -30,23 +33,23 @@ const chapterNumber = (index) => String(index + 1).padStart(2, "0");
     <AboutSection heading-level="h1" />
 
     <!-- ---------------------------------------------------------- story -->
-    <BaseSection id="story" title="The Story So Far">
+    <BaseSection id="story" :title="t(ui.aboutPage.story)">
       <ol class="story" role="list">
-        <li v-for="(chapter, index) in aboutStory" :key="chapter.title" class="story__chapter">
+        <li v-for="(chapter, index) in aboutStory" :key="index" class="story__chapter">
           <span class="story__number" aria-hidden="true">{{ chapterNumber(index) }}</span>
-          <h3 class="story__title">{{ chapter.title }}</h3>
-          <p class="story__text">{{ chapter.text }}</p>
+          <h3 class="story__title">{{ t(chapter.title) }}</h3>
+          <p class="story__text">{{ t(chapter.text) }}</p>
         </li>
       </ol>
     </BaseSection>
 
     <!-- ------------------------------------------------------ tech stack -->
-    <BaseSection id="stack" title="Tech Stack">
+    <BaseSection id="stack" :title="t(ui.aboutPage.stack)">
       <ul class="stack" role="list">
         <SkillTile
           v-for="(skill, index) in coreStack"
-          :key="skill.name"
-          :name="skill.name"
+          :key="skill.icon"
+          :name="t(skill.name)"
           :icon="skill.icon"
           :level="skill.level"
           :index="index"
@@ -59,16 +62,13 @@ const chapterNumber = (index) => String(index + 1).padStart(2, "0");
       <div class="container">
         <div class="cta">
           <span class="cta__glow" aria-hidden="true"></span>
-          <p class="cta__eyebrow">Open to new projects</p>
-          <h2 id="cta-heading" class="cta__title">Let's build something together</h2>
-          <p class="cta__text">
-            A product that needs a fast, polished front end, or an idea that could use some depth?
-            My inbox is always open.
-          </p>
+          <p class="cta__eyebrow">{{ t(ui.aboutPage.ctaEyebrow) }}</p>
+          <h2 id="cta-heading" class="cta__title">{{ t(ui.aboutPage.ctaTitle) }}</h2>
+          <p class="cta__text">{{ t(ui.aboutPage.ctaText) }}</p>
           <div class="cta__actions">
             <BaseButton
               :to="socialUrlById.telegram"
-              label="Message me"
+              :label="t(ui.aboutPage.messageMe)"
               icon="simple-icons:telegram"
               variant="solid"
             />
@@ -108,7 +108,7 @@ const chapterNumber = (index) => String(index + 1).padStart(2, "0");
   position: absolute;
   top: var(--space-6);
   bottom: var(--space-6);
-  left: 1.75rem;
+  inset-inline-start: 1.75rem;
   width: var(--border-width-hairline);
   background: linear-gradient(180deg, var(--color-primary) 0%, rgb(230 182 108 / 10%) 100%);
 }
@@ -118,7 +118,8 @@ const chapterNumber = (index) => String(index + 1).padStart(2, "0");
   display: grid;
   grid-template-columns: 3.5rem minmax(0, 1fr);
   column-gap: var(--space-6);
-  padding: var(--space-4) var(--space-6) var(--space-4) 0;
+  padding-block: var(--space-4);
+  padding-inline: 0 var(--space-6);
 }
 
 .story__number {
@@ -222,13 +223,13 @@ const chapterNumber = (index) => String(index + 1).padStart(2, "0");
 
 @media (max-width: 36rem) {
   .story::before {
-    left: 1.25rem;
+    inset-inline-start: 1.25rem;
   }
 
   .story__chapter {
     grid-template-columns: 2.5rem minmax(0, 1fr);
     column-gap: var(--space-4);
-    padding-right: 0;
+    padding-inline-end: 0;
   }
 
   .story__number {

@@ -272,11 +272,20 @@ const TILT_PATTERN = [-1.7, 1.2, -0.9, 1.9, -1.4, 0.7, -2.1];
 /** Canvas pixels per world unit for the caption texture. */
 const LABEL_SCALE = 2;
 
-/** 1200 -> "1.2K": the counters are a detail, not a figure to read exactly. */
-function compactCount(value) {
-  if (value >= 1e6) return `${(value / 1e6).toFixed(1).replace(/\.0$/, "")}M`;
-  if (value >= 1e3) return `${(value / 1e3).toFixed(1).replace(/\.0$/, "")}K`;
-  return String(value);
+/**
+ * Date and the channel's own counters, written the way you would note them on
+ * the back of a print. Any of them may be missing. The page passes its own,
+ * in its own language, as `options.footnote`; this is the English default.
+ */
+function defaultFootnote(photo) {
+  const compact = new Intl.NumberFormat("en-GB", { notation: "compact" });
+  return [
+    formatPhotoDate(photo.date),
+    photo.views ? `${compact.format(photo.views)} views` : "",
+    photo.reactions ? `${compact.format(photo.reactions)} likes` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /**
@@ -300,7 +309,7 @@ function captionOf(photo) {
  * shader can composite it as ink. Only the thick bottom border is written on:
  * everything above it is the photo window and must stay clear.
  */
-function drawLabel(photo, width, height, tilt) {
+function drawLabel(photo, width, height, tilt, footnoteOf = defaultFootnote) {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(width * LABEL_SCALE));
   canvas.height = Math.max(1, Math.round(height * LABEL_SCALE));
@@ -313,15 +322,7 @@ function drawLabel(photo, width, height, tilt) {
   const band = canvas.height - bandTop;
   const maxWidth = canvas.width * 0.82;
 
-  // Date and the channel's own counters, written the way you would note them
-  // on the back of a print. Any of them may be missing.
-  const footnote = [
-    formatPhotoDate(photo.date),
-    photo.views ? `${compactCount(photo.views)} views` : "",
-    photo.reactions ? `${compactCount(photo.reactions)} likes` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const footnote = footnoteOf(photo);
 
   if (!caption && !footnote) return canvas;
 
@@ -363,7 +364,7 @@ function drawLabel(photo, width, height, tilt) {
   if (footnote) {
     // The footnote gets whatever room is left: shrink it rather than let it
     // run past the paper.
-    ctx.direction = "ltr";
+    ctx.direction = RTL.test(footnote) ? "rtl" : "ltr";
     let noteSize = Math.round(size * (caption ? 0.66 : 0.78));
     ctx.font = `${noteSize}px ${MARKER_FONT}`;
     while (noteSize > 8 && ctx.measureText(footnote).width > maxWidth) {
@@ -401,7 +402,7 @@ async function waitForMarkerFont() {
 }
 
 export function usePhotoLine(containerRef, options = {}) {
-  const { photos = [], onPick = null } = options;
+  const { photos = [], onPick = null, footnote = defaultFootnote } = options;
 
   const isActive = ref(false);
   const activeIndex = ref(-1);
@@ -474,7 +475,7 @@ export function usePhotoLine(containerRef, options = {}) {
       group.add(shadow);
 
       const labelTexture = new THREE.CanvasTexture(
-        drawLabel(photo, width, height, TILT_PATTERN[i % TILT_PATTERN.length])
+        drawLabel(photo, width, height, TILT_PATTERN[i % TILT_PATTERN.length], footnote)
       );
       labelTexture.colorSpace = THREE.SRGBColorSpace;
       labelTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();

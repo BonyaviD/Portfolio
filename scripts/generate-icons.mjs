@@ -53,6 +53,7 @@ const ICONS = [
   "lucide:gamepad-2",
   "lucide:gauge",
   "lucide:house",
+  "lucide:languages",
   "lucide:layers",
   "lucide:mail",
   "lucide:map-pin",

@@ -1,4 +1,7 @@
 <script setup>
+import { useLocale } from "@/composables/useLocale";
+import { ui } from "@/data/ui";
+
 /**
  * The invitation to scroll, pinned to the bottom of the hero.
  *
@@ -13,10 +16,12 @@ defineProps({
 });
 
 const emit = defineEmits(["go"]);
+
+const { t } = useLocale();
 </script>
 
 <template>
-  <button type="button" class="cue" aria-label="See Magic — scroll to About" @click="emit('go', target)">
+  <button type="button" class="cue" :aria-label="t(ui.hero.cueLabel)" @click="emit('go', target)">
     <svg class="cue__art" viewBox="0 0 240 116" aria-hidden="true" focusable="false">
       <defs>
         <!-- Fades out at both ends so the arc reads as a stroke of light
@@ -35,7 +40,7 @@ const emit = defineEmits(["go"]);
 
       <text class="cue__text">
         <textPath href="#heroCueType" startOffset="50%" text-anchor="middle">
-          See Magic
+          {{ t(ui.hero.cue) }}
         </textPath>
       </text>
 

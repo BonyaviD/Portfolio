@@ -17,6 +17,20 @@ const props = defineProps({
   name: { type: String, required: true },
 });
 
+/**
+ * Icons that point somewhere. In a right-to-left page "forward" is to the
+ * left, so these are mirrored there; everything else - logos, a camera, a
+ * map pin - reads the same either way and is left alone.
+ */
+const DIRECTIONAL = new Set([
+  "lucide:arrow-up-right",
+  "lucide:chevron-left",
+  "lucide:chevron-right",
+  "lucide:send",
+]);
+
+const directional = computed(() => DIRECTIONAL.has(props.name));
+
 const icon = computed(() => {
   const found = icons[props.name];
   if (!found && import.meta.dev) {
@@ -33,6 +47,7 @@ const icon = computed(() => {
   <svg
     v-if="icon"
     class="icon"
+    :class="{ 'icon--directional': directional }"
     :viewBox="`0 0 ${icon.width} ${icon.height}`"
     role="img"
     focusable="false"
@@ -50,5 +65,13 @@ const icon = computed(() => {
   height: 1em;
   vertical-align: -0.125em;
   flex-shrink: 0;
+}
+
+/* `:dir()` rather than an ancestor selector, so a left-to-right island inside
+   a Persian page - the console mock-up - keeps its arrows as they are.
+   `scale` rather than `transform`, so it composes with any hover transform
+   a caller puts on the icon instead of being overwritten by it. */
+.icon--directional:dir(rtl) {
+  scale: -1 1;
 }
 </style>

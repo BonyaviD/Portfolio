@@ -1,19 +1,23 @@
 <script setup>
 import BaseSection from "@/components/base/BaseSection.vue";
 import ProjectCard from "@/components/base/ProjectCard.vue";
+import { useLocale } from "@/composables/useLocale";
 import { projects } from "@/data/experience";
+import { ui } from "@/data/ui";
+
+const { t } = useLocale();
 </script>
 
 <template>
-  <BaseSection id="experience" title="Experience">
+  <BaseSection id="experience" :title="t(ui.sections.experience)">
     <ul class="projects" role="list">
       <ProjectCard
         v-for="(project, index) in projects"
         :key="project.id"
-        :name="project.name"
+        :name="t(project.name)"
         :url="project.url"
         :image="project.image"
-        :description="project.description"
+        :description="t(project.description)"
         :tech="project.tech"
         :index="index"
       />

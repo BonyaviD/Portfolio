@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from "vue";
+import { useLocale } from "@/composables/useLocale";
+import { ui } from "@/data/ui";
 
 /**
  * A project as an App Store style preview card: the screenshot sits inside a
@@ -17,6 +19,8 @@ const props = defineProps({
   /** Drives the staggered entrance delay. */
   index: { type: Number, default: 0 },
 });
+
+const { t } = useLocale();
 
 /** Shown in the browser bar; derived so it can never drift from `url`. */
 const domain = computed(() => {
@@ -37,7 +41,8 @@ const domain = computed(() => {
       class="project__link"
     >
       <span class="project__frame">
-        <span class="project__chrome" aria-hidden="true">
+        <!-- A browser's own chrome, so left to right in either language. -->
+        <span class="project__chrome" dir="ltr" aria-hidden="true">
           <span class="project__dots">
             <i></i><i></i><i></i>
           </span>
@@ -45,7 +50,7 @@ const domain = computed(() => {
         </span>
 
         <span class="project__shot-wrap">
-          <img class="project__shot" :src="image" :alt="`${name} website`" loading="lazy" />
+          <img class="project__shot" :src="image" :alt="t(ui.project.shotAlt, { name })" loading="lazy" />
         </span>
       </span>
 
@@ -63,7 +68,7 @@ const domain = computed(() => {
           <span v-for="item in tech" :key="item" class="project__chip">{{ item }}</span>
         </span>
       </span>
-      <span class="visually-hidden">Opens in a new tab</span>
+      <span class="visually-hidden">{{ t(ui.project.newTab) }}</span>
     </NuxtLink>
   </li>
 </template>

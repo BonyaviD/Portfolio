@@ -26,13 +26,55 @@ import ResidentEvil from "~/assets/img/gaming/resident-evil.webp";
  * the section's grid, so ids must stay in sync with PhotographyBlock styles.
  */
 export const photos = [
-  { id: "tehran-people", src: TehranPeople, alt: "People walking at night in Tehran", title: "People", place: "Tehran" },
-  { id: "flower", src: Flower, alt: "Flower close-up", title: "Flower", place: "Astara" },
-  { id: "street", src: Street, alt: "Street photography scene", title: "Street", place: "Astara" },
-  { id: "milad-tower", src: MiladTower, alt: "Milad Tower", title: "Tower", place: "Tehran" },
-  { id: "airplane", src: Airplane, alt: "Airplane in the sky", title: "Airplane", place: "Tehran" },
-  { id: "astara-snow", src: AstaraSnow, alt: "Snowy landscape in Astara", title: "Snow", place: "Astara" },
-  { id: "hormuz", src: Hormuz, alt: "Mountain in Hormuz island", title: "Mountain", place: "Hormuz" },
+  {
+    id: "tehran-people",
+    src: TehranPeople,
+    alt: { en: "People walking at night in Tehran", fa: "مردمی که شب در تهران قدم می‌زنند" },
+    title: { en: "People", fa: "مردم" },
+    place: { en: "Tehran", fa: "تهران" },
+  },
+  {
+    id: "flower",
+    src: Flower,
+    alt: { en: "Flower close-up", fa: "نمای نزدیک یک گل" },
+    title: { en: "Flower", fa: "گل" },
+    place: { en: "Astara", fa: "آستارا" },
+  },
+  {
+    id: "street",
+    src: Street,
+    alt: { en: "Street photography scene", fa: "صحنه‌ای از عکاسی خیابانی" },
+    title: { en: "Street", fa: "خیابان" },
+    place: { en: "Astara", fa: "آستارا" },
+  },
+  {
+    id: "milad-tower",
+    src: MiladTower,
+    alt: { en: "Milad Tower", fa: "برج میلاد" },
+    title: { en: "Tower", fa: "برج" },
+    place: { en: "Tehran", fa: "تهران" },
+  },
+  {
+    id: "airplane",
+    src: Airplane,
+    alt: { en: "Airplane in the sky", fa: "هواپیما در آسمان" },
+    title: { en: "Airplane", fa: "هواپیما" },
+    place: { en: "Tehran", fa: "تهران" },
+  },
+  {
+    id: "astara-snow",
+    src: AstaraSnow,
+    alt: { en: "Snowy landscape in Astara", fa: "منظره‌ی برفی آستارا" },
+    title: { en: "Snow", fa: "برف" },
+    place: { en: "Astara", fa: "آستارا" },
+  },
+  {
+    id: "hormuz",
+    src: Hormuz,
+    alt: { en: "Mountain in Hormuz island", fa: "کوهی در جزیره‌ی هرمز" },
+    title: { en: "Mountain", fa: "کوه" },
+    place: { en: "Hormuz", fa: "هرمز" },
+  },
 ];
 
 /** The hero background is the same shot as the first photography tile. */
@@ -54,9 +96,21 @@ const wideArt = Object.fromEntries(
   ).map(([path, url]) => [path.split("/").pop().replace(/\.[^.]+$/, ""), url])
 );
 
+/** Genre names, shared by the games below. */
+const genre = {
+  "Action-adventure": { en: "Action-adventure", fa: "اکشن-ماجرایی" },
+  "Interactive drama": { en: "Interactive drama", fa: "درام تعاملی" },
+  "Stealth adventure": { en: "Stealth adventure", fa: "ماجرایی مخفی‌کاری" },
+  "Role-playing": { en: "Role-playing", fa: "نقش‌آفرینی" },
+  "Action RPG": { en: "Action RPG", fa: "نقش‌آفرینی اکشن" },
+  "Co-op platformer": { en: "Co-op platformer", fa: "پلتفرمر دونفره" },
+  "Survival horror": { en: "Survival horror", fa: "وحشت بقا" },
+};
+
 /**
  * Favourite games. `studio`, `year` and `genre` are public facts about each
- * title; `blurb` describes the game, not my opinion of it. The slide's accent
+ * title; `blurb` describes the game, not my opinion of it. Titles and studios
+ * are proper names and stay in English in both languages. The slide's accent
  * colour is sampled from the cover by `npm run accents`, so it is never
  * hand-guessed.
  */
@@ -67,9 +121,11 @@ export const games = [
     title: "The Last of Us",
     studio: "Naughty Dog",
     year: 2013,
-    genre: "Action-adventure",
-    blurb:
-      "A smuggler escorts a teenage girl across a collapsed United States. Its reputation rests on the writing and performances rather than the shooting.",
+    genre: genre["Action-adventure"],
+    blurb: {
+      en: "A smuggler escorts a teenage girl across a collapsed United States. Its reputation rests on the writing and performances rather than the shooting.",
+      fa: "یک قاچاقچی، دختری نوجوان را از میان ایالات متحده‌ای فروپاشیده عبور می‌دهد. شهرتش را مدیون نویسندگی و بازی بازیگرانش است، نه تیراندازی.",
+    },
   },
   {
     id: "prince-of-persia",
@@ -77,9 +133,11 @@ export const games = [
     title: "Prince of Persia: Warrior Within",
     studio: "Ubisoft",
     year: 2004,
-    genre: "Action-adventure",
-    blurb:
-      "The darker turn in the Sands of Time trilogy, built on acrobatic traversal, time manipulation and a hostile island fortress.",
+    genre: genre["Action-adventure"],
+    blurb: {
+      en: "The darker turn in the Sands of Time trilogy, built on acrobatic traversal, time manipulation and a hostile island fortress.",
+      fa: "تاریک‌ترین قسمت سه‌گانه‌ی شن‌های زمان؛ با حرکات آکروباتیک، کنترل زمان و قلعه‌ای خصمانه در دل یک جزیره.",
+    },
   },
   {
     id: "beyond-two-souls",
@@ -87,9 +145,11 @@ export const games = [
     title: "Beyond: Two Souls",
     studio: "Quantic Dream",
     year: 2013,
-    genre: "Interactive drama",
-    blurb:
-      "Jodie's life told out of order, bound to an invisible entity. Choices steer the story more than any combat system does.",
+    genre: genre["Interactive drama"],
+    blurb: {
+      en: "Jodie's life told out of order, bound to an invisible entity. Choices steer the story more than any combat system does.",
+      fa: "زندگی جودی بدون ترتیب زمانی روایت می‌شود؛ زندگی‌ای گره‌خورده با موجودی نامرئی. انتخاب‌ها بیش از هر سیستم مبارزه‌ای داستان را پیش می‌برند.",
+    },
   },
   {
     id: "kena",
@@ -97,9 +157,11 @@ export const games = [
     title: "Kena: Bridge of Spirits",
     studio: "Ember Lab",
     year: 2021,
-    genre: "Action-adventure",
-    blurb:
-      "A spirit guide clears a corrupted forest, in a world animated to the standard of a feature film.",
+    genre: genre["Action-adventure"],
+    blurb: {
+      en: "A spirit guide clears a corrupted forest, in a world animated to the standard of a feature film.",
+      fa: "راهنمای ارواح، جنگلی آلوده را پاک‌سازی می‌کند؛ در جهانی که هم‌تراز یک انیمیشن سینمایی جان گرفته است.",
+    },
   },
   {
     id: "hellblade",
@@ -107,9 +169,11 @@ export const games = [
     title: "Hellblade: Senua's Sacrifice",
     studio: "Ninja Theory",
     year: 2017,
-    genre: "Action-adventure",
-    blurb:
-      "A Pict warrior's journey into Norse myth, told through binaural audio that puts Senua's psychosis inside your headphones.",
+    genre: genre["Action-adventure"],
+    blurb: {
+      en: "A Pict warrior's journey into Norse myth, told through binaural audio that puts Senua's psychosis inside your headphones.",
+      fa: "سفر یک جنگجوی پیکت به دل اسطوره‌های نورس، با صدای باینورالی که روان‌پریشی سنوا را درست داخل هدفونتان می‌آورد.",
+    },
   },
   {
     id: "detroit",
@@ -117,9 +181,11 @@ export const games = [
     title: "Detroit: Become Human",
     studio: "Quantic Dream",
     year: 2018,
-    genre: "Interactive drama",
-    blurb:
-      "Three androids in a near-future Detroit, across a branching story that visibly maps every path you did not take.",
+    genre: genre["Interactive drama"],
+    blurb: {
+      en: "Three androids in a near-future Detroit, across a branching story that visibly maps every path you did not take.",
+      fa: "سه اندروید در دیترویتِ آینده‌ی نزدیک، در داستانی شاخه‌ای که همه‌ی مسیرهایی را که انتخاب نکرده‌اید جلوی چشمتان می‌گذارد.",
+    },
   },
   {
     id: "plague",
@@ -127,9 +193,11 @@ export const games = [
     title: "A Plague Tale: Innocence",
     studio: "Asobo Studio",
     year: 2019,
-    genre: "Stealth adventure",
-    blurb:
-      "Two siblings cross plague-era France, where light is the only thing holding back the rats.",
+    genre: genre["Stealth adventure"],
+    blurb: {
+      en: "Two siblings cross plague-era France, where light is the only thing holding back the rats.",
+      fa: "خواهر و برادری از فرانسه‌ی دوران طاعون می‌گذرند؛ جایی که تنها نور، موش‌ها را عقب نگه می‌دارد.",
+    },
   },
   {
     id: "control",
@@ -137,9 +205,11 @@ export const games = [
     title: "Control",
     studio: "Remedy Entertainment",
     year: 2019,
-    genre: "Action-adventure",
-    blurb:
-      "A federal bureau housed in a building that rearranges itself. Brutalist concrete, telekinesis, and paperwork about the impossible.",
+    genre: genre["Action-adventure"],
+    blurb: {
+      en: "A federal bureau housed in a building that rearranges itself. Brutalist concrete, telekinesis, and paperwork about the impossible.",
+      fa: "اداره‌ای فدرال در ساختمانی که مدام خودش را بازچینی می‌کند. بتن بروتالیستی، تله‌کینزی و پرونده‌هایی درباره‌ی ناممکن‌ها.",
+    },
   },
   {
     id: "final-fantasy",
@@ -147,9 +217,11 @@ export const games = [
     title: "Final Fantasy VII Remake",
     studio: "Square Enix",
     year: 2020,
-    genre: "Role-playing",
-    blurb:
-      "Cloud joins Avalanche in Midgar, where a fight against Shinra grows into something far larger. A reimagining of the original game's opening chapter.",
+    genre: genre["Role-playing"],
+    blurb: {
+      en: "Cloud joins Avalanche in Midgar, where a fight against Shinra grows into something far larger. A reimagining of the original game's opening chapter.",
+      fa: "کلاد در میدگار به گروه اَوَلانچ می‌پیوندد و نبرد با شین‌را به چیزی بسیار بزرگ‌تر تبدیل می‌شود. بازآفرینی فصل آغازین بازی اصلی.",
+    },
   },
   {
     id: "cyberpunk",
@@ -157,9 +229,11 @@ export const games = [
     title: "Cyberpunk 2077",
     studio: "CD Projekt Red",
     year: 2020,
-    genre: "Action RPG",
-    blurb:
-      "Night City, rebuilt over years of patches into the dense open world it was pitched as.",
+    genre: genre["Action RPG"],
+    blurb: {
+      en: "Night City, rebuilt over years of patches into the dense open world it was pitched as.",
+      fa: "نایت‌سیتی؛ که طی سال‌ها آپدیت، همان جهان باز پرجزئیاتی شد که از ابتدا وعده‌اش را داده بودند.",
+    },
   },
   {
     id: "it-takes-two",
@@ -167,9 +241,11 @@ export const games = [
     title: "It Takes Two",
     studio: "Hazelight Studios",
     year: 2021,
-    genre: "Co-op platformer",
-    blurb:
-      "Split-screen only, two players required, and a new mechanic in almost every chapter.",
+    genre: genre["Co-op platformer"],
+    blurb: {
+      en: "Split-screen only, two players required, and a new mechanic in almost every chapter.",
+      fa: "فقط صفحه‌ی دونفره، حتماً با دو بازیکن، و تقریباً در هر فصل یک مکانیک تازه.",
+    },
   },
   {
     id: "nier-automata",
@@ -177,9 +253,11 @@ export const games = [
     title: "NieR: Automata",
     studio: "PlatinumGames",
     year: 2017,
-    genre: "Action RPG",
-    blurb:
-      "Androids fight machines in a ruined world, across multiple playthroughs that each reframe what the last one meant.",
+    genre: genre["Action RPG"],
+    blurb: {
+      en: "Androids fight machines in a ruined world, across multiple playthroughs that each reframe what the last one meant.",
+      fa: "اندرویدها در جهانی ویران با ماشین‌ها می‌جنگند؛ در چند دور بازی که هر کدام معنای دور قبلی را از نو تعریف می‌کند.",
+    },
   },
   {
     id: "resident-evil",
@@ -187,9 +265,11 @@ export const games = [
     title: "Resident Evil Village",
     studio: "Capcom",
     year: 2021,
-    genre: "Survival horror",
-    blurb:
-      "First-person horror through a snowbound village and its castle, leaning further into action than the entry before it.",
+    genre: genre["Survival horror"],
+    blurb: {
+      en: "First-person horror through a snowbound village and its castle, leaning further into action than the entry before it.",
+      fa: "وحشت اول‌شخص در دهکده‌ای برف‌گرفته و قلعه‌ی آن؛ با گرایشی بیشتر به اکشن نسبت به قسمت قبلی.",
+    },
   },
   {
     id: "ghost-of-tsushima",
@@ -197,9 +277,11 @@ export const games = [
     title: "Ghost of Tsushima",
     studio: "Sucker Punch",
     year: 2020,
-    genre: "Action-adventure",
-    blurb:
-      "A samurai abandons his code to fight the Mongol invasion, on an island built to be looked at.",
+    genre: genre["Action-adventure"],
+    blurb: {
+      en: "A samurai abandons his code to fight the Mongol invasion, on an island built to be looked at.",
+      fa: "سامورایی‌ای که برای مقابله با یورش مغول‌ها آیینش را کنار می‌گذارد؛ در جزیره‌ای که برای تماشا ساخته شده است.",
+    },
   },
 ];
 

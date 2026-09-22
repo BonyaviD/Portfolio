@@ -2,7 +2,11 @@
 import { reactive, ref } from "vue";
 import BaseSection from "@/components/base/BaseSection.vue";
 import ParticleField from "@/components/effects/ParticleField.vue";
+import { useLocale } from "@/composables/useLocale";
 import { site, socialLinks } from "@/data/site";
+import { ui } from "@/data/ui";
+
+const { code, t } = useLocale();
 
 /**
  * The ask. Posts to /api/contact, which relays to Telegram from the server -
@@ -18,16 +22,17 @@ const error = ref("");
 /** Filled on mount, so a submit that arrives too fast reads as a bot. */
 const startedAt = Date.now();
 
+/** Same limits as the server; the messages are in data/ui.js. */
 const RULES = {
-  name: [2, 80, "Please give me a name to reply to."],
-  contact: [3, 120, "Please leave an email or a Telegram handle."],
-  message: [10, 2000, "Tell me a little more - ten characters at least."],
+  name: [2, 80],
+  contact: [3, 120],
+  message: [10, 2000],
 };
 
 function validate() {
-  for (const [field, [min, max, complaint]] of Object.entries(RULES)) {
+  for (const [field, [min, max]] of Object.entries(RULES)) {
     const length = form[field].trim().length;
-    if (length < min || length > max) return complaint;
+    if (length < min || length > max) return t(ui.contact.errors[field]);
   }
   return "";
 }
@@ -48,22 +53,18 @@ async function submit() {
   try {
     await $fetch("/api/contact", {
       method: "POST",
-      body: { ...form, startedAt },
+      // The language tells me which one to answer in.
+      body: { ...form, startedAt, locale: code.value },
     });
     state.value = "sent";
   } catch (thrown) {
     state.value = "error";
 
-    // $fetch puts the server's error body on `data`, not on the error itself.
-    // Only the validation complaints are worth repeating to a visitor: the
-    // rest describe the server's own state and mean nothing to them.
-    const status = thrown?.statusCode ?? thrown?.data?.statusCode;
-    const detail = thrown?.data?.statusMessage ?? thrown?.statusMessage;
-
-    error.value =
-      status === 422 && detail
-        ? detail
-        : "That did not go through. The links on the left always work.";
+    // The form checks the same limits before sending, so a rejection here is
+    // about the server's own state - nothing a visitor can act on beyond
+    // reaching me another way. The server's reason goes to the console.
+    console.warn("[contact]", thrown?.data?.statusMessage ?? thrown?.message);
+    error.value = t(ui.contact.errors.failed);
   }
 }
 
@@ -77,7 +78,7 @@ function reset() {
 </script>
 
 <template>
-  <BaseSection id="contact" title="Contact Me">
+  <BaseSection id="contact" :title="t(ui.sections.contact)">
     <!-- The one place particles appear. This is the section the page is
          asking for, so it gets the loudest treatment on the site. -->
     <template #backdrop>
@@ -91,16 +92,13 @@ function reset() {
 
     <div class="contact">
       <div class="contact__intro">
-        <p class="contact__lede">
-          Working on something, hiring, or just want to talk shop? Send it here
-          and it lands on my phone.
-        </p>
+        <p class="contact__lede">{{ t(ui.contact.lede) }}</p>
 
         <ul class="contact__links" role="list">
           <li v-for="link in socialLinks" :key="link.id">
             <a class="contact__link" :href="link.url" target="_blank" rel="noopener noreferrer">
               <Icon :name="link.icon" aria-hidden="true" />
-              {{ link.label }}
+              {{ t(link.label) }}
               <Icon name="lucide:arrow-up-right" class="contact__link-arrow" aria-hidden="true" />
             </a>
           </li>
@@ -108,7 +106,7 @@ function reset() {
 
         <p class="contact__where">
           <Icon name="lucide:map-pin" aria-hidden="true" />
-          {{ site.location.city }} &middot; usually replies within a day
+          {{ t(site.location.city) }} &middot; {{ t(ui.contact.replies) }}
         </p>
       </div>
 
@@ -118,10 +116,10 @@ function reset() {
             <span class="sent__mark" aria-hidden="true">
               <Icon name="lucide:check" />
             </span>
-            <h3 class="sent__title">Message sent</h3>
-            <p class="sent__body">Thank you - I will get back to you soon.</p>
+            <h3 class="sent__title">{{ t(ui.contact.sentTitle) }}</h3>
+            <p class="sent__body">{{ t(ui.contact.sentBody) }}</p>
             <button type="button" class="field__button field__button--quiet" @click="reset">
-              Send another
+              {{ t(ui.contact.sendAnother) }}
             </button>
           </div>
 
@@ -139,7 +137,7 @@ function reset() {
             </div>
 
             <p class="field">
-              <label class="field__label" for="contact-name">Name</label>
+              <label class="field__label" for="contact-name">{{ t(ui.contact.name) }}</label>
               <input
                 id="contact-name"
                 v-model="form.name"
@@ -147,13 +145,14 @@ function reset() {
                 type="text"
                 name="name"
                 autocomplete="name"
+                dir="auto"
                 maxlength="80"
                 required
               />
             </p>
 
             <p class="field">
-              <label class="field__label" for="contact-reply">Email or Telegram</label>
+              <label class="field__label" for="contact-reply">{{ t(ui.contact.reply) }}</label>
               <input
                 id="contact-reply"
                 v-model="form.contact"
@@ -161,6 +160,7 @@ function reset() {
                 type="text"
                 name="contact"
                 autocomplete="email"
+                dir="ltr"
                 maxlength="120"
                 placeholder="you@example.com"
                 required
@@ -168,13 +168,14 @@ function reset() {
             </p>
 
             <p class="field">
-              <label class="field__label" for="contact-message">Message</label>
+              <label class="field__label" for="contact-message">{{ t(ui.contact.message) }}</label>
               <textarea
                 id="contact-message"
                 v-model="form.message"
                 class="field__input field__input--area"
                 name="message"
                 rows="5"
+                dir="auto"
                 maxlength="2000"
                 required
               ></textarea>
@@ -193,7 +194,7 @@ function reset() {
             >
               <Icon v-if="state !== 'sending'" name="lucide:send" aria-hidden="true" />
               <span v-else class="field__spinner" aria-hidden="true"></span>
-              {{ state === "sending" ? "Sending" : "Send message" }}
+              {{ state === "sending" ? t(ui.contact.sending) : t(ui.contact.send) }}
             </button>
           </form>
         </transition>
@@ -250,7 +251,7 @@ function reset() {
 }
 
 .contact__link-arrow {
-  margin-left: auto;
+  margin-inline-start: auto;
   opacity: 0.6;
 }
 

@@ -1,7 +1,9 @@
 ﻿<script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { useLocale } from "@/composables/useLocale";
 import { artAccents } from "@/data/art-accents";
 import { gamesWithArt as games } from "@/data/hobbies";
+import { ui } from "@/data/ui";
 import ProfileImage from "@/assets/img/avatar.webp";
 
 /**
@@ -16,12 +18,17 @@ import ProfileImage from "@/assets/img/avatar.webp";
  *
  * Rendered with CSS rather than WebGL: it is a crossfade and a scaling tile,
  * so it stays sharp, costs little, and needs no GPU path.
+ *
+ * Left to right in both languages. It is a picture of a real device's screen,
+ * and the rail's geometry is measured from the left; the Persian text inside
+ * it still runs right to left in its own blocks.
  */
+const { locale, t, number } = useLocale();
 const index = ref(0);
 const current = computed(() => games[index.value]);
 // Sampled from each cover at build time by scripts/generate-art-accents.mjs.
 const accent = computed(() => artAccents[current.value.id] ?? "rgb(230 182 108)");
-const position = computed(() => `${index.value + 1} / ${games.length}`);
+const position = computed(() => `${number(index.value + 1)} / ${number(games.length)}`);
 
 const railEl = ref(null);
 const stripEl = ref(null);
@@ -117,7 +124,7 @@ const clock = ref("");
 let timer = null;
 
 function tick() {
-  clock.value = new Intl.DateTimeFormat("en-US", {
+  clock.value = new Intl.DateTimeFormat(locale.value.code === "fa" ? "fa-IR" : "en-US", {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date());
@@ -139,10 +146,11 @@ onBeforeUnmount(() => {
 <template>
   <div
     class="ps"
+    dir="ltr"
     :style="{ '--accent': accent, '--art-position-mobile': current.mobileArtPosition }"
     role="group"
     aria-roledescription="carousel"
-    aria-label="Games, console shelf view"
+    :aria-label="t(ui.gaming.carousel)"
     tabindex="0"
     @keydown="onKeydown"
     @pointerdown="onPointerDown"
@@ -166,8 +174,8 @@ onBeforeUnmount(() => {
     <!-- Scenery: not interactive, not announced. -->
     <header class="bar" aria-hidden="true">
       <nav class="bar__tabs">
-        <span class="bar__tab is-active">Games</span>
-        <span class="bar__tab">Media</span>
+        <span class="bar__tab is-active">{{ t(ui.gaming.games) }}</span>
+        <span class="bar__tab">{{ t(ui.gaming.media) }}</span>
       </nav>
 
       <div class="bar__status">
@@ -217,12 +225,12 @@ onBeforeUnmount(() => {
     <div class="stage">
       <transition name="stage" mode="out-in">
         <div :key="current.id" class="stage__inner">
-          <div class="detail">
+          <div class="detail" :dir="locale.dir">
             <h4 class="detail__title">{{ current.title }}</h4>
-            <p class="detail__tagline">{{ current.blurb }}</p>
+            <p class="detail__tagline">{{ t(current.blurb) }}</p>
 
             <div class="detail__actions" aria-hidden="true">
-              <span class="detail__play">Play</span>
+              <span class="detail__play">{{ t(ui.gaming.play) }}</span>
               <span class="detail__more">
                 <Icon name="lucide:ellipsis" />
               </span>
@@ -231,19 +239,25 @@ onBeforeUnmount(() => {
 
           <div class="cards">
             <div class="cards__art">
-              <img :src="current.src" :alt="`${current.title} cover art`" loading="lazy" />
-              <span class="cards__badge">{{ current.genre }}</span>
-              <span class="cards__year">{{ current.year || "Series" }}</span>
+              <img
+                :src="current.src"
+                :alt="t(ui.gaming.coverAlt, { title: current.title })"
+                loading="lazy"
+              />
+              <span class="cards__badge" :dir="locale.dir">{{ t(current.genre) }}</span>
+              <span class="cards__year">
+                {{ current.year ? number(current.year, { useGrouping: false }) : t(ui.gaming.series) }}
+              </span>
             </div>
 
-            <div class="cards__stats">
+            <div class="cards__stats" :dir="locale.dir">
               <Icon name="lucide:trophy" class="cards__trophy" aria-hidden="true" />
               <span class="cards__stat">
-                <span class="cards__label">Studio</span>
+                <span class="cards__label">{{ t(ui.gaming.studio) }}</span>
                 <span class="cards__value">{{ current.studio }}</span>
               </span>
               <span class="cards__stat">
-                <span class="cards__label">In shelf</span>
+                <span class="cards__label">{{ t(ui.gaming.inShelf) }}</span>
                 <span class="cards__value">{{ position }}</span>
               </span>
             </div>
@@ -280,18 +294,25 @@ onBeforeUnmount(() => {
    * short laptop viewports - which is why the height is not set outright. A
    * fixed height there clipped the buttons off the bottom row.
    */
-  width: min(
+  --frame-width: min(
     calc(100vw - 2 * var(--inset)),
     calc((100svh - 2 * var(--inset)) * 16 / 9),
     var(--frame-max-width)
   );
+
+  width: var(--frame-width);
   aspect-ratio: 16 / 9;
   min-height: min(calc(100svh - 2 * var(--inset)), 46rem);
-  margin-left: 50%;
+  /*
+   * Wider than the section's container, so centred on it with equal negative
+   * margins. The earlier margin-left: 50% plus translateX(-50%) broke on the
+   * Persian page: in a right-to-left container an over-constrained box drops
+   * its left margin, and the console slid off the left edge of the screen.
+   */
   margin-block: var(--inset);
+  margin-inline: calc((100% - var(--frame-width)) / 2);
   overflow: hidden;
   border-radius: var(--radius-2xl);
-  transform: translateX(-50%);
   touch-action: pan-y;
 }
 

@@ -4,7 +4,11 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import PhotoLightbox from "@/components/sections/PhotoLightbox.vue";
 import { usePhotoLine } from "@/composables/usePhotoLine";
 import { formatPhotoDate, usePhotoFeed } from "@/composables/usePhotoFeed";
+import { useLocale } from "@/composables/useLocale";
 import { socialUrlById } from "@/data/site";
+import { ui } from "@/data/ui";
+
+const { locale, t, number } = useLocale();
 
 const { photos, profile } = await usePhotoFeed();
 
@@ -25,6 +29,8 @@ const openedFrom = ref(null);
 
 const { isActive, focus, rectOf } = usePhotoLine(wallEl, {
   photos: photos.value,
+  // Written on the paper, where a rounded "1.2K" reads better than a figure.
+  footnote: (photo) => footnoteFor(photo, { notation: "compact" }),
   onPick: (index, rect) => {
     openedFrom.value = rect;
     opened.value = index;
@@ -44,12 +50,14 @@ function step(direction) {
   openedFrom.value = rectOf(next);
 }
 
-/** Matches what the WebGL prints write on their bottom border. */
-function footnoteFor(photo) {
+/** Date, views and likes, in the page's language, digits and calendar. */
+function footnoteFor(photo, numberFormat) {
   return [
-    formatPhotoDate(photo.date),
-    photo.views ? `${photo.views.toLocaleString("en-GB")} views` : "",
-    photo.reactions ? `${photo.reactions.toLocaleString("en-GB")} likes` : "",
+    formatPhotoDate(photo.date, locale.value.intl),
+    photo.views ? t(ui.photography.views, { count: number(photo.views, numberFormat) }) : "",
+    photo.reactions
+      ? t(ui.photography.likes, { count: number(photo.reactions, numberFormat) })
+      : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -61,12 +69,10 @@ function footnoteFor(photo) {
     <div class="photography__head">
       <h3 class="photography__title">
         <Icon name="lucide:camera" aria-hidden="true" />
-        Photography
+        {{ t(ui.photography.title) }}
       </h3>
 
-      <p class="photography__lede">
-        Prints from walks around Iran, pegged up to dry. Drag the line, and point at one to watch it develop.
-      </p>
+      <p class="photography__lede">{{ t(ui.photography.lede) }}</p>
     </div>
 
     <!-- The channel these prints come from, as Telegram itself describes it.
@@ -77,7 +83,7 @@ function footnoteFor(photo) {
         v-if="profile.avatar"
         class="channel__avatar"
         :src="profile.avatar"
-        :alt="`${profile.title} channel photo`"
+        :alt="t(ui.photography.channelAlt, { title: profile.title })"
         width="72"
         height="72"
         loading="lazy"
@@ -96,8 +102,8 @@ function footnoteFor(photo) {
 
         <ul v-if="counters.length" class="channel__counters" role="list">
           <li v-for="counter in counters" :key="counter.type" class="channel__counter">
-            <strong>{{ counter.value.toLocaleString("en-GB") }}</strong>
-            {{ counter.type }}
+            <strong>{{ number(counter.value) }}</strong>
+            {{ t(ui.photography.counters[counter.type]) }}
           </li>
         </ul>
       </div>
@@ -105,7 +111,7 @@ function footnoteFor(photo) {
       <BaseButton
         class="channel__cta"
         :to="profile.url"
-        label="More photos"
+        :label="t(ui.photography.more)"
         icon="simple-icons:telegram"
         trailing-icon="lucide:arrow-up-right"
         variant="soft"
@@ -118,7 +124,7 @@ function footnoteFor(photo) {
       <div ref="wallEl" class="wall__stage" aria-hidden="true"></div>
 
       <p v-if="isActive" class="wall__hint" aria-hidden="true">
-        Drag the line &middot; tap a print
+        {{ t(ui.photography.hint) }}
       </p>
     </div>
 
@@ -126,6 +132,7 @@ function footnoteFor(photo) {
       :photos="photos"
       :index="opened"
       :origin="openedFrom"
+      :footnote="footnoteFor"
       @close="opened = null"
       @navigate="step"
     />
@@ -164,7 +171,7 @@ function footnoteFor(photo) {
     <div v-if="!profile" class="photography__cta">
       <BaseButton
         :to="socialUrlById.telegram"
-        label="More photos"
+        :label="t(ui.photography.more)"
         icon="simple-icons:telegram"
         trailing-icon="lucide:arrow-up-right"
         variant="soft"
@@ -202,10 +209,11 @@ function footnoteFor(photo) {
   position: relative;
   display: none;
   height: clamp(29rem, 72vh, 46rem);
-  /* Full-bleed: the wall reads better edge to edge than inside the container. */
+  /* Full-bleed: the wall reads better edge to edge than inside the container.
+     Equal negative margins rather than margin-left: 50% and a translate, which
+     a right-to-left page ignores the left half of. */
   width: 100vw;
-  margin-left: 50%;
-  transform: translateX(-50%);
+  margin-inline: calc((100% - 100vw) / 2);
   touch-action: pan-y;
 }
 
@@ -221,7 +229,7 @@ function footnoteFor(photo) {
 .wall__hint {
   position: absolute;
   top: var(--space-4);
-  right: var(--space-6);
+  inset-inline-end: var(--space-6);
   color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
   letter-spacing: var(--letter-spacing-wide);
@@ -272,7 +280,7 @@ function footnoteFor(photo) {
   flex-direction: column;
   gap: var(--space-1);
   padding: var(--space-3);
-  text-align: left;
+  text-align: start;
 }
 
 .grid__text {

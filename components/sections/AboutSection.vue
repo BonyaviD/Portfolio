@@ -2,8 +2,10 @@
 import BaseSection from "@/components/base/BaseSection.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import ProfilePortrait from "@/components/base/ProfilePortrait.vue";
+import { useLocale } from "@/composables/useLocale";
 import { aboutHighlights, aboutIntro, experienceYears, quickFacts } from "@/data/about";
 import { site, socialUrlById } from "@/data/site";
+import { ui } from "@/data/ui";
 
 defineProps({
   /** h1 on the dedicated About page, where this section opens the page. */
@@ -12,35 +14,46 @@ defineProps({
 
 /** The years already sit on the portrait badge; the row carries the rest. */
 const facts = quickFacts.filter((fact) => fact.id !== "experience");
+
+const { t, number } = useLocale();
 </script>
 
 <template>
-  <BaseSection id="about" title="About Me" :heading-level="headingLevel">
+  <BaseSection id="about" :title="t(ui.sections.about)" :heading-level="headingLevel">
     <div class="about">
       <figure class="about__portrait">
         <span class="about__halo" aria-hidden="true"></span>
-        <ProfilePortrait class="about__photo" fill />
+        <ProfilePortrait class="about__photo" :alt="t(ui.about.portraitAlt)" fill />
 
         <figcaption class="about__badge">
-          <strong class="about__badge-value">{{ experienceYears }}+</strong>
-          <span class="about__badge-label">years building<br />for the web</span>
+          <strong class="about__badge-value">{{ number(experienceYears) }}+</strong>
+          <span class="about__badge-label">
+            <template v-for="(line, index) in t(ui.about.badge)" :key="line">
+              <br v-if="index" />{{ line }}
+            </template>
+          </span>
         </figcaption>
       </figure>
 
       <div class="about__intro">
-        <p class="about__eyebrow">{{ site.role }}</p>
-        <p class="about__name">{{ site.name }}</p>
-        <p class="about__lede">{{ aboutIntro }}</p>
+        <p class="about__eyebrow">{{ t(site.role) }}</p>
+        <p class="about__name">{{ t(site.displayName) }}</p>
+        <p class="about__lede">{{ t(aboutIntro) }}</p>
 
         <dl class="about__facts">
           <div v-for="fact in facts" :key="fact.id" class="about__fact">
-            <dt class="about__fact-label">{{ fact.label }}</dt>
-            <dd class="about__fact-value">{{ fact.value }}</dd>
+            <dt class="about__fact-label">{{ t(fact.label) }}</dt>
+            <dd class="about__fact-value">{{ t(fact.value) }}</dd>
           </div>
         </dl>
 
         <div class="about__actions">
-          <BaseButton to="#contact" label="Work with me" icon="lucide:mail" variant="solid" />
+          <BaseButton
+            to="#contact"
+            :label="t(ui.about.workWithMe)"
+            icon="lucide:mail"
+            variant="solid"
+          />
           <BaseButton
             :to="socialUrlById.linkedin"
             label="LinkedIn"
@@ -52,12 +65,12 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
       </div>
 
       <ul class="about__highlights" role="list">
-        <li v-for="item in aboutHighlights" :key="item.title" class="about__highlight">
+        <li v-for="item in aboutHighlights" :key="item.icon" class="about__highlight">
           <span class="about__icon" aria-hidden="true">
             <Icon :name="item.icon" />
           </span>
-          <strong class="about__highlight-title">{{ item.title }}</strong>
-          <span class="about__highlight-text">{{ item.text }}</span>
+          <strong class="about__highlight-title">{{ t(item.title) }}</strong>
+          <span class="about__highlight-text">{{ t(item.text) }}</span>
         </li>
       </ul>
     </div>
@@ -123,24 +136,25 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
   content: "";
   position: absolute;
   top: calc(var(--space-4) * -1);
-  left: calc(var(--space-4) * -1);
+  inset-inline-start: calc(var(--space-4) * -1);
   width: 42%;
   height: 42%;
   border-top: var(--border-width-thick) solid var(--color-primary);
-  border-left: var(--border-width-thick) solid var(--color-primary);
-  border-top-left-radius: var(--radius-2xl);
+  border-inline-start: var(--border-width-thick) solid var(--color-primary);
+  border-start-start-radius: var(--radius-2xl);
   opacity: 0.7;
   pointer-events: none;
 }
 
 .about__badge {
   position: absolute;
-  right: calc(var(--space-6) * -1);
+  inset-inline-end: calc(var(--space-6) * -1);
   bottom: var(--space-8);
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-5) var(--space-3) var(--space-4);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4) var(--space-5);
   border: var(--border-width-hairline) solid var(--glass-border);
   border-radius: var(--radius-xl);
   background: var(--glass-bg-strong);
@@ -337,7 +351,7 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
   }
 
   .about__badge {
-    right: var(--space-4);
+    inset-inline-end: var(--space-4);
     bottom: var(--space-4);
   }
 
@@ -353,11 +367,12 @@ const facts = quickFacts.filter((fact) => fact.id !== "experience");
 
   .about__portrait::before {
     top: calc(var(--space-3) * -1);
-    left: calc(var(--space-3) * -1);
+    inset-inline-start: calc(var(--space-3) * -1);
   }
 
   .about__badge {
-    padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3);
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3) var(--space-4);
   }
 
   .about__badge-value {

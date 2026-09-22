@@ -1,5 +1,7 @@
 import { computed } from "vue";
+import { useLocale } from "@/composables/useLocale";
 import { photos as bundledPhotos } from "@/data/hobbies";
+import { ui } from "@/data/ui";
 
 /**
  * The photography feed, normalised to one shape.
@@ -17,6 +19,8 @@ import { photos as bundledPhotos } from "@/data/hobbies";
  * @returns {{ photos: import("vue").ComputedRef<Array>, source: import("vue").ComputedRef<string> }}
  */
 export async function usePhotoFeed() {
+  const { t } = useLocale();
+
   const { data: feed } = await useAsyncData("telegram-feed", () =>
     $fetch("/api/photos").catch(() => null)
   );
@@ -36,18 +40,18 @@ export async function usePhotoFeed() {
         views: photo.views ?? null,
         reactions: photo.reactions ?? null,
         // The caption is the only description of the image we have.
-        alt: photo.description?.split("\n")[0] || "Photo from my Telegram channel",
+        alt: photo.description?.split("\n")[0] || t(ui.photography.fallbackAlt),
       }));
     }
 
     return bundledPhotos.map((photo) => ({
       id: photo.id,
       src: photo.src,
-      description: `${photo.title}, ${photo.place}`,
+      description: `${t(photo.title)}${t({ en: ", ", fa: "، " })}${t(photo.place)}`,
       date: null,
       views: null,
       reactions: null,
-      alt: photo.alt,
+      alt: t(photo.alt),
     }));
   });
 
@@ -60,18 +64,27 @@ export async function usePhotoFeed() {
 }
 
 /**
- * Fixed locale and time zone: the server and the browser must format a date
- * identically or hydration mismatches.
+ * Fixed time zone, and the locale passed in rather than read from the
+ * browser: the server and the browser must format a date identically or
+ * hydration mismatches. "fa-IR" formats in the Persian calendar, which is the
+ * one a Persian reader expects - 1 Mehr 1405, not 23 September 2026.
  */
-const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC",
-});
+const dateFormats = new Map();
 
-export function formatPhotoDate(value) {
+export function formatPhotoDate(value, intl = "en-GB") {
   if (!value) return "";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "" : DATE_FORMAT.format(date);
+  if (Number.isNaN(date.getTime())) return "";
+  if (!dateFormats.has(intl)) {
+    dateFormats.set(
+      intl,
+      new Intl.DateTimeFormat(intl, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    );
+  }
+  return dateFormats.get(intl).format(date);
 }

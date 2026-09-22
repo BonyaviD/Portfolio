@@ -53,15 +53,25 @@ const { scrollTo } = useActiveSection(sectionIds);
 </template>
 
 <style scoped>
+/**
+ * Two rows: the copy centred in everything left over, then the scroll cue on
+ * a row of its own.
+ *
+ * The cue used to be absolutely positioned against the bottom, which took it
+ * out of the flow - so on a short phone the centred copy grew straight into
+ * it and "See Magic" landed across the buttons. In the flow it is simply the
+ * last thing in the column, and the two can no longer meet.
+ */
 .hero {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 1fr auto;
   align-items: center;
-  justify-content: center;
+  justify-items: center;
+  row-gap: var(--space-8);
   /* Fills the phone screen without fighting mobile browser chrome. */
   min-height: 100svh;
-  padding-block: var(--space-24) var(--space-32);
+  padding-block: var(--space-24) var(--space-12);
   overflow: hidden;
   text-align: center;
 }
@@ -137,21 +147,65 @@ const { scrollTo } = useActiveSection(sectionIds);
 }
 
 .hero__cue {
-  position: absolute;
-  bottom: var(--space-8);
-  left: 50%;
+  position: relative;
   z-index: var(--z-raised);
-  transform: translateX(-50%);
 }
 
 @media (max-width: 48rem) {
   .hero {
-    padding-block: var(--space-20) var(--space-32);
+    /* The bottom padding clears the navigation island, which moves to the
+       bottom of the screen at this width. */
+    padding-block: var(--space-20) calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/*
+ * Short screens - small phones, and any phone held sideways. The hero still
+ * has to fit the copy, the cue and the navigation island between the top and
+ * the bottom of the viewport, so everything tightens rather than spilling
+ * past the fold.
+ */
+@media (max-height: 46rem) {
+  .hero {
+    padding-block: var(--space-12) calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+    row-gap: var(--space-4);
+  }
+
+  .hero__tagline {
+    font-size: var(--font-size-base);
   }
 
   .hero__cue {
-    /* Clears the bottom navigation island. */
-    bottom: calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+    width: 9.5rem;
+  }
+}
+
+/*
+ * Shorter still: the copy alone fills the screen, and a hint to scroll is
+ * redundant when there is visibly more page below it.
+ */
+@media (max-height: 38rem) {
+  .hero {
+    padding-block: var(--space-10) calc(var(--space-20) + env(safe-area-inset-bottom, 0px));
+    row-gap: 0;
+  }
+
+  .hero__content {
+    gap: var(--space-3);
+  }
+
+  /* Sized off the height as well, so a phone held sideways does not get a
+     name scaled to its very wide viewport. */
+  .hero__name {
+    font-size: clamp(1.5rem, 11vh, 3.5rem);
+  }
+
+  .hero__tagline {
+    font-size: var(--font-size-sm);
+  }
+
+  .hero__cue {
+    display: none;
   }
 }
 </style>

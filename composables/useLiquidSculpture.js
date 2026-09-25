@@ -234,8 +234,9 @@ void main() {
  * @param {object} containerRef Vue ref holding the host element.
  * @param {object} options
  * @param {boolean} [options.celebrate] Flow into a heart (reactive).
- * @param {() => number} [options.side] 1 to sit toward the right of the
- *   section, -1 toward the left - where the form is, in either direction.
+ * @param {string} [options.stage] Selector, within the same section, of the
+ *   box the piece sits in. It takes that box's centre and fits inside it;
+ *   without one it centres itself in the section.
  * @returns {{ isActive: object }}
  */
 export function useLiquidSculpture(containerRef, options = {}) {
@@ -301,11 +302,18 @@ export function useLiquidSculpture(containerRef, options = {}) {
     let worldPerPx = 0.01;
     let size = { width: 1, height: 1 };
 
+    /** The box the piece belongs in, laid out by the page itself. */
+    const stage = options.stage
+      ? container.closest("section")?.querySelector(options.stage) ?? null
+      : null;
+
     /**
-     * Sized to the section and placed where it can be seen: on wide screens
-     * low in the introduction's column, under the links and running in
-     * beneath the corner of the form's glass; where the two stack, low and
-     * centred behind the form.
+     * The canvas covers the whole section, so the glow and the pointer's
+     * drop can go anywhere in it; the piece itself is centred on its stage
+     * and sized to fit inside it. Taking both from the page's own layout is
+     * what keeps it out from behind the form and inside the section at every
+     * width - positions worked out from the section's size alone got both
+     * wrong wherever the layout changed shape.
      */
     function resize() {
       const width = container.clientWidth;
@@ -316,21 +324,54 @@ export function useLiquidSculpture(containerRef, options = {}) {
       renderer.setSize(Math.round(width * renderScale), bufferHeight, false);
       uniforms.uResolution.value.set(width, height);
 
-      const wide = width >= 900;
-      const radiusPx = wide ? Math.min(height * 0.28, width * 0.18) : Math.min(width * 0.46, 260);
+      const frame = container.getBoundingClientRect();
+      const box = stage?.getBoundingClientRect();
+      const fits = box && box.width > 0 && box.height > 0;
+      const centre = fits
+        ? { x: box.left + box.width / 2 - frame.left, y: box.top + box.height / 2 - frame.top }
+        : { x: width / 2, y: height / 2 };
+      // The blobs wander a little past the piece's nominal radius, so it is
+      // fitted with a margin rather than edge to edge.
+      const radiusPx = fits
+        ? Math.min(box.width * 0.4, box.height * 0.5, 240)
+        : Math.min(width, height) * 0.3;
+
       const halfHeight = height / 2;
       uniforms.uTanHalf.value = (PIECE_RADIUS * halfHeight) / (CAMERA_Z * radiusPx);
       worldPerPx = (CAMERA_Z * uniforms.uTanHalf.value) / halfHeight;
       uniforms.uPixel.value = (2 * uniforms.uTanHalf.value) / bufferHeight;
-
-      const side = options.side?.() ?? 1;
-      const offsetPx = wide ? { x: -side * width * 0.155, y: -height * 0.28 } : { x: 0, y: -height * 0.12 };
-      uniforms.uOffset.value.set(offsetPx.x * worldPerPx, offsetPx.y * worldPerPx);
+      uniforms.uOffset.value.set(
+        (centre.x - width / 2) * worldPerPx,
+        -(centre.y - height / 2) * worldPerPx
+      );
     }
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
+    if (stage) resizeObserver.observe(stage);
     resize();
+
+    /**
+     * A resize observer hears when the stage changes size, but not when it
+     * moves - and it moves without resizing whenever something above it
+     * reflows: a web font arriving, a section finishing hydration. Twice a
+     * second the piece checks where its stage is now and follows it.
+     */
+    let lastStage = "";
+    let nextCheck = 0;
+    function followStage(now) {
+      if (!stage || now < nextCheck) return;
+      nextCheck = now + 500;
+      const frame = container.getBoundingClientRect();
+      const box = stage.getBoundingClientRect();
+      const key = [box.left - frame.left, box.top - frame.top, box.width, box.height, frame.width, frame.height]
+        .map(Math.round)
+        .join(",");
+      if (key !== lastStage) {
+        lastStage = key;
+        resize();
+      }
+    }
 
     // ------------------------------------------------------------ pointer
     /** Pointer on the piece's plane, in its own units; null when absent. */
@@ -454,6 +495,7 @@ export function useLiquidSculpture(containerRef, options = {}) {
       // Clamped, so a tab coming back from the background does not lurch.
       const dt = Math.min((now - (last || now)) / 1000, 0.1);
       last = now;
+      followStage(now);
       step(dt);
       renderer.render(threeScene, camera);
     }

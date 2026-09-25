@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from "vue";
 import { useLiquidSculpture } from "@/composables/useLiquidSculpture";
-import { useLocale } from "@/composables/useLocale";
 
 /**
  * Decorative layer: a raymarched sculpture of liquid gold that answers the
@@ -11,18 +10,17 @@ import { useLocale } from "@/composables/useLocale";
  */
 const props = defineProps({
   celebrate: { type: Boolean, default: false },
+  /** Selector of the box in the section that the piece sits in and fits. */
+  stage: { type: String, default: "" },
 });
 
-const { isRtl } = useLocale();
 const containerEl = ref(null);
 
 const { isActive } = useLiquidSculpture(containerEl, {
   get celebrate() {
     return props.celebrate;
   },
-  // The form's side: the right in English, the left in Persian. The piece
-  // sits in the other column, under the links.
-  side: () => (isRtl.value ? -1 : 1),
+  stage: props.stage,
 });
 </script>
 

@@ -82,7 +82,7 @@ function reset() {
     <!-- The loudest piece of the site sits here, because this is the
          section the page is asking for: liquid gold behind the form. -->
     <template #backdrop>
-      <LiquidSculpture :celebrate="state === 'sent'" />
+      <LiquidSculpture :celebrate="state === 'sent'" stage=".contact__stage" />
     </template>
 
     <div class="contact">
@@ -103,6 +103,12 @@ function reset() {
           <Icon name="lucide:map-pin" aria-hidden="true" />
           {{ t(site.location.city) }} &middot; {{ t(ui.contact.replies) }}
         </p>
+
+        <!-- Room for the gold sculpture in the backdrop: it sizes itself to
+             this box and sits in its middle, so it always has its own space
+             - beside the form on wide screens, between the introduction and
+             the form where the two stack. -->
+        <div class="contact__stage" aria-hidden="true"></div>
       </div>
 
       <div class="contact__panel">
@@ -204,6 +210,22 @@ function reset() {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: var(--space-10);
   align-items: start;
+}
+
+/* The column runs the full height of the row, so the stage below the links
+   can take whatever the form leaves over. */
+.contact__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+}
+
+.contact__stage {
+  flex: 1;
+  align-self: stretch;
+  min-height: 17rem;
+  margin-top: var(--space-4);
 }
 
 /* ----------------------------------------------------------------- intro */
@@ -434,6 +456,13 @@ function reset() {
   .contact {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-8);
+  }
+
+  .contact__stage {
+    flex: none;
+    height: clamp(13rem, 42vw, 18rem);
+    min-height: 0;
+    margin-top: var(--space-2);
   }
 
   .contact__links {

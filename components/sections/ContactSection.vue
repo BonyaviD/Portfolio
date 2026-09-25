@@ -82,12 +82,7 @@ function reset() {
     <!-- The one place particles appear. This is the section the page is
          asking for, so it gets the loudest treatment on the site. -->
     <template #backdrop>
-      <ParticleField
-        :particle-count="34000"
-        :opacity="0.9"
-        :particle-size="3.4"
-        :celebrate="state === 'sent'"
-      />
+      <ParticleField :celebrate="state === 'sent'" />
     </template>
 
     <div class="contact">

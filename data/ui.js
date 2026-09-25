@@ -158,6 +158,9 @@ export const ui = {
   },
 
   footer: {
-    builtWith: { en: "built with Nuxt", fa: "ساخته‌شده با Nuxt" },
+    madeWith: { en: "Made with", fa: "ساخته‌شده با" },
+    /** Read aloud for the heart. */
+    love: { en: "love", fa: "عشق" },
+    by: { en: "by", fa: "توسط" },
   },
 };

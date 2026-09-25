@@ -20,7 +20,6 @@ export const site = {
   location: { city: { en: "Tehran", fa: "تهران" }, country: "IR" },
   employer: "Web One",
   birthDate: "1992-05-24",
-  copyrightYear: 2024,
 };
 
 /** A plain photo, for the structured data that describes the person. */

@@ -2,10 +2,9 @@
 import SocialActions from "@/components/base/SocialActions.vue";
 import LanguageSwitch from "@/components/layout/LanguageSwitch.vue";
 import { useLocale } from "@/composables/useLocale";
-import { site } from "@/data/site";
 import { ui } from "@/data/ui";
 
-const { t, number } = useLocale();
+const { t } = useLocale();
 </script>
 
 <template>
@@ -14,9 +13,10 @@ const { t, number } = useLocale();
       <SocialActions align="center" variant="soft" icon-only />
 
       <p class="footer__note">
-        &copy; {{ number(site.copyrightYear, { useGrouping: false }) }}
-        <span class="footer__name">{{ t(site.displayName) }}</span> &middot;
-        {{ t(ui.footer.builtWith) }}
+        {{ t(ui.footer.madeWith) }}
+        <Icon name="lucide:heart" class="footer__heart" :aria-label="t(ui.footer.love)" />
+        {{ t(ui.footer.by) }}
+        <span class="footer__name" dir="ltr">navidbonyadi</span>
       </p>
       <LanguageSwitch variant="text" />
     </div>
@@ -48,6 +48,27 @@ const { t, number } = useLocale();
 .footer__name {
   color: var(--color-text);
   font-weight: var(--font-weight-bold);
+}
+
+.footer__heart {
+  margin-inline: 0.15em;
+  color: #ff3b5c;
+  fill: currentColor;
+  vertical-align: -0.15em;
+  animation: footer-beat 1.8s var(--ease-standard) infinite;
+}
+
+/* Two quick beats, then a rest - a heartbeat, not a pulse. */
+@keyframes footer-beat {
+  0%, 40%, 100% { transform: scale(1); }
+  10%, 30% { transform: scale(1.18); }
+  20% { transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer__heart {
+    animation: none;
+  }
 }
 
 @media (max-width: 48rem) {

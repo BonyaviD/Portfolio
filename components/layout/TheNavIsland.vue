@@ -54,10 +54,20 @@ const trackEl = ref(null);
 const lensEl = ref(null);
 const itemEls = ref([]);
 
-/** The item under the lens while it is being dragged. */
+/**
+ * There is only ever one lens, and it goes wherever attention is: under the
+ * finger while pressing or dragging, under the mouse while hovering, then on
+ * a destination just chosen while the page gets there, and otherwise on the
+ * current section. Whatever it sits on takes the accent.
+ */
 const dragId = ref(null);
+const hoverId = ref(null);
+/** Chosen but not yet current - a route change to another page is async. */
+const pendingId = ref(null);
 const pressing = ref(false);
-const shownId = computed(() => dragId.value ?? currentId.value);
+const shownId = computed(
+  () => dragId.value ?? hoverId.value ?? pendingId.value ?? currentId.value
+);
 
 // ------------------------------------------------------------------- glass
 const refract = ref(false);
@@ -79,7 +89,7 @@ function updateMap() {
 }
 
 // -------------------------------------------------------------------- lens
-/** Where the lens is now, in pixels from the track's left edge. */
+/** Where the lens is headed, in pixels from the track's left edge. */
 let lens = { x: 0, width: 0, visible: false };
 let animation = null;
 
@@ -87,6 +97,19 @@ function itemBox(id) {
   const index = sections.findIndex((section) => section.id === id);
   const el = itemEls.value[index];
   return el ? { x: el.offsetLeft, width: el.offsetWidth } : null;
+}
+
+/**
+ * Where the lens actually is on screen right now. Mid-glide that is not
+ * where it is headed, and a new move has to start from here - sweeping the
+ * mouse across the bar redirects the lens many times a second, and starting
+ * each move from the last destination made it jump.
+ */
+function lensNow() {
+  if (!animation || !lensEl.value || !trackEl.value) return { ...lens };
+  const now = lensEl.value.getBoundingClientRect();
+  const track = trackEl.value.getBoundingClientRect();
+  return { x: now.left - track.left, width: now.width, visible: true };
 }
 
 function paintLens() {
@@ -110,12 +133,10 @@ function moveLens(id, { animate = true } = {}) {
     return;
   }
 
-  // Already on its way there: a tap moves the lens and then the section
-  // change asks for the same move again, which must not restart - or cut
-  // short - the glide already under way.
+  // Already on its way there: asking again must not restart the glide.
   if (animation && lens.x === box.x && lens.width === box.width) return;
 
-  const from = { ...lens };
+  const from = lensNow();
   lens = { ...box, visible: true };
   animation?.cancel();
 
@@ -136,27 +157,56 @@ function moveLens(id, { animate = true } = {}) {
     [
       frame(from.x, from.width, 1),
       // Both edges' span, a little flattened: liquid under tension.
-      { ...frame(left, right - left, 0.86), offset: 0.42 },
+      { ...frame(left, right - left, 0.88), offset: 0.4 },
       frame(box.x, box.width, 1),
     ],
-    { duration: 520, easing: "cubic-bezier(0.34, 1.3, 0.5, 1)" }
+    { duration: 460, easing: "cubic-bezier(0.34, 1.3, 0.5, 1)" }
   );
   // Land on a fresh measurement, in case the bar re-laid itself out - a font
   // arriving, a resize - while the lens was travelling.
   animation.onfinish = () => {
     animation = null;
-    if (dragId.value === null) moveLens(currentId.value, { animate: false });
+    if (dragId.value === null) moveLens(shownId.value, { animate: false });
   };
   paintLens();
 }
 
-watch(currentId, (id) => {
+// While a finger drags it, the lens is steered by followFinger() instead.
+watch(shownId, (id) => {
   if (dragId.value === null) moveLens(id);
 });
 
-// -------------------------------------------------------------------- drag
+// A destination stops being "pending" once it is simply current.
+watch(currentId, (id) => {
+  if (id === pendingId.value) pendingId.value = null;
+});
+
+/** Makes an item current: the lens stays on it while the page gets there. */
+function choose(id) {
+  if (!id) return;
+  pendingId.value = id;
+  // Never hold it forever - a route that fails to arrive gives it back.
+  setTimeout(() => {
+    if (pendingId.value === id) pendingId.value = null;
+  }, 2000);
+  if (id !== currentId.value) go(id);
+}
+
+// ------------------------------------------------------------------- hover
+/** The mouse pulls the lens along the bar; leaving the bar lets it return. */
+function onItemEnter(id, event) {
+  if (event.pointerType !== "mouse" || drag) return;
+  hoverId.value = id;
+}
+
+function onTrackLeave(event) {
+  if (event.pointerType !== "mouse") return;
+  hoverId.value = null;
+}
+
+// ---------------------------------------------------------- press and drag
 let drag = null;
-/** Set when a drag ends on an item, so the click it produces is not a tap. */
+/** Set when a gesture ends on an item, so the click it produces is ignored. */
 let suppressClick = false;
 
 function nearestItem(clientX) {
@@ -175,10 +225,37 @@ function nearestItem(clientX) {
   return best;
 }
 
+/** Points the lens at the finger; followFinger() eases it there. */
+function steer(clientX) {
+  const id = nearestItem(clientX);
+  dragId.value = id;
+  const box = itemBox(id);
+  const track = trackEl.value.getBoundingClientRect();
+  const centre = clientX - track.left;
+  dragTarget = {
+    x: Math.min(Math.max(centre - box.width / 2, 0), track.width - box.width),
+    width: box.width,
+  };
+  if (!dragFrame) dragFrame = requestAnimationFrame(followFinger);
+}
+
+/**
+ * Touch works as it does on an iPhone: the lens comes to the finger the
+ * moment it lands, follows it for as long as it stays down, and whatever it
+ * is over when the finger lifts is chosen. A mouse presses the item under it
+ * as an ordinary click, and drags the lens only once it actually moves.
+ */
 function onPointerDown(event) {
   if (event.button !== 0) return;
   pressing.value = true;
-  drag = { startX: event.clientX, pointerId: event.pointerId, moved: false };
+  const touch = event.pointerType !== "mouse";
+  drag = { startX: event.clientX, pointerId: event.pointerId, moved: false, touch };
+  if (touch) {
+    lens = lensNow();
+    animation?.cancel();
+    animation = null;
+    steer(event.clientX);
+  }
 }
 
 function onPointerMove(event) {
@@ -187,21 +264,13 @@ function onPointerMove(event) {
     if (Math.abs(event.clientX - drag.startX) < 6) return;
     drag.moved = true;
     trackEl.value.setPointerCapture(event.pointerId);
-    animation?.cancel();
-    animation = null;
+    if (!drag.touch) {
+      lens = lensNow();
+      animation?.cancel();
+      animation = null;
+    }
   }
-
-  // The lens rides under the finger; whatever it is over lights up.
-  const id = nearestItem(event.clientX);
-  dragId.value = id;
-  const box = itemBox(id);
-  const track = trackEl.value.getBoundingClientRect();
-  const centre = event.clientX - track.left;
-  dragTarget = {
-    x: Math.min(Math.max(centre - box.width / 2, 0), track.width - box.width),
-    width: box.width,
-  };
-  if (!dragFrame) dragFrame = requestAnimationFrame(followFinger);
+  steer(event.clientX);
 }
 
 /**
@@ -225,34 +294,39 @@ function followFinger() {
   if (Math.abs(dragTarget.x - lens.x) > 0.3) dragFrame = requestAnimationFrame(followFinger);
 }
 
+function endDrag() {
+  dragId.value = null;
+  dragTarget = null;
+  cancelAnimationFrame(dragFrame);
+  dragFrame = 0;
+  // The finger may lift before the lens has caught up with it - a quick tap
+  // - and if the item under it is the one chosen, nothing else will move it
+  // the rest of the way. Glide it home from wherever it got to.
+  moveLens(shownId.value);
+}
+
 function onPointerUp(event) {
   if (!drag || event.pointerId !== drag.pointerId) return;
   pressing.value = false;
-  if (drag.moved) {
+  if (drag.touch || drag.moved) {
     const id = dragId.value;
-    // A captured pointer's release may or may not produce a click, depending
-    // on where it lands; either way the flag must not outlive this gesture.
+    // The release may or may not produce a click, depending on where it
+    // lands; either way it must not choose a second time.
     suppressClick = true;
     setTimeout(() => (suppressClick = false), 0);
-    dragId.value = null;
-    dragTarget = null;
-    cancelAnimationFrame(dragFrame);
-    dragFrame = 0;
-    moveLens(id);
-    if (id && id !== currentId.value) go(id);
+    // Choose first, so the lens settles on the new item rather than
+    // glancing back at the old one on the way.
+    choose(id);
+    if (!drag.touch) hoverId.value = id;
+    endDrag();
   }
   drag = null;
 }
 
 function onPointerCancel() {
+  // The browser took the gesture - usually a vertical scroll. Put it back.
   pressing.value = false;
-  if (drag?.moved) {
-    dragId.value = null;
-    dragTarget = null;
-    cancelAnimationFrame(dragFrame);
-    dragFrame = 0;
-    moveLens(currentId.value);
-  }
+  if (drag) endDrag();
   drag = null;
 }
 
@@ -261,8 +335,7 @@ function onItemClick(id) {
     suppressClick = false;
     return;
   }
-  moveLens(id);
-  go(id);
+  choose(id);
 }
 
 // --------------------------------------------------------------- lifecycle
@@ -281,7 +354,7 @@ onMounted(async () => {
   });
 
   await nextTick();
-  moveLens(currentId.value, { animate: false });
+  moveLens(shownId.value, { animate: false });
   updateMap();
 
   // The fonts arrive after the first layout, and the viewport can change:
@@ -289,7 +362,7 @@ onMounted(async () => {
   resizeObserver = new ResizeObserver(() => {
     cancelAnimationFrame(resizeFrame);
     resizeFrame = requestAnimationFrame(() => {
-      if (!animation && dragId.value === null) moveLens(currentId.value, { animate: false });
+      if (!animation && dragId.value === null) moveLens(shownId.value, { animate: false });
       updateMap();
     });
   });
@@ -300,6 +373,7 @@ onBeforeUnmount(() => {
   listeners?.abort();
   resizeObserver?.disconnect();
   cancelAnimationFrame(resizeFrame);
+  cancelAnimationFrame(dragFrame);
   animation?.cancel();
 });
 </script>
@@ -326,6 +400,7 @@ onBeforeUnmount(() => {
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
       @pointercancel="onPointerCancel"
+      @pointerleave="onTrackLeave"
     >
       <span ref="lensEl" class="island__lens" aria-hidden="true"></span>
 
@@ -337,6 +412,7 @@ onBeforeUnmount(() => {
             class="island__item"
             :class="{ 'is-lit': shownId === section.id }"
             :aria-current="currentId === section.id ? 'true' : undefined"
+            @pointerenter="onItemEnter(section.id, $event)"
             @click="onItemClick(section.id)"
           >
             <Icon :name="section.icon" class="island__icon" aria-hidden="true" />
@@ -417,6 +493,8 @@ onBeforeUnmount(() => {
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
+  /* A held finger drags the lens; it must not open iOS's link menu. */
+  -webkit-touch-callout: none;
 }
 
 /* Every item the width of the widest, so the lens is one size wherever it
@@ -493,52 +571,11 @@ onBeforeUnmount(() => {
   transition: color var(--duration-base) var(--ease-standard);
 }
 
-/* A pointer over an item shows a faint glass of its own - fainter than the
-   lens, and never on the item the lens already covers. */
-.island__item::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: rgb(255 255 255 / 13%);
-  box-shadow:
-    inset 0 1px 0.5px rgb(255 255 255 / 32%),
-    inset 0 -1px 0.5px rgb(255 255 255 / 8%);
-  opacity: 0;
-  scale: 0.9;
-  transition:
-    opacity var(--duration-base) var(--ease-standard),
-    scale var(--duration-base) var(--ease-spring);
+/* Hovering brightens nothing by itself: the lens comes to the item. */
+.island__item:hover {
+  color: var(--color-text);
 }
 
-@media (hover: hover) {
-  .island__item:hover {
-    color: var(--color-text);
-  }
-
-  .island__item:not(.is-lit):hover::before {
-    opacity: 1;
-    scale: 1;
-  }
-
-  .island__item:hover .island__icon {
-    translate: 0 -1px;
-  }
-}
-
-.island__icon {
-  transition: translate var(--duration-base) var(--ease-spring);
-}
-
-/* No hover glass while the lens is being dragged across the bar. */
-.island--dragging .island__item::before {
-  opacity: 0;
-}
-
-.island__item {
-  isolation: isolate;
-}
 
 /* Whatever sits under the lens takes the accent, as a tinted iOS tab does. */
 .island__item.is-lit {

@@ -15,11 +15,11 @@ import { translate } from "@/utils/i18n";
  * across, so switching language does not throw you back to the top.
  */
 defineProps({
-  /** "island" inside the navigation, "floating" on its own, "text" inline. */
+  /** "glass" as a corner button, "text" inline in the footer. */
   variant: {
     type: String,
     default: "text",
-    validator: (value) => ["island", "floating", "text"].includes(value),
+    validator: (value) => ["glass", "text"].includes(value),
   },
 });
 
@@ -38,7 +38,7 @@ function onClick(event) {
   <a
     :href="switchPath"
     class="lang"
-    :class="`lang--${variant}`"
+    :class="[`lang--${variant}`, { 'liquid-glass': variant === 'glass' }]"
     :lang="other.code"
     :hreflang="other.code"
     :aria-label="translate(ui.language.switchTo, otherCode)"
@@ -83,37 +83,20 @@ function onClick(event) {
   color: var(--color-primary);
 }
 
-/* ------------------------------------------------------------- in the nav */
-.lang--island {
+/* ---------------------------------------------------------- corner button */
+/* The glass itself comes from .liquid-glass in utilities.css, shared with
+   the navigation bar. */
+.lang--glass {
   position: relative;
-  margin-inline-start: var(--space-1);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
-}
-
-/* A hairline between the sections and the language, which is not one. */
-.lang--island::before {
-  content: "";
-  position: absolute;
-  inset-block: 25%;
-  inset-inline-start: calc(var(--space-1) * -1);
-  width: var(--border-width-hairline);
-  background: var(--glass-border);
-}
-
-.lang--island:hover {
-  background: rgb(255 255 255 / 7%);
-}
-
-/* ----------------------------------------------------------- on its own */
-.lang--floating {
-  padding: var(--space-2) var(--space-4);
-  border: var(--border-width-hairline) solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  background: var(--glass-bg-strong);
-  backdrop-filter: var(--glass-blur);
-  box-shadow: var(--glass-shadow);
+  height: 2.75rem;
+  padding-inline: var(--space-4);
+  border-radius: 999px;
   color: var(--color-text);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+}
+
+.lang--glass:hover {
+  color: var(--color-primary);
 }
 
 /* ---------------------------------------------------------------- inline */

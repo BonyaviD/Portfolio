@@ -1,26 +1,26 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import LanguageSwitch from "@/components/layout/LanguageSwitch.vue";
 import { useActiveSection } from "@/composables/useActiveSection";
 import { useLocale } from "@/composables/useLocale";
-import { sectionIds, sections, site } from "@/data/site";
+import { sectionIds, sections } from "@/data/site";
 import { ui } from "@/data/ui";
 import { refractionMap, supportsRefraction } from "@/utils/liquidGlass";
-import LogoImage from "~/assets/img/brand/mark.svg";
 
 /**
- * The navigation, as a Liquid Glass tab bar in the manner of iOS 26.
+ * The section navigation, as a Liquid Glass tab bar in the manner of iOS 26.
  *
- * The capsule is glass rather than a frosted panel: it bends the page behind
- * it at the rim (see utils/liquidGlass.js), catches light along its edge, and
- * holds the current section in a single lens that slides between the items -
- * stretching as it goes, leading edge first, and settling with a little
- * spring. The items themselves have no backgrounds of their own. The lens can
- * be dragged, the way a thumb drags it on a phone.
+ * One design at every size: each item is an icon with its name small beneath
+ * it, all items the same width, and nothing ever folds away. Only the bar's
+ * place changes - floating at the top on wide screens, at the bottom on
+ * phones where the thumb is. The monogram and the language live in their own
+ * glass buttons in the corners (layouts/default.vue), so this bar carries
+ * nothing but the sections.
  *
- * At the top of the page on wide screens, where it also carries the monogram
- * and the language; at the bottom on phones, where the thumb is, with each
- * label under its icon as in an iOS tab bar.
+ * The capsule bends the page behind its rim where the engine allows it (see
+ * utils/liquidGlass.js), and a single lens marks the current section: it
+ * slides between items, stretching across both for a moment - leading edge
+ * first - and settles with a small spring. It swells under a press and can be
+ * dragged to any item.
  */
 const router = useRouter();
 
@@ -49,7 +49,6 @@ async function go(id) {
 }
 
 // ------------------------------------------------------------------- state
-const condensed = ref(false);
 const navEl = ref(null);
 const trackEl = ref(null);
 const lensEl = ref(null);
@@ -73,7 +72,7 @@ function updateMap() {
   const height = nav.offsetHeight;
   if (Math.abs(width - map.value.width) < 2 && Math.abs(height - map.value.height) < 2) return;
   map.value = {
-    href: refractionMap(width, height, height / 2, Math.min(18, height * 0.36)),
+    href: refractionMap(width, height, height / 2, Math.min(20, height * 0.32)),
     width,
     height,
   };
@@ -137,9 +136,8 @@ function moveLens(id, { animate = true } = {}) {
     ],
     { duration: 520, easing: "cubic-bezier(0.34, 1.3, 0.5, 1)" }
   );
-  // The items can shift while the lens is travelling - labels fold as the
-  // bar condenses - so it lands on a fresh measurement, not the one it left
-  // with.
+  // Land on a fresh measurement, in case the bar re-laid itself out - a font
+  // arriving, a resize - while the lens was travelling.
   animation.onfinish = () => {
     animation = null;
     if (dragId.value === null) moveLens(currentId.value, { animate: false });
@@ -147,36 +145,9 @@ function moveLens(id, { animate = true } = {}) {
   paintLens();
 }
 
-/**
- * Keeps the lens glued to its item for a moment while the bar re-lays
- * itself out - labels folding and unfolding shift every item, and a resize
- * observer only hears about the ones whose own size changed.
- */
-let followUntil = 0;
-let followFrame = 0;
-
-function follow(ms = 700) {
-  followUntil = performance.now() + ms;
-  cancelAnimationFrame(followFrame);
-  const step = () => {
-    if (!animation && dragId.value === null) moveLens(currentId.value, { animate: false });
-    if (performance.now() < followUntil) followFrame = requestAnimationFrame(step);
-  };
-  followFrame = requestAnimationFrame(step);
-}
-
 watch(currentId, (id) => {
   if (dragId.value === null) moveLens(id);
-  // The new item's label unfolds as it becomes current.
-  follow(900);
 });
-
-watch(condensed, () => follow(900));
-
-/** A transition inside the bar has settled: take a final measurement. */
-function onLayoutSettled() {
-  if (!animation && dragId.value === null) moveLens(currentId.value, { animate: false });
-}
 
 // -------------------------------------------------------------------- drag
 let drag = null;
@@ -184,19 +155,18 @@ let drag = null;
 let suppressClick = false;
 
 function nearestItem(clientX) {
-  const track = trackEl.value.getBoundingClientRect();
-  const x = clientX - track.left;
+  const x = clientX - trackEl.value.getBoundingClientRect().left;
   let best = null;
   let bestDistance = Infinity;
-  sections.forEach((section) => {
+  for (const section of sections) {
     const box = itemBox(section.id);
-    if (!box) return;
+    if (!box) continue;
     const distance = Math.abs(box.x + box.width / 2 - x);
     if (distance < bestDistance) {
       bestDistance = distance;
       best = section.id;
     }
-  });
+  }
   return best;
 }
 
@@ -208,24 +178,22 @@ function onPointerDown(event) {
 
 function onPointerMove(event) {
   if (!drag || event.pointerId !== drag.pointerId) return;
-  const dx = event.clientX - drag.startX;
   if (!drag.moved) {
-    if (Math.abs(dx) < 6) return;
+    if (Math.abs(event.clientX - drag.startX) < 6) return;
     drag.moved = true;
     trackEl.value.setPointerCapture(event.pointerId);
     animation?.cancel();
     animation = null;
   }
 
-  // The lens rides under the finger, taking the width of the item beneath.
+  // The lens rides under the finger; whatever it is over lights up.
   const id = nearestItem(event.clientX);
   dragId.value = id;
   const box = itemBox(id);
   const track = trackEl.value.getBoundingClientRect();
   const centre = event.clientX - track.left;
-  const max = track.width - box.width;
   lens = {
-    x: Math.min(Math.max(centre - box.width / 2, 0), max),
+    x: Math.min(Math.max(centre - box.width / 2, 0), track.width - box.width),
     width: box.width,
     visible: true,
   };
@@ -271,29 +239,22 @@ let listeners = null;
 let resizeObserver = null;
 let resizeFrame = 0;
 
-function onScroll() {
-  condensed.value = window.scrollY > 120;
-}
-
 onMounted(async () => {
   refract.value = supportsRefraction();
 
   listeners = new AbortController();
-  window.addEventListener("scroll", onScroll, { passive: true, signal: listeners.signal });
   // A press released outside the bar still has to let the lens go.
   window.addEventListener("pointerup", () => (pressing.value = false), {
     passive: true,
     signal: listeners.signal,
   });
-  onScroll();
 
   await nextTick();
   moveLens(currentId.value, { animate: false });
   updateMap();
 
-  // Labels fold away as the bar condenses, and the fonts arrive late: keep
-  // the lens on its item and the refraction map the capsule's size through
-  // all of it.
+  // The fonts arrive after the first layout, and the viewport can change:
+  // keep the lens on its item and the refraction map the capsule's size.
   resizeObserver = new ResizeObserver(() => {
     cancelAnimationFrame(resizeFrame);
     resizeFrame = requestAnimationFrame(() => {
@@ -302,14 +263,12 @@ onMounted(async () => {
     });
   });
   resizeObserver.observe(navEl.value);
-  itemEls.value.forEach((el) => resizeObserver.observe(el));
 });
 
 onBeforeUnmount(() => {
   listeners?.abort();
   resizeObserver?.disconnect();
   cancelAnimationFrame(resizeFrame);
-  cancelAnimationFrame(followFrame);
   animation?.cancel();
 });
 </script>
@@ -319,7 +278,6 @@ onBeforeUnmount(() => {
     ref="navEl"
     class="island"
     :class="{
-      'island--condensed': condensed,
       'island--refract': refract && map.href,
       'island--pressing': pressing,
       'island--dragging': dragId !== null,
@@ -328,15 +286,7 @@ onBeforeUnmount(() => {
   >
     <!-- The glass: its own layer, so the bend and blur never touch the
          content drawn on top of it. -->
-    <span class="island__glass" aria-hidden="true"></span>
-
-    <NuxtLink
-      :to="path('/')"
-      class="island__brand"
-      :aria-label="t(ui.nav.home, { name: t(site.displayName) })"
-    >
-      <img :src="LogoImage" alt="" width="31" height="28" />
-    </NuxtLink>
+    <span class="island__glass liquid-glass" aria-hidden="true"></span>
 
     <div
       ref="trackEl"
@@ -345,7 +295,6 @@ onBeforeUnmount(() => {
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
       @pointercancel="onPointerCancel"
-      @transitionend="onLayoutSettled"
     >
       <span ref="lensEl" class="island__lens" aria-hidden="true"></span>
 
@@ -355,10 +304,7 @@ onBeforeUnmount(() => {
             ref="itemEls"
             type="button"
             class="island__item"
-            :class="{
-              'is-active': currentId === section.id,
-              'is-lit': shownId === section.id,
-            }"
+            :class="{ 'is-lit': shownId === section.id }"
             :aria-current="currentId === section.id ? 'true' : undefined"
             @click="onItemClick(section.id)"
           >
@@ -368,9 +314,6 @@ onBeforeUnmount(() => {
         </li>
       </ul>
     </div>
-
-    <!-- Phones get this at the top of the page instead: the bar is full. -->
-    <LanguageSwitch variant="island" class="island__lang" />
 
     <svg v-if="refract" class="island__defs" aria-hidden="true" focusable="false">
       <filter
@@ -405,78 +348,29 @@ onBeforeUnmount(() => {
 <style scoped>
 /* ================================================================ capsule */
 .island {
-  --island-radius: 999px;
-
   position: fixed;
   top: var(--space-4);
   left: 50%;
   z-index: var(--z-header);
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1-5, 0.375rem);
-  border-radius: var(--island-radius);
+  padding: 0.3rem;
+  border-radius: 999px;
   transform: translateX(-50%);
   isolation: isolate;
-  transition: padding var(--duration-slow) var(--ease-spring);
 }
 
-/*
- * The glass itself. A very light tint and a strong saturation boost: Liquid
- * Glass lets the colour behind it come through richer rather than greying
- * it out. The blur is modest - the refraction, where it runs, does most of
- * the work of separating the bar from the page.
- */
 .island__glass {
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 11%) 0%, rgb(255 255 255 / 3%) 55%, rgb(255 255 255 / 6%) 100%),
-    rgb(10 20 34 / 38%);
-  -webkit-backdrop-filter: blur(16px) saturate(190%) brightness(1.06);
-  backdrop-filter: blur(16px) saturate(190%) brightness(1.06);
-  box-shadow:
-    /* Light caught along the top, and a faint return along the bottom. */
-    inset 0 1px 0.5px rgb(255 255 255 / 42%),
-    inset 0 -1px 0.5px rgb(255 255 255 / 12%),
-    /* The thickness of the glass, read as a soft inner shade. */
-    inset 0 0 18px rgb(255 255 255 / 5%),
-    0 12px 32px -12px rgb(0 0 0 / 65%),
-    0 2px 6px rgb(0 0 0 / 22%);
   pointer-events: none;
 }
 
-/* The rim: a bright edge where the curve faces the light, fading round the
-   sides and returning faintly opposite, as on a real rounded lens. */
-.island__glass::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  border-radius: inherit;
-  background: linear-gradient(
-    125deg,
-    rgb(255 255 255 / 60%) 0%,
-    rgb(255 255 255 / 12%) 22%,
-    rgb(255 255 255 / 4%) 50%,
-    rgb(255 255 255 / 10%) 78%,
-    rgb(255 255 255 / 38%) 100%
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
-}
-
-/* Where the engine can bend the backdrop, it does, and blurs less. */
+/* Where the engine can bend the backdrop, it does, and blurs less: the bend
+   is what separates the bar from the page. */
 .island--refract .island__glass {
-  -webkit-backdrop-filter: url(#nav-liquid-glass) blur(5px) saturate(190%) brightness(1.08);
-  backdrop-filter: url(#nav-liquid-glass) blur(5px) saturate(190%) brightness(1.08);
+  -webkit-backdrop-filter: url(#nav-liquid-glass) blur(4px) saturate(200%) brightness(1.1);
+  backdrop-filter: url(#nav-liquid-glass) blur(4px) saturate(200%) brightness(1.1);
 }
 
 .island__defs {
@@ -484,25 +378,6 @@ onBeforeUnmount(() => {
   width: 0;
   height: 0;
   overflow: hidden;
-}
-
-/* ================================================================== brand */
-.island__brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-inline: var(--space-3) var(--space-1);
-  opacity: 0.9;
-  transition: opacity var(--duration-base) var(--ease-standard);
-}
-
-.island__brand:hover {
-  opacity: 1;
-}
-
-.island__brand img {
-  width: 1.75rem;
-  height: auto;
 }
 
 /* ================================================================== track */
@@ -513,17 +388,19 @@ onBeforeUnmount(() => {
   -webkit-user-select: none;
 }
 
+/* Every item the width of the widest, so the lens is one size wherever it
+   goes and the bar never changes shape. */
 .island__list {
-  position: relative;
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
   list-style: none;
 }
 
 /*
  * The lens: the one piece of glass that marks where you are. Clearer and
- * brighter than the bar around it, with its own rim, as if a second, smaller
- * lens were resting on the first.
+ * brighter than the bar around it, with its own lit edge, as if a second,
+ * smaller lens were resting on the first.
  */
 .island__lens {
   position: absolute;
@@ -531,17 +408,16 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: 0;
   width: 0;
-  border-radius: var(--island-radius);
+  border-radius: 999px;
   background:
-    radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 22%) 0%, transparent 70%),
-    rgb(255 255 255 / 12%);
+    radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 24%) 0%, transparent 70%),
+    rgb(255 255 255 / 13%);
   box-shadow:
-    inset 0 1px 0.5px rgb(255 255 255 / 55%),
-    inset 0 -1px 0.5px rgb(255 255 255 / 14%),
-    inset 0 0 10px rgb(230 182 108 / 12%),
-    0 4px 14px -4px rgb(0 0 0 / 45%);
+    inset 0 1px 0.5px rgb(255 255 255 / 60%),
+    inset 0 -1px 0.5px rgb(255 255 255 / 16%),
+    inset 0 0 12px rgb(230 182 108 / 14%),
+    0 4px 14px -4px rgb(0 0 0 / 40%);
   opacity: 0;
-  transform-origin: center;
   pointer-events: none;
   will-change: transform, width;
   transition:
@@ -552,34 +428,38 @@ onBeforeUnmount(() => {
 /* Pressed or held, the lens swells a little under the finger. */
 .island--pressing .island__lens,
 .island--dragging .island__lens {
-  scale: 1.08 1.12;
+  scale: 1.07 1.1;
 }
 
 .island--dragging .island__lens {
   background:
-    radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 28%) 0%, transparent 70%),
-    rgb(255 255 255 / 16%);
+    radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 30%) 0%, transparent 70%),
+    rgb(255 255 255 / 17%);
 }
 
 /* ================================================================== items */
+/* An iOS tab: the icon, and its name small underneath. */
 .island__item {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+  min-width: 4.25rem;
+  padding: 0.55rem var(--space-3) 0.45rem;
   border: 0;
-  border-radius: var(--island-radius);
+  border-radius: 999px;
   background: transparent;
-  color: rgb(255 255 255 / 72%);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  color: rgb(255 255 255 / 80%);
   cursor: pointer;
   white-space: nowrap;
+  /* The glass is clear, so the type carries a faint shadow to stay legible
+     over a bright photo behind it. */
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
   -webkit-tap-highlight-color: transparent;
-  transition:
-    color var(--duration-base) var(--ease-standard),
-    padding var(--duration-slow) var(--ease-spring);
+  transition: color var(--duration-base) var(--ease-standard);
 }
 
 .island__item:hover {
@@ -592,42 +472,19 @@ onBeforeUnmount(() => {
 }
 
 .island__icon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1.3rem;
+  height: 1.3rem;
   flex-shrink: 0;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 30%));
 }
 
-/* Condensed: labels fold away, leaving glyphs. The current item keeps its
-   label so where you are stays readable. */
-.island--condensed .island__item {
-  padding: var(--space-2) var(--space-3);
-}
-
-.island--condensed .island__item .island__label {
-  max-width: 0;
-  margin-inline-start: calc(var(--space-2) * -1);
-  opacity: 0;
-}
-
-.island--condensed .island__item.is-lit {
-  padding: var(--space-2) var(--space-4);
-}
-
-.island--condensed .island__item.is-lit .island__label {
-  max-width: 8rem;
-  margin-inline-start: 0;
-  opacity: 1;
-}
-
-/* The text fades well before the width finishes folding, so a label is
-   never caught half clipped. */
 .island__label {
-  max-width: 8rem;
+  max-width: 100%;
   overflow: hidden;
-  transition:
-    max-width var(--duration-slow) var(--ease-spring),
-    opacity var(--duration-fast) var(--ease-standard),
-    margin var(--duration-slow) var(--ease-spring);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  text-overflow: ellipsis;
 }
 
 /* ================================================================= phones */
@@ -637,51 +494,15 @@ onBeforeUnmount(() => {
     /* Clear of the home indicator on iOS. */
     bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
     width: min(calc(100vw - var(--space-6)), 28rem);
-    padding: var(--space-1);
   }
 
-  .island .island__brand,
-  .island .island__lang {
-    display: none;
-  }
-
-  .island__track,
-  .island__list {
-    flex: 1;
-  }
-
-  .island__list > li {
-    flex: 1;
+  .island__item {
     min-width: 0;
+    padding-inline: 0;
   }
 
-  /* An iOS tab: the icon, and its name small underneath. */
-  .island__item,
-  .island--condensed .island__item,
-  .island--condensed .island__item.is-lit {
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.2rem;
-    width: 100%;
-    padding: var(--space-2) 0 0.4rem;
-  }
-
-  .island__icon {
-    width: 1.3rem;
-    height: 1.3rem;
-  }
-
-  .island__label,
-  .island--condensed .island__item .island__label,
-  .island--condensed .island__item.is-lit .island__label {
-    max-width: 100%;
-    margin: 0;
-    opacity: 1;
+  .island__label {
     font-size: 0.625rem;
-    font-weight: var(--font-weight-semibold);
-    line-height: 1;
-    text-overflow: ellipsis;
-    transition: none;
   }
 }
 

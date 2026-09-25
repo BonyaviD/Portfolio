@@ -4,9 +4,11 @@ import LanguageSwitch from "@/components/layout/LanguageSwitch.vue";
 import TheNavIsland from "@/components/layout/TheNavIsland.vue";
 import TheFooter from "@/components/layout/TheFooter.vue";
 import { useLocale } from "@/composables/useLocale";
+import { site } from "@/data/site";
 import { ui } from "@/data/ui";
+import LogoImage from "~/assets/img/brand/mark.svg";
 
-const { t } = useLocale();
+const { path, t } = useLocale();
 </script>
 
 <template>
@@ -16,10 +18,18 @@ const { t } = useLocale();
     <PageBackdrop />
     <TheNavIsland />
 
-    <!-- Phones only. The navigation bar at the bottom has no room left for
-         it, so the language sits at the top of the page, where a visitor
-         looks first. It scrolls away with the page rather than following. -->
-    <LanguageSwitch variant="floating" class="app-shell__lang" />
+    <!-- The two corner buttons, glass like the bar between them: home at the
+         start, the other language at the end. They float with the bar on
+         wide screens and scroll away with the page on phones, where the bar
+         has moved to the bottom. -->
+    <NuxtLink
+      :to="path('/')"
+      class="app-shell__corner app-shell__brand liquid-glass"
+      :aria-label="t(ui.nav.home, { name: t(site.displayName) })"
+    >
+      <img :src="LogoImage" alt="" width="31" height="28" />
+    </NuxtLink>
+    <LanguageSwitch variant="glass" class="app-shell__corner app-shell__lang" />
 
     <main id="main" class="app-shell__main">
       <slot />
@@ -45,17 +55,50 @@ const { t } = useLocale();
   overflow-x: clip;
 }
 
+/* ------------------------------------------------------------ corners */
+/* Level with the middle of the bar (its top edge plus half its height). */
+.app-shell .app-shell__corner {
+  position: fixed;
+  top: calc(var(--space-4) + 0.55rem);
+  z-index: var(--z-header);
+}
+
+.app-shell .app-shell__brand {
+  inset-inline-start: var(--space-6);
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  transition: scale var(--duration-base) var(--ease-spring);
+}
+
+.app-shell__brand img {
+  width: 1.45rem;
+  height: auto;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 35%));
+}
+
+.app-shell__brand:hover {
+  scale: 1.05;
+}
+
 .app-shell .app-shell__lang {
-  display: none;
+  inset-inline-end: var(--space-6);
 }
 
 @media (max-width: 48rem) {
-  .app-shell .app-shell__lang {
+  .app-shell .app-shell__corner {
     position: absolute;
     top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  }
+
+  .app-shell .app-shell__brand {
+    inset-inline-start: var(--space-4);
+  }
+
+  .app-shell .app-shell__lang {
     inset-inline-end: var(--space-4);
-    z-index: var(--z-header);
-    display: inline-flex;
   }
 }
 

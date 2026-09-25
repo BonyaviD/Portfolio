@@ -110,6 +110,11 @@ function moveLens(id, { animate = true } = {}) {
     return;
   }
 
+  // Already on its way there: a tap moves the lens and then the section
+  // change asks for the same move again, which must not restart - or cut
+  // short - the glide already under way.
+  if (animation && lens.x === box.x && lens.width === box.width) return;
+
   const from = { ...lens };
   lens = { ...box, visible: true };
   animation?.cancel();
@@ -192,12 +197,32 @@ function onPointerMove(event) {
   const box = itemBox(id);
   const track = trackEl.value.getBoundingClientRect();
   const centre = event.clientX - track.left;
-  lens = {
+  dragTarget = {
     x: Math.min(Math.max(centre - box.width / 2, 0), track.width - box.width),
     width: box.width,
+  };
+  if (!dragFrame) dragFrame = requestAnimationFrame(followFinger);
+}
+
+/**
+ * Eases the lens after the finger each frame rather than pinning it there:
+ * a hair of lag is what makes it feel like liquid being pulled, and it turns
+ * the first move - from the lens's item to wherever the finger landed - into
+ * a glide instead of a jump.
+ */
+let dragTarget = null;
+let dragFrame = 0;
+
+function followFinger() {
+  dragFrame = 0;
+  if (!dragTarget || dragId.value === null) return;
+  lens = {
+    x: lens.x + (dragTarget.x - lens.x) * 0.38,
+    width: lens.width + (dragTarget.width - lens.width) * 0.38,
     visible: true,
   };
   paintLens();
+  if (Math.abs(dragTarget.x - lens.x) > 0.3) dragFrame = requestAnimationFrame(followFinger);
 }
 
 function onPointerUp(event) {
@@ -210,6 +235,9 @@ function onPointerUp(event) {
     suppressClick = true;
     setTimeout(() => (suppressClick = false), 0);
     dragId.value = null;
+    dragTarget = null;
+    cancelAnimationFrame(dragFrame);
+    dragFrame = 0;
     moveLens(id);
     if (id && id !== currentId.value) go(id);
   }
@@ -220,6 +248,9 @@ function onPointerCancel() {
   pressing.value = false;
   if (drag?.moved) {
     dragId.value = null;
+    dragTarget = null;
+    cancelAnimationFrame(dragFrame);
+    dragFrame = 0;
     moveLens(currentId.value);
   }
   drag = null;
@@ -462,8 +493,51 @@ onBeforeUnmount(() => {
   transition: color var(--duration-base) var(--ease-standard);
 }
 
-.island__item:hover {
-  color: var(--color-text);
+/* A pointer over an item shows a faint glass of its own - fainter than the
+   lens, and never on the item the lens already covers. */
+.island__item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: rgb(255 255 255 / 13%);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 32%),
+    inset 0 -1px 0.5px rgb(255 255 255 / 8%);
+  opacity: 0;
+  scale: 0.9;
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    scale var(--duration-base) var(--ease-spring);
+}
+
+@media (hover: hover) {
+  .island__item:hover {
+    color: var(--color-text);
+  }
+
+  .island__item:not(.is-lit):hover::before {
+    opacity: 1;
+    scale: 1;
+  }
+
+  .island__item:hover .island__icon {
+    translate: 0 -1px;
+  }
+}
+
+.island__icon {
+  transition: translate var(--duration-base) var(--ease-spring);
+}
+
+/* No hover glass while the lens is being dragged across the bar. */
+.island--dragging .island__item::before {
+  opacity: 0;
+}
+
+.island__item {
+  isolation: isolate;
 }
 
 /* Whatever sits under the lens takes the accent, as a tinted iOS tab does. */

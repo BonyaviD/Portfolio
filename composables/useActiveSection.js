@@ -14,16 +14,20 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
  */
 const jump = {
   target: null,
+  behavior: "smooth",
   startedAt: 0,
   timer: 0,
+  corrections: 0,
   /** Each instance's measure(), re-run when a jump lands. */
   measures: new Set(),
 };
 
-/** Quiet time after the last scroll event that counts as having stopped. */
+/** Quiet time after the last scroll event before checking where it stopped. */
 const SETTLE_MS = 180;
 /** A jump never holds longer than this, whatever happens to the scroll. */
-const MAX_JUMP_MS = 2500;
+const MAX_JUMP_MS = 3500;
+/** How many times a jump that stopped short is re-aimed. */
+const MAX_CORRECTIONS = 2;
 
 function land() {
   clearTimeout(jump.timer);
@@ -31,9 +35,51 @@ function land() {
   jump.measures.forEach((measure) => measure());
 }
 
+function aim() {
+  document.getElementById(jump.target)?.scrollIntoView({
+    behavior: jump.behavior,
+    block: "start",
+  });
+}
+
+/**
+ * Whether the page has actually arrived: the target sits where scrolling to
+ * it puts it (the scroll padding below the navigation), or the page cannot
+ * scroll any further toward it.
+ */
+function arrived() {
+  const element = document.getElementById(jump.target);
+  if (!element) return true;
+  const padding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+  const offset = element.getBoundingClientRect().top - padding;
+  const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+  return Math.abs(offset) < 6 || (offset > 0 && atBottom);
+}
+
+/**
+ * The page has gone quiet - but quiet is not the same as arrived. A frame
+ * that stalls for a moment (a section hydrating, images decoding) looks like
+ * a stop halfway, and let the highlight loose on the sections in between.
+ * And the sections below hydrate and grow while the scroll is under way, so
+ * it can genuinely stop short of where it was aimed. So check: land if it is
+ * there, aim again if it stopped short, and otherwise keep waiting.
+ */
+function settle() {
+  if (!jump.target) return;
+  if (arrived() || performance.now() - jump.startedAt > MAX_JUMP_MS) {
+    land();
+    return;
+  }
+  if (jump.corrections < MAX_CORRECTIONS) {
+    jump.corrections += 1;
+    aim();
+  }
+  holdUntilSettled();
+}
+
 function holdUntilSettled() {
   clearTimeout(jump.timer);
-  jump.timer = setTimeout(land, SETTLE_MS);
+  jump.timer = setTimeout(settle, SETTLE_MS);
 }
 
 /**
@@ -96,16 +142,15 @@ export function useActiveSection(ids) {
     if (!element) return;
 
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    element.scrollIntoView({
-      behavior: reduceMotion ? "auto" : "smooth",
-      block: "start",
-    });
+    jump.target = id;
+    jump.behavior = reduceMotion ? "auto" : "smooth";
+    jump.startedAt = performance.now();
+    jump.corrections = 0;
+    aim();
 
     // Reflect the destination immediately and hold it there for the whole
     // journey. If the page is already there, no scroll event comes, and the
     // settle timer alone lands it.
-    jump.target = id;
-    jump.startedAt = performance.now();
     holdUntilSettled();
     activeId.value = id;
     // Keep the URL shareable without the jump a bare hash link would cause.
@@ -118,7 +163,7 @@ export function useActiveSection(ids) {
     window.addEventListener("scroll", onScroll, { passive: true, signal });
     window.addEventListener("resize", onScroll, { passive: true, signal });
     // Where supported, the browser says outright when a scroll has finished.
-    window.addEventListener("scrollend", () => jump.target && land(), { passive: true, signal });
+    window.addEventListener("scrollend", () => jump.target && settle(), { passive: true, signal });
     // The reader taking over mid-jump - wheel, touch, keys - ends it at once.
     for (const type of ["wheel", "touchstart", "keydown"]) {
       window.addEventListener(type, () => jump.target && land(), { passive: true, signal });

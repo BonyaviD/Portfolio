@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref } from "vue";
 import BaseSection from "@/components/base/BaseSection.vue";
-import ParticleField from "@/components/effects/ParticleField.vue";
+import LiquidSculpture from "@/components/effects/LiquidSculpture.vue";
 import { useLocale } from "@/composables/useLocale";
 import { site, socialLinks } from "@/data/site";
 import { ui } from "@/data/ui";
@@ -79,10 +79,10 @@ function reset() {
 
 <template>
   <BaseSection id="contact" :title="t(ui.sections.contact)">
-    <!-- The one place particles appear. This is the section the page is
-         asking for, so it gets the loudest treatment on the site. -->
+    <!-- The loudest piece of the site sits here, because this is the
+         section the page is asking for: liquid gold behind the form. -->
     <template #backdrop>
-      <ParticleField :celebrate="state === 'sent'" />
+      <LiquidSculpture :celebrate="state === 'sent'" />
     </template>
 
     <div class="contact">

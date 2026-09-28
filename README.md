@@ -12,21 +12,25 @@ npm install
 npm run dev
 ```
 
-Other scripts: `npm run build`, `npm run preview`, `npm run generate`.
+Other scripts: `npm run build`, `npm run preview`, `npm run generate`, and
+`npm test`, which runs everything in `tests/`.
 
 ## Architecture
 
 ```
 assets/css/     design tokens + global layers (load order matters)
 components/
-  base/         reusable primitives (BaseButton, BaseCard, SkillTag, ...)
-  effects/      decorative canvas/WebGL wrappers
-  layout/       app chrome used once (TheHeader, TheFooter)
+  base/         reusable primitives (BaseButton, BaseCard, SkillTile, ...)
+  effects/      decorative canvas/WebGL wrappers (PageBackdrop,
+                LiquidSculpture, WaterRippleImage)
+  layout/       app chrome (TheNavIsland, TheFooter, LanguageSwitch)
   sections/     page sections composed from the above
 composables/    imperative rendering logic (WebGL, Three.js) + lifecycle
 data/           content and configuration, kept out of the components
 layouts/        default app shell
-pages/          routes
+pages/          routes (each also served in Persian under /fa)
+server/         API routes: contact form relay, Telegram photo feed
+utils/          framework-free helpers (i18n, liquid glass, lazy loading)
 ```
 
 ### Design tokens
@@ -75,14 +79,29 @@ and documented at the top of `tokens.css`:
 `TheNavIsland` is a floating capsule that tracks the section under the reading
 line and scrolls to it on click. The tracked sections live in `data/site.js` as
 `sections`; their ids must match the section elements rendered by the home page.
-On viewports under 48rem the island moves to the bottom of the screen as a tab
-bar.
+It has one design at every size - only its place changes: floating at the top
+on wide screens, and at the bottom of the screen as a tab bar under 48rem. The
+monogram and the language switch sit in their own glass buttons in the corners
+(`layouts/default.vue`), so the bar carries nothing but the sections.
+
+### Languages
+
+The site is in English at the root (`/`, `/about`) and in Persian under `/fa`
+(`/fa`, `/fa/about`). `nuxt.config.ts` adds the Persian copy of every route,
+and the locale is read from the path alone - never a cookie or
+`Accept-Language` - so each URL renders one language and caches cleanly.
+
+Translatable text is written as `{ en, fa }` pairs where it is used: interface
+text in `data/ui.js`, content in its own data file. `utils/i18n.js` holds the
+logic with no Nuxt imports, and `tests/i18n.test.mjs` fails if either side of a
+pair is missing or their `{name}` placeholders differ.
 
 ### Game artwork
 
 The covers in `assets/img/gaming` are portrait, which is all the card slider
 needs. The console shelf wants landscape key art behind it, so it looks for
-`assets/img/gaming/wide/<game id>.jpg` and falls back to the portrait cover
+`assets/img/gaming/wide/<game id>.webp` (`.jpg`, `.jpeg` and `.png` also
+work) and falls back to the portrait cover
 when there is none. Dropping a file in is the whole change - Vite resolves the
 folder at build time.
 

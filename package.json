@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/telegram-stable.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "verify:photos": "node scripts/verify-photo-feed.mjs",
     "accents": "node scripts/generate-art-accents.mjs",
     "brand": "node scripts/generate-brand.mjs",

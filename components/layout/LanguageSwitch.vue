@@ -2,6 +2,7 @@
 import { useLocale } from "@/composables/useLocale";
 import { ui } from "@/data/ui";
 import { translate } from "@/utils/i18n";
+import { vStretch } from "@/utils/stretch";
 
 /**
  * The link to this page in the other language.
@@ -36,6 +37,7 @@ function onClick(event) {
 
 <template>
   <a
+    v-stretch="variant === 'glass'"
     :href="switchPath"
     class="lang"
     :class="[`lang--${variant}`, { 'liquid-glass': variant === 'glass' }]"

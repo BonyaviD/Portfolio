@@ -1,6 +1,7 @@
 <script setup>
 import { useLocale } from "@/composables/useLocale";
 import { ui } from "@/data/ui";
+import { vStretch } from "@/utils/stretch";
 
 /**
  * The invitation to scroll, pinned to the bottom of the hero.
@@ -21,7 +22,7 @@ const { t } = useLocale();
 </script>
 
 <template>
-  <button type="button" class="cue" :aria-label="t(ui.hero.cueLabel)" @click="emit('go', target)">
+  <button v-stretch type="button" class="cue" :aria-label="t(ui.hero.cueLabel)" @click="emit('go', target)">
     <svg class="cue__art" viewBox="0 0 240 116" aria-hidden="true" focusable="false">
       <defs>
         <!-- Fades out at both ends so the arc reads as a stroke of light
@@ -70,6 +71,11 @@ const { t } = useLocale();
 </template>
 
 <style scoped>
+/* It stretches (utils/stretch.js) but has no plate for a light to sit on. */
+.cue::before {
+  display: none;
+}
+
 .cue {
   display: block;
   width: 16rem;

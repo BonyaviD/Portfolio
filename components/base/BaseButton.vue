@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import { vStretch } from "@/utils/stretch";
 
 /**
  * The single call-to-action primitive. Renders a NuxtLink so it works for both
@@ -52,6 +53,7 @@ const classes = computed(() => [
     :to="to"
     :target="isExternal ? '_blank' : undefined"
     :rel="isExternal ? 'noopener noreferrer' : undefined"
+    v-stretch
     class="button"
     :class="classes"
   >
@@ -91,7 +93,9 @@ const classes = computed(() => [
   transform: translateY(-1px);
 }
 
-.button:active {
+/* The stretch (utils/stretch.js) takes over the press when it can run; this
+   is the press for keyboards and reduced motion. */
+.button:active:not([data-stretching]) {
   transform: scale(0.96);
   transition-duration: var(--duration-fast);
 }

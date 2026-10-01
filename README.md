@@ -110,6 +110,20 @@ it never waits on the app bundle, and every way it can fail - no JavaScript,
 `prefers-reduced-motion`, an observer that never reports - leaves the
 content visible.
 
+### Stretchy buttons
+
+Buttons behave like the liquid glass of iOS 26: pressed, they swell and light
+up under the finger; dragged, they stretch towards it with rubber-band
+resistance; released, they spring back with a wobble. Dragging off a button
+and letting go cancels it, as on iOS. Put `v-stretch` (from
+`utils/stretch.js`) on any positioned button or link to give it the same
+feel; `assets/css/stretch.css` holds the light and the touch rules.
+
+The motion is written to the `translate` and `scale` properties rather than
+`transform`, so it composes with an element's own transforms. Vertical drags
+still scroll the page, and the whole effect is off under
+`prefers-reduced-motion`.
+
 ### Languages
 
 The site is in English at the root (`/`, `/about`) and in Persian under `/fa`

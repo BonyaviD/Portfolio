@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     "~/assets/css/base.css",
     "~/assets/css/utilities.css",
     "~/assets/css/reveal.css",
+    "~/assets/css/stretch.css",
     "~/assets/css/scrollbar.css",
   ],
 

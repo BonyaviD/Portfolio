@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useLocale } from "@/composables/useLocale";
 import { ui } from "@/data/ui";
+import { vStretch } from "@/utils/stretch";
 
 /**
  * The picked print, brought forward.
@@ -138,6 +139,7 @@ onBeforeUnmount(() => {
       >
         <button
           ref="closeEl"
+          v-stretch
           type="button"
           class="lightbox__close"
           :aria-label="t(ui.lightbox.close)"
@@ -148,6 +150,7 @@ onBeforeUnmount(() => {
 
         <button
           v-if="photos.length > 1"
+          v-stretch
           type="button"
           class="lightbox__step lightbox__step--prev"
           :aria-label="t(ui.lightbox.previous)"
@@ -170,6 +173,7 @@ onBeforeUnmount(() => {
 
         <button
           v-if="photos.length > 1"
+          v-stretch
           type="button"
           class="lightbox__step lightbox__step--next"
           :aria-label="t(ui.lightbox.next)"
@@ -259,6 +263,7 @@ onBeforeUnmount(() => {
 /* ------------------------------------------------------------- controls */
 .lightbox__close,
 .lightbox__step {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;

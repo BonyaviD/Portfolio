@@ -5,6 +5,7 @@ import LiquidSculpture from "@/components/effects/LiquidSculpture.vue";
 import { useLocale } from "@/composables/useLocale";
 import { site, socialLinks } from "@/data/site";
 import { ui } from "@/data/ui";
+import { vStretch } from "@/utils/stretch";
 
 const { code, t } = useLocale();
 
@@ -91,7 +92,7 @@ function reset() {
 
         <ul class="contact__links" role="list" data-reveal="stagger">
           <li v-for="link in socialLinks" :key="link.id">
-            <a class="contact__link" :href="link.url" target="_blank" rel="noopener noreferrer">
+            <a v-stretch class="contact__link" :href="link.url" target="_blank" rel="noopener noreferrer">
               <Icon :name="link.icon" aria-hidden="true" />
               {{ t(link.label) }}
               <Icon name="lucide:arrow-up-right" class="contact__link-arrow" aria-hidden="true" />
@@ -121,7 +122,12 @@ function reset() {
             </span>
             <h3 class="sent__title">{{ t(ui.contact.sentTitle) }}</h3>
             <p class="sent__body">{{ t(ui.contact.sentBody) }}</p>
-            <button type="button" class="field__button field__button--quiet" @click="reset">
+            <button
+              v-stretch
+              type="button"
+              class="field__button field__button--quiet"
+              @click="reset"
+            >
               {{ t(ui.contact.sendAnother) }}
             </button>
           </div>
@@ -190,6 +196,7 @@ function reset() {
             </p>
 
             <button
+              v-stretch
               type="submit"
               class="field__button"
               :disabled="state === 'sending'"
@@ -247,6 +254,7 @@ function reset() {
 }
 
 .contact__link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
@@ -350,6 +358,7 @@ function reset() {
 }
 
 .field__button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -371,7 +380,7 @@ function reset() {
   background: var(--color-primary-strong);
 }
 
-.field__button:active:not(:disabled) {
+.field__button:active:not(:disabled, [data-stretching]) {
   transform: scale(0.97);
 }
 

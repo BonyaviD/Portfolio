@@ -6,6 +6,7 @@ import TheFooter from "@/components/layout/TheFooter.vue";
 import { useLocale } from "@/composables/useLocale";
 import { site } from "@/data/site";
 import { ui } from "@/data/ui";
+import { vStretch } from "@/utils/stretch";
 import LogoImage from "~/assets/img/brand/mark.svg";
 
 const { path, t } = useLocale();
@@ -23,6 +24,7 @@ const { path, t } = useLocale();
          wide screens and scroll away with the page on phones, where the bar
          has moved to the bottom. -->
     <NuxtLink
+      v-stretch
       :to="path('/')"
       class="app-shell__corner app-shell__brand liquid-glass"
       :aria-label="t(ui.nav.home, { name: t(site.displayName) })"

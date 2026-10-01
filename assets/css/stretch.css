@@ -1,0 +1,40 @@
+/* ============================================================================
+   Stretchy glass — the light and the gesture rules for `v-stretch`
+   (utils/stretch.js). The motion itself is written by the script; this is
+   what it needs from CSS.
+   ========================================================================== */
+
+[data-stretch] {
+  /* Vertical drags still scroll the page and two fingers still zoom; only
+     a sideways drag is left to the element to stretch. */
+  touch-action: pan-y pinch-zoom;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* The light where the finger is. Under the content: a stretching element has
+   a transform, which makes it a stacking context, and -1 then lands between
+   its background and its label. At rest it is fully transparent.
+
+   The host must be positioned. */
+[data-stretch]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle 4.5rem at var(--press-x, 50%) var(--press-y, 50%),
+    rgb(255 255 255 / 38%),
+    rgb(255 255 255 / 0%) 100%
+  );
+  opacity: var(--press, 0);
+  pointer-events: none;
+}
+
+/* The script moves it every frame. A transition on `scale` or `translate` -
+   the corner buttons have one for hover - would leave it trailing behind
+   the finger, so transitions pause until it is at rest again. */
+[data-stretching] {
+  transition: none !important;
+}

@@ -66,7 +66,7 @@ function footnoteFor(photo, numberFormat) {
 
 <template>
   <div class="photography">
-    <div class="photography__head">
+    <div class="photography__head" data-reveal>
       <h3 class="photography__title">
         <Icon name="lucide:camera" aria-hidden="true" />
         {{ t(ui.photography.title) }}
@@ -78,7 +78,7 @@ function footnoteFor(photo, numberFormat) {
     <!-- The channel these prints come from, as Telegram itself describes it.
          Absent when the feed fell back to the bundled photos, which do not
          come from a channel at all. -->
-    <article v-if="profile" class="channel">
+    <article v-if="profile" class="channel" data-reveal="start">
       <img
         v-if="profile.avatar"
         class="channel__avatar"
@@ -120,7 +120,7 @@ function footnoteFor(photo, numberFormat) {
 
     <!-- The wall is decorative chrome around content that also exists as a
          plain list below, which is what assistive tech and no-WebGL get. -->
-    <div class="wall" :class="{ 'wall--live': isActive }">
+    <div class="wall" :class="{ 'wall--live': isActive }" data-reveal="zoom">
       <div ref="wallEl" class="wall__stage" aria-hidden="true"></div>
 
       <p v-if="isActive" class="wall__hint" aria-hidden="true">

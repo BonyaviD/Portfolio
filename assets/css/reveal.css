@@ -1,0 +1,185 @@
+/* ============================================================================
+   Scroll reveal — the entrances. utils/reveal.js decides when each plays by
+   marking the element `data-revealed`; everything about how is here.
+
+   Only `html[data-motion="reveal"]` hides anything, and that attribute is set
+   only when the engine can run (see utils/reveal.js) - so without JavaScript,
+   under prefers-reduced-motion, or if anything goes wrong, nothing is hidden.
+
+   Every animation fills `backwards` and only from its first frame: it holds
+   the hidden pose through its delay, then hands the element back to its own
+   styles - hover transforms and all - the moment it ends.
+   ========================================================================== */
+
+html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+}
+
+/* Custom properties inherit, so each element states its own defaults rather
+   than picking up a variant or a delay from a revealed block around it. */
+[data-reveal] {
+  --reveal-name: reveal-rise;
+  --reveal-delay: 0ms;
+}
+
+[data-reveal][data-revealed] {
+  animation: var(--reveal-name) var(--duration-reveal) var(--ease-reveal) backwards;
+  animation-delay: var(--reveal-delay);
+}
+
+/* ------------------------------------------------------------------ rise */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--space-12);
+    scale: 0.97;
+    filter: blur(12px);
+  }
+}
+
+/* --------------------------------------------------------------- heading
+   The title comes up out of a slot as if from behind the line it sits on,
+   coming into focus as it climbs; then a beam of gold runs out from its
+   middle and fades. */
+[data-reveal="heading"] {
+  --reveal-name: reveal-heading;
+  position: relative;
+}
+
+@keyframes reveal-heading {
+  from {
+    opacity: 0;
+    translate: 0 0.9em;
+    filter: blur(10px);
+    clip-path: inset(0 -1em 100% -1em);
+  }
+
+  /* Wider than the box at the end, so no descender or glow is cut off in
+     the last frame before the clip is dropped. */
+  to {
+    clip-path: inset(-0.5em -1em -0.5em -1em);
+  }
+}
+
+[data-reveal="heading"][data-revealed]::after {
+  content: "";
+  position: absolute;
+  bottom: -0.3em;
+  left: 50%;
+  width: min(14rem, 70%);
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  box-shadow: 0 0 var(--space-3) var(--color-primary);
+  translate: -50% 0;
+  opacity: 0;
+  pointer-events: none;
+  animation: reveal-beam 1600ms var(--ease-reveal) 250ms both;
+}
+
+@keyframes reveal-beam {
+  0% {
+    opacity: 0;
+    scale: 0 1;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1 1;
+  }
+}
+
+/* ------------------------------------------------------------------ zoom
+   A large block tips up out of the page towards the viewer. No blur: on a
+   block this size a filter costs a repaint every frame. */
+[data-reveal="zoom"] {
+  --reveal-name: reveal-zoom;
+}
+
+@keyframes reveal-zoom {
+  from {
+    opacity: 0;
+    transform: perspective(80rem) translateY(var(--space-16)) rotateX(16deg) scale(0.88);
+  }
+}
+
+/* ---------------------------------------------------------- start / end
+   In from the side the text starts on, or the side it ends on, so the
+   Persian page mirrors the English one. */
+[data-reveal="start"],
+[data-reveal="end"] {
+  --reveal-name: reveal-side;
+}
+
+[data-reveal="start"] {
+  --reveal-from: -1;
+}
+
+[data-reveal="end"] {
+  --reveal-from: 1;
+}
+
+[dir="rtl"] [data-reveal="start"] {
+  --reveal-from: 1;
+}
+
+[dir="rtl"] [data-reveal="end"] {
+  --reveal-from: -1;
+}
+
+@keyframes reveal-side {
+  from {
+    opacity: 0;
+    translate: calc(var(--reveal-from) * var(--space-16)) 0;
+    scale: 0.96;
+  }
+}
+
+/* --------------------------------------------------------------- stagger
+   The list itself does not move; its items flip up into place one after
+   another, landing a touch past their mark and settling back. */
+[data-reveal="stagger"][data-revealed] {
+  animation: none;
+}
+
+[data-reveal="stagger"][data-revealed] > * {
+  animation: reveal-card var(--duration-reveal) var(--ease-reveal-settle) backwards;
+  animation-delay: calc(var(--reveal-index, 0) * var(--reveal-step));
+}
+
+@keyframes reveal-card {
+  from {
+    opacity: 0;
+    transform: perspective(60rem) translateY(var(--space-12)) rotateX(24deg) scale(0.9);
+  }
+}
+
+/* CSS cannot count siblings into a number, so the position is spelled out.
+   Past the sixteenth item the rest arrive together rather than keep the
+   visitor waiting. */
+[data-reveal="stagger"] > :nth-child(2) { --reveal-index: 1; }
+[data-reveal="stagger"] > :nth-child(3) { --reveal-index: 2; }
+[data-reveal="stagger"] > :nth-child(4) { --reveal-index: 3; }
+[data-reveal="stagger"] > :nth-child(5) { --reveal-index: 4; }
+[data-reveal="stagger"] > :nth-child(6) { --reveal-index: 5; }
+[data-reveal="stagger"] > :nth-child(7) { --reveal-index: 6; }
+[data-reveal="stagger"] > :nth-child(8) { --reveal-index: 7; }
+[data-reveal="stagger"] > :nth-child(9) { --reveal-index: 8; }
+[data-reveal="stagger"] > :nth-child(10) { --reveal-index: 9; }
+[data-reveal="stagger"] > :nth-child(11) { --reveal-index: 10; }
+[data-reveal="stagger"] > :nth-child(12) { --reveal-index: 11; }
+[data-reveal="stagger"] > :nth-child(13) { --reveal-index: 12; }
+[data-reveal="stagger"] > :nth-child(14) { --reveal-index: 13; }
+[data-reveal="stagger"] > :nth-child(15) { --reveal-index: 14; }
+[data-reveal="stagger"] > :nth-child(n + 16) { --reveal-index: 15; }
+
+/* Paper gets everything, whatever was still waiting on screen. */
+@media print {
+  html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
+    opacity: 1;
+  }
+}

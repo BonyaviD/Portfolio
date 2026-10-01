@@ -34,7 +34,7 @@ const chapterNumber = (index) => number(index + 1, { minimumIntegerDigits: 2 });
 
     <!-- ---------------------------------------------------------- story -->
     <BaseSection id="story" :title="t(ui.aboutPage.story)">
-      <ol class="story" role="list">
+      <ol class="story" role="list" data-reveal="stagger">
         <li v-for="(chapter, index) in aboutStory" :key="index" class="story__chapter">
           <span class="story__number" aria-hidden="true">{{ chapterNumber(index) }}</span>
           <h3 class="story__title">{{ t(chapter.title) }}</h3>
@@ -45,14 +45,13 @@ const chapterNumber = (index) => number(index + 1, { minimumIntegerDigits: 2 });
 
     <!-- ------------------------------------------------------ tech stack -->
     <BaseSection id="stack" :title="t(ui.aboutPage.stack)">
-      <ul class="stack" role="list">
+      <ul class="stack" role="list" data-reveal="stagger">
         <SkillTile
-          v-for="(skill, index) in coreStack"
+          v-for="skill in coreStack"
           :key="skill.icon"
           :name="t(skill.name)"
           :icon="skill.icon"
           :level="skill.level"
-          :index="index"
         />
       </ul>
     </BaseSection>
@@ -60,7 +59,7 @@ const chapterNumber = (index) => number(index + 1, { minimumIntegerDigits: 2 });
     <!-- ------------------------------------------------------------ cta -->
     <section id="contact" class="section" aria-labelledby="cta-heading">
       <div class="container">
-        <div class="cta">
+        <div class="cta" data-reveal="zoom">
           <span class="cta__glow" aria-hidden="true"></span>
           <p class="cta__eyebrow">{{ t(ui.aboutPage.ctaEyebrow) }}</p>
           <h2 id="cta-heading" class="cta__title">{{ t(ui.aboutPage.ctaTitle) }}</h2>
@@ -155,6 +154,7 @@ const chapterNumber = (index) => number(index + 1, { minimumIntegerDigits: 2 });
 /* ------------------------------------------------------------------ stack */
 /* Ten tiles: five across fills two even rows instead of leaving a half row. */
 .stack {
+  --reveal-step: 40ms;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--space-5);

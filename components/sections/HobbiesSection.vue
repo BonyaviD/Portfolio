@@ -14,7 +14,7 @@ const { t } = useLocale();
       <PhotographyBlock />
 
       <div class="gaming">
-        <div class="gaming__head">
+        <div class="gaming__head" data-reveal>
           <h3 class="gaming__title">
             <Icon name="lucide:gamepad-2" aria-hidden="true" />
             {{ t(ui.gaming.title) }}
@@ -25,7 +25,7 @@ const { t } = useLocale();
           </p>
         </div>
 
-        <ConsoleShelf />
+        <ConsoleShelf data-reveal="zoom" />
       </div>
     </div>
   </BaseSection>

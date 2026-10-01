@@ -219,4 +219,84 @@ const { t } = useLocale();
     padding-top: var(--space-16);
   }
 }
+
+/* ------------------------------------------------------------- the intro
+   The hero is on screen before anything is scrolled, so it does not wait for
+   the scroll reveal (utils/reveal.js): its entrance is plain CSS and plays as
+   the page first paints. The photo settles back from a slow push-in while
+   the copy arrives line by line over it. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero__media {
+    animation: hero-settle 2400ms var(--ease-reveal) backwards;
+  }
+
+  .hero__eyebrow {
+    animation: hero-drop var(--duration-reveal) var(--ease-reveal) 150ms backwards;
+  }
+
+  .hero__name {
+    animation: hero-name 1400ms var(--ease-reveal) 250ms backwards;
+  }
+
+  /* The tagline is the page's largest paint (see app.vue), so it is never
+     transparent: it paints at once, out of focus, and sharpens. Fading it in
+     would push LCP back by the length of the fade. */
+  .hero__tagline {
+    animation: hero-focus 1400ms var(--ease-reveal) backwards;
+  }
+
+  .hero__actions {
+    animation: hero-rise var(--duration-reveal) var(--ease-reveal-settle) 600ms backwards;
+  }
+
+  .hero__cue {
+    animation: hero-fade var(--duration-slower) var(--ease-standard) 1200ms backwards;
+  }
+}
+
+@keyframes hero-settle {
+  from {
+    scale: 1.12;
+  }
+}
+
+@keyframes hero-drop {
+  from {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--space-6));
+    filter: blur(8px);
+  }
+}
+
+/* Scale and blur rather than letter-spacing: tracking pulls Persian letters
+   apart from one another. */
+@keyframes hero-name {
+  from {
+    opacity: 0;
+    translate: 0 0.35em;
+    scale: 1.12;
+    filter: blur(18px);
+  }
+}
+
+@keyframes hero-focus {
+  from {
+    translate: 0 var(--space-4);
+    filter: blur(14px);
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--space-10);
+    scale: 0.94;
+  }
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+}
 </style>

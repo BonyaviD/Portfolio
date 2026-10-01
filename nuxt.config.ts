@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { revealBody, revealHead } from "./utils/reveal.js";
+
 export default defineNuxtConfig({
   ssr: true,
   compatibilityDate: "2024-04-03",
@@ -16,6 +18,15 @@ export default defineNuxtConfig({
         { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
         { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       ],
+      /**
+       * The scroll reveal, inline so it never waits on the app bundle - see
+       * utils/reveal.js. The head half hides what is still to come before
+       * anything paints; the body half watches for it to be scrolled to.
+       */
+      script: [
+        { innerHTML: `(${revealHead})()`, tagPosition: "head" },
+        { innerHTML: `(${revealBody})()`, tagPosition: "bodyClose" },
+      ],
     },
   },
 
@@ -29,6 +40,7 @@ export default defineNuxtConfig({
     "~/assets/css/reset.css",
     "~/assets/css/base.css",
     "~/assets/css/utilities.css",
+    "~/assets/css/reveal.css",
     "~/assets/css/scrollbar.css",
   ],
 

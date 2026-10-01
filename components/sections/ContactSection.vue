@@ -87,9 +87,9 @@ function reset() {
 
     <div class="contact">
       <div class="contact__intro">
-        <p class="contact__lede">{{ t(ui.contact.lede) }}</p>
+        <p class="contact__lede" data-reveal>{{ t(ui.contact.lede) }}</p>
 
-        <ul class="contact__links" role="list">
+        <ul class="contact__links" role="list" data-reveal="stagger">
           <li v-for="link in socialLinks" :key="link.id">
             <a class="contact__link" :href="link.url" target="_blank" rel="noopener noreferrer">
               <Icon :name="link.icon" aria-hidden="true" />
@@ -99,7 +99,7 @@ function reset() {
           </li>
         </ul>
 
-        <p class="contact__where">
+        <p class="contact__where" data-reveal>
           <Icon name="lucide:map-pin" aria-hidden="true" />
           {{ t(site.location.city) }} &middot; {{ t(ui.contact.replies) }}
         </p>
@@ -111,7 +111,9 @@ function reset() {
         <div class="contact__stage" aria-hidden="true"></div>
       </div>
 
-      <div class="contact__panel">
+      <!-- Not .contact__intro as a whole: the sculpture measures the stage
+           inside it, and must not measure it mid-flight. -->
+      <div class="contact__panel" data-reveal="end">
         <transition name="swap" mode="out-in">
           <div v-if="state === 'sent'" key="sent" class="sent">
             <span class="sent__mark" aria-hidden="true">

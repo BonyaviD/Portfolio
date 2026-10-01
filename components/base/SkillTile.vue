@@ -8,8 +8,9 @@ import { ui } from "@/data/ui";
  * A frosted glass skill tile, styled after an iOS home-screen icon: squircle
  * corners, a lit top edge, and a spring-loaded tilt that follows the pointer.
  *
- * Two layers on purpose - the <li> owns the entrance animation, the surface
- * owns the tilt - so the two transforms never fight each other.
+ * Two layers on purpose - the <li> is left free for the list's entrance
+ * (assets/css/reveal.css), the surface owns the tilt - so the two transforms
+ * never fight each other.
  */
 const props = defineProps({
   name: { type: String, required: true },
@@ -20,10 +21,6 @@ const props = defineProps({
     default: "",
     validator: (value) => value === "" || SKILL_LEVELS.includes(value),
   },
-  /** Drives the staggered entrance delay. */
-  index: { type: Number, default: 0 },
-  /** Parent-controlled: flips on when the grid scrolls into view. */
-  revealed: { type: Boolean, default: true },
 });
 
 const { t } = useLocale();
@@ -65,9 +62,7 @@ function resetTilt() {
 <template>
   <li
     class="skill-tile"
-    :class="{ 'is-revealed': revealed }"
     :style="{
-      '--tile-index': index,
       '--tilt-x': `${tiltX}deg`,
       '--tilt-y': `${tiltY}deg`,
       '--glow-x': `${glowX}%`,
@@ -101,36 +96,11 @@ function resetTilt() {
 </template>
 
 <style scoped>
-/* ---------------------------------------------- layer 1: entrance + depth */
+/* ------------------------------------------------------- layer 1: depth */
 .skill-tile {
   list-style: none;
   /* Depth for the child's rotation; per-tile so each tilts independently. */
   perspective: 42rem;
-}
-
-/* Hidden only while a parent is deliberately holding the entrance back, so a
-   tile is never invisible just because its animation did not get to run. */
-.skill-tile:not(.is-revealed) {
-  opacity: 0;
-}
-
-/* `backwards` holds the start frame through the stagger delay (no flash) and
-   then hands back to the base style, which is visible. */
-.skill-tile.is-revealed {
-  animation: tile-in var(--duration-slow) cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
-  animation-delay: calc(var(--tile-index) * 35ms);
-}
-
-@keyframes tile-in {
-  from {
-    opacity: 0;
-    transform: translateY(var(--space-6)) scale(0.96);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* ------------------------------------------------------ layer 2: the glass */
@@ -293,12 +263,6 @@ function resetTilt() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skill-tile,
-  .skill-tile:not(.is-revealed) {
-    opacity: 1;
-    animation: none;
-  }
-
   .skill-tile__surface {
     transform: none;
   }

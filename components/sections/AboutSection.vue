@@ -21,7 +21,7 @@ const { t, number } = useLocale();
 <template>
   <BaseSection id="about" :title="t(ui.sections.about)" :heading-level="headingLevel">
     <div class="about">
-      <figure class="about__portrait">
+      <figure class="about__portrait" data-reveal="zoom">
         <span class="about__halo" aria-hidden="true"></span>
         <ProfilePortrait class="about__photo" :alt="t(ui.about.portraitAlt)" fill />
 
@@ -35,7 +35,7 @@ const { t, number } = useLocale();
         </figcaption>
       </figure>
 
-      <div class="about__intro">
+      <div class="about__intro" data-reveal>
         <p class="about__eyebrow">{{ t(site.role) }}</p>
         <p class="about__name">{{ t(site.displayName) }}</p>
         <p class="about__lede">{{ t(aboutIntro) }}</p>
@@ -64,7 +64,7 @@ const { t, number } = useLocale();
         </div>
       </div>
 
-      <ul class="about__highlights" role="list">
+      <ul class="about__highlights" role="list" data-reveal="stagger">
         <li v-for="item in aboutHighlights" :key="item.icon" class="about__highlight">
           <span class="about__icon" aria-hidden="true">
             <Icon :name="item.icon" />
@@ -179,6 +179,8 @@ const { t, number } = useLocale();
 
 /* ------------------------------------------------------------------ intro */
 .about__intro {
+  /* Follows the portrait in rather than racing it. */
+  --reveal-delay: 150ms;
   display: flex;
   flex-direction: column;
   justify-content: center;

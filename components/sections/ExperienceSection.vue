@@ -10,16 +10,15 @@ const { t } = useLocale();
 
 <template>
   <BaseSection id="experience" :title="t(ui.sections.experience)">
-    <ul class="projects" role="list">
+    <ul class="projects" role="list" data-reveal="stagger">
       <ProjectCard
-        v-for="(project, index) in projects"
+        v-for="project in projects"
         :key="project.id"
         :name="t(project.name)"
         :url="project.url"
         :image="project.image"
         :description="t(project.description)"
         :tech="project.tech"
-        :index="index"
       />
     </ul>
   </BaseSection>
@@ -28,6 +27,8 @@ const { t } = useLocale();
 <style scoped>
 /* ------------------------------------------------------------ project grid */
 .projects {
+  /* Few, large cards: each gets a beat of its own. */
+  --reveal-step: 110ms;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
   gap: var(--space-5);

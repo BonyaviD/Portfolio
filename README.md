@@ -84,6 +84,26 @@ on wide screens, and at the bottom of the screen as a tab bar under 48rem. The
 monogram and the language switch sit in their own glass buttons in the corners
 (`layouts/default.vue`), so the bar carries nothing but the sections.
 
+### Scroll reveal
+
+Every section below the fold waits, hidden, until it is scrolled to, and then
+makes its entrance; the hero plays its own intro as the page first paints.
+Markup opts in with one attribute:
+
+| attribute | entrance |
+| --- | --- |
+| `data-reveal` | rises into place out of a blur |
+| `data-reveal="heading"` | up out of a mask, then a beam of gold (BaseSection adds it to every title) |
+| `data-reveal="zoom"` | a large block tips forward out of the page |
+| `data-reveal="start"` / `"end"` | slides in from the reading start or end, mirrored in Persian |
+| `data-reveal="stagger"` | a list whose items flip up one after another (`--reveal-step` sets the gap) |
+
+`utils/reveal.js` decides when each one plays and `assets/css/reveal.css` how.
+The engine is inlined into the HTML rather than shipped as a Nuxt plugin, so
+it never waits on the app bundle, and every way it can fail - no JavaScript,
+`prefers-reduced-motion`, an observer that never reports - leaves the
+content visible.
+
 ### Languages
 
 The site is in English at the root (`/`, `/about`) and in Persian under `/fa`

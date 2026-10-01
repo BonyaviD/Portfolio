@@ -8,6 +8,10 @@ import SectionHeading from "@/components/base/SectionHeading.vue";
  *
  * Anything passed to the `backdrop` slot is painted full-bleed behind the
  * content, clipped to the section box.
+ *
+ * The heading makes its entrance when the section is scrolled to; mark the
+ * blocks inside with `data-reveal` to have them follow it in (see
+ * utils/reveal.js for the variants).
  */
 const props = defineProps({
   /** Anchor id; also derives the heading id used by aria-labelledby. */
@@ -32,7 +36,13 @@ const headingId = computed(() => (props.id ? `${props.id}-heading` : undefined))
     </div>
 
     <div class="section__body" :class="{ container: contained }">
-      <SectionHeading v-if="title" :id="headingId" :as="headingLevel" class="section__heading">
+      <SectionHeading
+        v-if="title"
+        :id="headingId"
+        :as="headingLevel"
+        class="section__heading"
+        data-reveal="heading"
+      >
         {{ title }}
       </SectionHeading>
       <slot />

@@ -16,8 +16,6 @@ const props = defineProps({
   image: { type: String, required: true },
   description: { type: String, default: "" },
   tech: { type: Array, default: () => [] },
-  /** Drives the staggered entrance delay. */
-  index: { type: Number, default: 0 },
 });
 
 const { t } = useLocale();
@@ -33,7 +31,7 @@ const domain = computed(() => {
 </script>
 
 <template>
-  <li class="project" :style="{ '--card-index': index }">
+  <li class="project">
     <NuxtLink
       :to="url"
       target="_blank"
@@ -76,15 +74,6 @@ const domain = computed(() => {
 <style scoped>
 .project {
   list-style: none;
-  animation: card-in var(--duration-slow) var(--ease-spring) backwards;
-  animation-delay: calc(var(--card-index) * 70ms);
-}
-
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(var(--space-6));
-  }
 }
 
 .project__link {
@@ -246,11 +235,5 @@ const domain = computed(() => {
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .project {
-    animation: none;
-  }
 }
 </style>

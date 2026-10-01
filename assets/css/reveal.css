@@ -1,14 +1,19 @@
 /* ============================================================================
-   Scroll reveal — the entrances. utils/reveal.js decides when each plays by
-   marking the element `data-revealed`; everything about how is here.
+   Scroll reveal — the entrances, and the depth sections move through as they
+   are scrolled. utils/reveal.js decides when each entrance plays by marking
+   the element `data-revealed`; everything about how is here.
 
    Only `html[data-motion="reveal"]` hides anything, and that attribute is set
    only when the engine can run (see utils/reveal.js) - so without JavaScript,
    under prefers-reduced-motion, or if anything goes wrong, nothing is hidden.
 
-   Every animation fills `backwards` and only from its first frame: it holds
+   Every entrance fills `backwards` and only from its first frame: it holds
    the hidden pose through its delay, then hands the element back to its own
-   styles - hover transforms and all - the moment it ends.
+   styles - hover transforms and all - the moment it ends. Every 3D pose
+   carries its own perspective(), so it reads as depth whatever the element
+   is nested in, and names its own hinge (transform-origin) in both its first
+   and last frame, so the element's resting origin - which its own hover
+   effects rely on - is never changed.
    ========================================================================== */
 
 html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
@@ -27,37 +32,49 @@ html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
   animation-delay: var(--reveal-delay);
 }
 
-/* ------------------------------------------------------------------ rise */
+/* ------------------------------------------------------------------ rise
+   Stands up out of the page: tipped back and sunk below, it swings upright
+   and comes into focus. */
 @keyframes reveal-rise {
   from {
+    transform-origin: 50% 100%;
     opacity: 0;
-    translate: 0 var(--space-12);
-    scale: 0.97;
+    transform: perspective(var(--reveal-perspective)) translate3d(0, var(--space-16), -12rem)
+      rotateX(38deg);
     filter: blur(12px);
+  }
+
+  to {
+    transform-origin: 50% 100%;
   }
 }
 
 /* --------------------------------------------------------------- heading
-   The title comes up out of a slot as if from behind the line it sits on,
-   coming into focus as it climbs; then a beam of gold runs out from its
-   middle and fades. */
+   Each word flips up on its own hinge, one after another, then a beam of
+   gold runs out from the middle and fades. Words, never letters: Persian
+   letters join, and pulling them apart would break the script.
+
+   The heading itself only switches on; BaseSection wraps the words. */
 [data-reveal="heading"] {
-  --reveal-name: reveal-heading;
+  --reveal-name: none;
   position: relative;
 }
 
-@keyframes reveal-heading {
+.reveal__word {
+  display: inline-block;
+  transform-origin: 50% 100%;
+}
+
+[data-reveal="heading"][data-revealed] .reveal__word {
+  animation: reveal-word var(--duration-reveal) var(--ease-reveal-settle) backwards;
+  animation-delay: calc(var(--word, 0) * 110ms);
+}
+
+@keyframes reveal-word {
   from {
     opacity: 0;
-    translate: 0 0.9em;
-    filter: blur(10px);
-    clip-path: inset(0 -1em 100% -1em);
-  }
-
-  /* Wider than the box at the end, so no descender or glow is cut off in
-     the last frame before the clip is dropped. */
-  to {
-    clip-path: inset(-0.5em -1em -0.5em -1em);
+    transform: perspective(var(--reveal-perspective)) translate3d(0, 0.6em, -4rem) rotateX(-100deg);
+    filter: blur(6px);
   }
 }
 
@@ -66,15 +83,15 @@ html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
   position: absolute;
   bottom: -0.3em;
   left: 50%;
-  width: min(14rem, 70%);
+  width: min(16rem, 80%);
   height: 2px;
   border-radius: var(--radius-pill);
   background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-  box-shadow: 0 0 var(--space-3) var(--color-primary);
+  box-shadow: 0 0 var(--space-4) var(--color-primary);
   translate: -50% 0;
   opacity: 0;
   pointer-events: none;
-  animation: reveal-beam 1600ms var(--ease-reveal) 250ms both;
+  animation: reveal-beam 1800ms var(--ease-reveal) 450ms both;
 }
 
 @keyframes reveal-beam {
@@ -94,8 +111,9 @@ html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
 }
 
 /* ------------------------------------------------------------------ zoom
-   A large block tips up out of the page towards the viewer. No blur: on a
-   block this size a filter costs a repaint every frame. */
+   A large block flies up out of the depth of the page, turning to face the
+   viewer as it arrives. No blur: on a block this size a filter costs a
+   repaint every frame. */
 [data-reveal="zoom"] {
   --reveal-name: reveal-zoom;
 }
@@ -103,16 +121,17 @@ html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
 @keyframes reveal-zoom {
   from {
     opacity: 0;
-    transform: perspective(80rem) translateY(var(--space-16)) rotateX(16deg) scale(0.88);
+    transform: perspective(var(--reveal-perspective)) translate3d(0, var(--space-24), -40rem)
+      rotateX(32deg) rotateZ(-4deg);
   }
 }
 
 /* ---------------------------------------------------------- start / end
-   In from the side the text starts on, or the side it ends on, so the
-   Persian page mirrors the English one. */
+   Swings in like a door hinged on the side it comes from - the side the
+   text starts on, or the side it ends on - so Persian mirrors English. */
 [data-reveal="start"],
 [data-reveal="end"] {
-  --reveal-name: reveal-side;
+  --reveal-name: reveal-swing;
 }
 
 [data-reveal="start"] {
@@ -131,19 +150,34 @@ html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
   --reveal-from: -1;
 }
 
-@keyframes reveal-side {
+@keyframes reveal-swing {
   from {
+    transform-origin: calc(50% + var(--reveal-from) * 50%) 50%;
     opacity: 0;
-    translate: calc(var(--reveal-from) * var(--space-16)) 0;
-    scale: 0.96;
+    transform: perspective(var(--reveal-perspective))
+      translate3d(calc(var(--reveal-from) * var(--space-16)), 0, -10rem)
+      rotateY(calc(var(--reveal-from) * -70deg));
+  }
+
+  to {
+    transform-origin: calc(50% + var(--reveal-from) * 50%) 50%;
   }
 }
 
 /* --------------------------------------------------------------- stagger
-   The list itself does not move; its items flip up into place one after
-   another, landing a touch past their mark and settling back. */
+   The list itself does not move; its items are dealt in one after another,
+   out of the depth, turning in from alternate sides, and land a touch past
+   their mark before settling. */
 [data-reveal="stagger"][data-revealed] {
   animation: none;
+}
+
+[data-reveal="stagger"] > * {
+  --reveal-turn: 1;
+}
+
+[data-reveal="stagger"] > :nth-child(even) {
+  --reveal-turn: -1;
 }
 
 [data-reveal="stagger"][data-revealed] > * {
@@ -153,8 +187,15 @@ html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
 
 @keyframes reveal-card {
   from {
+    transform-origin: 50% 100%;
     opacity: 0;
-    transform: perspective(60rem) translateY(var(--space-12)) rotateX(24deg) scale(0.9);
+    transform: perspective(var(--reveal-perspective)) translate3d(0, var(--space-24), -20rem)
+      rotateX(55deg) rotateY(calc(var(--reveal-turn) * 25deg))
+      rotateZ(calc(var(--reveal-turn) * -6deg));
+  }
+
+  to {
+    transform-origin: 50% 100%;
   }
 }
 
@@ -176,6 +217,57 @@ html[data-motion="reveal"] [data-reveal]:not([data-revealed]) {
 [data-reveal="stagger"] > :nth-child(14) { --reveal-index: 13; }
 [data-reveal="stagger"] > :nth-child(15) { --reveal-index: 14; }
 [data-reveal="stagger"] > :nth-child(n + 16) { --reveal-index: 15; }
+
+/* ------------------------------------------------------------ section depth
+   Tied to the scroll position rather than played once: a section's content
+   comes up out of the page as it scrolls in, lies flat while it is being
+   read, and tips away as it scrolls out - so the page moves in depth for as
+   long as it is moving at all.
+
+   Transform only. Opacity here would cut every glass panel inside off from
+   the page behind it (anything below 1 isolates their backdrop blur).
+   Browsers without scroll-driven animations simply keep the page flat. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-depth] {
+      animation:
+        depth-arrive linear backwards,
+        depth-leave linear forwards;
+      animation-timeline: view(), view();
+      /* In over the first 60% of a screen of scrolling, out over the last
+         35% - whatever the section's height, it is flat in between. */
+      animation-range:
+        entry 0% entry 60vh,
+        exit calc(100% - 35vh) exit 100%;
+    }
+  }
+}
+
+@keyframes depth-arrive {
+  from {
+    transform-origin: 50% 0;
+    transform: perspective(var(--reveal-perspective)) translate3d(0, var(--space-16), -8rem)
+      rotateX(-16deg);
+  }
+
+  to {
+    transform-origin: 50% 0;
+    transform: perspective(var(--reveal-perspective)) translate3d(0, 0, 0) rotateX(0);
+  }
+}
+
+@keyframes depth-leave {
+  from {
+    transform-origin: 50% 100%;
+    transform: perspective(var(--reveal-perspective)) translate3d(0, 0, 0) rotateX(0);
+  }
+
+  to {
+    transform-origin: 50% 100%;
+    transform: perspective(var(--reveal-perspective)) translate3d(0, calc(-1 * var(--space-12)), -10rem)
+      rotateX(14deg);
+  }
+}
 
 /* Paper gets everything, whatever was still waiting on screen. */
 @media print {

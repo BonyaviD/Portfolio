@@ -58,7 +58,7 @@ const chapterNumber = (index) => number(index + 1, { minimumIntegerDigits: 2 });
 
     <!-- ------------------------------------------------------------ cta -->
     <section id="contact" class="section" aria-labelledby="cta-heading">
-      <div class="container">
+      <div class="container" data-depth>
         <div class="cta" data-reveal="zoom">
           <span class="cta__glow" aria-hidden="true"></span>
           <p class="cta__eyebrow">{{ t(ui.aboutPage.ctaEyebrow) }}</p>

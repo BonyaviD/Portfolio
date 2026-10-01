@@ -87,16 +87,22 @@ monogram and the language switch sit in their own glass buttons in the corners
 ### Scroll reveal
 
 Every section below the fold waits, hidden, until it is scrolled to, and then
-makes its entrance; the hero plays its own intro as the page first paints.
-Markup opts in with one attribute:
+makes its entrance in 3D; the hero plays its own intro as the page first
+paints. Markup opts in with one attribute:
 
 | attribute | entrance |
 | --- | --- |
-| `data-reveal` | rises into place out of a blur |
-| `data-reveal="heading"` | up out of a mask, then a beam of gold (BaseSection adds it to every title) |
-| `data-reveal="zoom"` | a large block tips forward out of the page |
-| `data-reveal="start"` / `"end"` | slides in from the reading start or end, mirrored in Persian |
-| `data-reveal="stagger"` | a list whose items flip up one after another (`--reveal-step` sets the gap) |
+| `data-reveal` | stands up out of the page and comes into focus |
+| `data-reveal="heading"` | each word flips up on its own hinge, then a beam of gold (BaseSection adds it to every title) |
+| `data-reveal="zoom"` | a large block flies up out of the depth of the page |
+| `data-reveal="start"` / `"end"` | swings in like a door from the reading start or end, mirrored in Persian |
+| `data-reveal="stagger"` | a list whose items are dealt in from alternate sides (`--reveal-step` sets the gap) |
+
+On top of the one-off entrances, `data-depth` ties an element to the scroll
+position itself: every section body comes up out of the page as it scrolls
+in, lies flat while it is read, and tips away as it scrolls out, and the hero
+sinks back as it is scrolled away. These use CSS scroll-driven animations;
+a browser without them keeps the page flat.
 
 `utils/reveal.js` decides when each one plays and `assets/css/reveal.css` how.
 The engine is inlined into the HTML rather than shipped as a Nuxt plugin, so

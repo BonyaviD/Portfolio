@@ -9,9 +9,11 @@ import SectionHeading from "@/components/base/SectionHeading.vue";
  * Anything passed to the `backdrop` slot is painted full-bleed behind the
  * content, clipped to the section box.
  *
- * The heading makes its entrance when the section is scrolled to; mark the
- * blocks inside with `data-reveal` to have them follow it in (see
- * utils/reveal.js for the variants).
+ * The heading makes its entrance when the section is scrolled to, a word at
+ * a time; mark the blocks inside with `data-reveal` to have them follow it
+ * in (see utils/reveal.js for the variants). The body also moves through
+ * depth as it scrolls in and out - see "section depth" in
+ * assets/css/reveal.css.
  */
 const props = defineProps({
   /** Anchor id; also derives the heading id used by aria-labelledby. */
@@ -23,6 +25,9 @@ const props = defineProps({
 });
 
 const headingId = computed(() => (props.id ? `${props.id}-heading` : undefined));
+
+/** The title by words, so each can make its own entrance. */
+const titleWords = computed(() => props.title.split(/\s+/).filter(Boolean));
 </script>
 
 <template>
@@ -35,7 +40,7 @@ const headingId = computed(() => (props.id ? `${props.id}-heading` : undefined))
       <slot name="backdrop" />
     </div>
 
-    <div class="section__body" :class="{ container: contained }">
+    <div class="section__body" :class="{ container: contained }" data-depth>
       <SectionHeading
         v-if="title"
         :id="headingId"
@@ -43,7 +48,10 @@ const headingId = computed(() => (props.id ? `${props.id}-heading` : undefined))
         class="section__heading"
         data-reveal="heading"
       >
-        {{ title }}
+        <template v-for="(word, index) in titleWords" :key="index">
+          <span class="reveal__word" :style="{ '--word': index }">{{ word }}</span>
+          {{ index < titleWords.length - 1 ? " " : "" }}
+        </template>
       </SectionHeading>
       <slot />
     </div>

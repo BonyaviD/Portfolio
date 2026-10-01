@@ -157,12 +157,15 @@
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
   /* Entrances (assets/css/reveal.css): long enough to be watched, and an
      ease that spends most of that time arriving rather than leaving. */
-  --duration-reveal: 1100ms;
+  --duration-reveal: 1300ms;
   --ease-reveal: cubic-bezier(0.19, 1, 0.22, 1);
   /* Lands a touch past its mark and settles back - for cards and tiles. */
-  --ease-reveal-settle: cubic-bezier(0.22, 1.25, 0.36, 1);
+  --ease-reveal-settle: cubic-bezier(0.2, 1.3, 0.35, 1);
   /* The gap between one list item's entrance and the next. */
-  --reveal-step: 70ms;
+  --reveal-step: 90ms;
+  /* The camera distance for every 3D entrance: near enough that a turn
+     reads as depth on a phone, far enough not to distort. */
+  --reveal-perspective: 60rem;
 
   /* ---------------------------------------------------------------- z-index */
   --z-behind: -1;

@@ -302,6 +302,22 @@ export function useLiquidSculpture(containerRef, options = {}) {
     let worldPerPx = 0.01;
     let size = { width: 1, height: 1 };
 
+    /**
+     * Where an element sits on the page by layout alone. A bounding rect
+     * would include transforms, and the section body the stage lives in
+     * tilts through depth as it scrolls (assets/css/reveal.css) - measured
+     * that way the piece would chase the tilt instead of staying put.
+     */
+    function layoutBox(element) {
+      let left = 0;
+      let top = 0;
+      for (let node = element; node; node = node.offsetParent) {
+        left += node.offsetLeft;
+        top += node.offsetTop;
+      }
+      return { left, top, width: element.offsetWidth, height: element.offsetHeight };
+    }
+
     /** The box the piece belongs in, laid out by the page itself. */
     const stage = options.stage
       ? container.closest("section")?.querySelector(options.stage) ?? null
@@ -324,8 +340,8 @@ export function useLiquidSculpture(containerRef, options = {}) {
       renderer.setSize(Math.round(width * renderScale), bufferHeight, false);
       uniforms.uResolution.value.set(width, height);
 
-      const frame = container.getBoundingClientRect();
-      const box = stage?.getBoundingClientRect();
+      const frame = layoutBox(container);
+      const box = stage && layoutBox(stage);
       const fits = box && box.width > 0 && box.height > 0;
       const centre = fits
         ? { x: box.left + box.width / 2 - frame.left, y: box.top + box.height / 2 - frame.top }
@@ -362,8 +378,8 @@ export function useLiquidSculpture(containerRef, options = {}) {
     function followStage(now) {
       if (!stage || now < nextCheck) return;
       nextCheck = now + 500;
-      const frame = container.getBoundingClientRect();
-      const box = stage.getBoundingClientRect();
+      const frame = layoutBox(container);
+      const box = layoutBox(stage);
       const key = [box.left - frame.left, box.top - frame.top, box.width, box.height, frame.width, frame.height]
         .map(Math.round)
         .join(",");
